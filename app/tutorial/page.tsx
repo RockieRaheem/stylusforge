@@ -13,11 +13,620 @@ interface Tutorial {
   locked: boolean;
   icon: string;
   color: string;
+  sections: LessonSection[];
+}
+
+interface LessonSection {
+  id: number;
+  title: string;
+  content: string;
+  codeExample?: string;
+  language?: string;
+  tip?: string;
+}
+
+interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  starterCode: string;
+  solution: string;
+  hints: string[];
 }
 
 export default function TutorialPage() {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'basics' | 'advanced' | 'defi'>('all');
   const [selectedTutorial, setSelectedTutorial] = useState<number | null>(null);
+  const [activeSection, setActiveSection] = useState<number>(0);
+  const [showHint, setShowHint] = useState<boolean>(false);
+  const [userCode, setUserCode] = useState<string>('');
+  const [showSolution, setShowSolution] = useState<boolean>(false);
+
+  const tutorialContent: Record<number, { sections: LessonSection[], assignment: Assignment }> = {
+    1: {
+      sections: [
+        {
+          id: 1,
+          title: 'Introduction to Stylus',
+          content: `Stylus is Arbitrum's next-generation programming environment that lets you write smart contracts in Rust, C, and C++. 
+          
+Unlike traditional EVM contracts written in Solidity, Stylus contracts are compiled to WebAssembly (WASM), which offers:
+
+• **10-100x lower gas costs** for compute-intensive operations
+• **Memory-safe execution** with Rust's ownership system
+• **Access to existing Rust libraries** and tooling
+• **Full EVM compatibility** - can call and be called by Solidity contracts
+
+Stylus opens up blockchain development to millions of developers already familiar with these languages.`,
+          tip: 'Stylus contracts can be up to 100x cheaper to execute than equivalent Solidity contracts!'
+        },
+        {
+          id: 2,
+          title: 'Setting Up Your Environment',
+          content: `Before writing your first contract, you need to set up your development environment.
+
+**Prerequisites:**
+1. Rust toolchain (rustc, cargo)
+2. Stylus CLI tool
+3. An Arbitrum-compatible wallet
+
+**Installation Steps:**
+
+First, install Rust if you haven't already:`,
+          codeExample: `# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install Stylus CLI
+cargo install --force cargo-stylus
+
+# Verify installation
+cargo stylus --version`,
+          language: 'bash'
+        },
+        {
+          id: 3,
+          title: 'Creating Your First Project',
+          content: `Let's create a simple counter contract that demonstrates the basics of Stylus development.
+
+**Project Structure:**
+A Stylus project follows Rust's standard project structure with some additions:`,
+          codeExample: `# Create a new Stylus project
+cargo stylus new my_counter
+
+# Project structure:
+my_counter/
+├── Cargo.toml          # Dependencies and metadata
+├── src/
+│   └── lib.rs         # Your contract code
+└── .cargo/
+    └── config.toml    # Build configuration`,
+          language: 'bash',
+          tip: 'Always use cargo stylus commands instead of regular cargo for Stylus-specific tasks.'
+        },
+        {
+          id: 4,
+          title: 'Writing Your First Contract',
+          content: `Now let's write a simple contract. Every Stylus contract needs to import the SDK and define storage.
+
+**Key Concepts:**
+• **#[storage]** - Marks a struct as contract storage
+• **#[external]** - Marks functions callable from outside
+• **StorageType** - Trait for types that can be stored on-chain`,
+          codeExample: `use stylus_sdk::{prelude::*, alloy_primitives::U256};
+
+// Define contract storage
+#[storage]
+pub struct Counter {
+    count: StorageU256,  // Persistent storage
+}
+
+// Implement contract methods
+#[external]
+impl Counter {
+    // Initialize the counter
+    pub fn initialize(&mut self) {
+        self.count.set(U256::ZERO);
+    }
+
+    // Increment the counter
+    pub fn increment(&mut self) {
+        let current = self.count.get();
+        self.count.set(current + U256::from(1));
+    }
+
+    // Read the current count
+    pub fn get(&self) -> U256 {
+        self.count.get()
+    }
+}`,
+          language: 'rust'
+        },
+        {
+          id: 5,
+          title: 'Understanding Storage',
+          content: `Storage in Stylus works differently from memory. Understanding this is crucial:
+
+**Storage Types:**
+• **StorageU256** - Unsigned 256-bit integers
+• **StorageBool** - Boolean values
+• **StorageAddress** - Ethereum addresses
+• **StorageVec<T>** - Dynamic arrays
+• **StorageMap<K, V>** - Key-value mappings
+
+**Important Notes:**
+- Storage is persistent across transactions
+- Reading storage costs gas
+- Writing storage costs even more gas
+- Always minimize storage operations`,
+          codeExample: `#[storage]
+pub struct MyContract {
+    owner: StorageAddress,
+    balance: StorageU256,
+    is_active: StorageBool,
+    users: StorageVec<StorageAddress>,
+    balances: StorageMap<StorageAddress, StorageU256>,
+}`,
+          language: 'rust',
+          tip: 'Use memory for temporary calculations and storage only for data that must persist!'
+        }
+      ],
+      assignment: {
+        id: 1,
+        title: 'Build a Simple Counter',
+        description: 'Create a counter contract with increment, decrement, and reset functionality. The contract should maintain a count value and allow users to modify it.',
+        starterCode: `use stylus_sdk::{prelude::*, alloy_primitives::U256};
+
+#[storage]
+pub struct Counter {
+    // TODO: Add a count storage variable
+}
+
+#[external]
+impl Counter {
+    // TODO: Implement initialize function
+    
+    // TODO: Implement increment function
+    
+    // TODO: Implement decrement function
+    
+    // TODO: Implement reset function
+    
+    // TODO: Implement get function
+}`,
+        solution: `use stylus_sdk::{prelude::*, alloy_primitives::U256};
+
+#[storage]
+pub struct Counter {
+    count: StorageU256,
+}
+
+#[external]
+impl Counter {
+    pub fn initialize(&mut self) {
+        self.count.set(U256::ZERO);
+    }
+    
+    pub fn increment(&mut self) {
+        let current = self.count.get();
+        self.count.set(current + U256::from(1));
+    }
+    
+    pub fn decrement(&mut self) {
+        let current = self.count.get();
+        if current > U256::ZERO {
+            self.count.set(current - U256::from(1));
+        }
+    }
+    
+    pub fn reset(&mut self) {
+        self.count.set(U256::ZERO);
+    }
+    
+    pub fn get(&self) -> U256 {
+        self.count.get()
+    }
+}`,
+        hints: [
+          'Use StorageU256 for the count variable',
+          'Remember to check for underflow in decrement',
+          'The get function should be a view function (use &self, not &mut self)',
+          'Initialize sets the count to zero using U256::ZERO'
+        ]
+      }
+    },
+    2: {
+      sections: [
+        {
+          id: 1,
+          title: 'Storage Deep Dive',
+          content: `Storage is the persistent data layer of your smart contract. Unlike memory, which is cleared after each function call, storage persists between transactions and even after contract upgrades.
+
+**Storage Costs:**
+- First write to a slot: ~20,000 gas
+- Subsequent writes: ~5,000 gas
+- Reading: ~200 gas
+
+**Best Practices:**
+• Pack multiple values into single storage slots when possible
+• Use events to store data that doesn't need to be read on-chain
+• Cache frequently-read values in memory
+• Use storage pointers to avoid unnecessary copies`,
+          tip: 'Optimizing storage access can reduce your gas costs by 50-90%!'
+        },
+        {
+          id: 2,
+          title: 'Storage Types in Detail',
+          content: `Stylus provides several storage primitives. Let's explore each one:`,
+          codeExample: `use stylus_sdk::{prelude::*, alloy_primitives::{U256, Address}};
+
+#[storage]
+pub struct DataStore {
+    // Simple types
+    counter: StorageU256,
+    is_active: StorageBool,
+    owner: StorageAddress,
+    
+    // Dynamic array
+    user_list: StorageVec<StorageAddress>,
+    
+    // Mapping (like Solidity's mapping)
+    balances: StorageMap<StorageAddress, StorageU256>,
+    
+    // Nested mapping
+    allowances: StorageMap<StorageAddress, StorageMap<StorageAddress, StorageU256>>,
+}`,
+          language: 'rust'
+        },
+        {
+          id: 3,
+          title: 'Working with StorageMap',
+          content: `StorageMap is one of the most powerful storage types. It's similar to Solidity's mapping but with Rust's type safety.`,
+          codeExample: `#[external]
+impl DataStore {
+    // Set a balance
+    pub fn set_balance(&mut self, user: Address, amount: U256) {
+        self.balances.insert(user, amount);
+    }
+    
+    // Get a balance (returns 0 if not found)
+    pub fn get_balance(&self, user: Address) -> U256 {
+        self.balances.get(user).unwrap_or(U256::ZERO)
+    }
+    
+    // Check if user exists
+    pub fn has_user(&self, user: Address) -> bool {
+        self.balances.get(user).is_some()
+    }
+    
+    // Update balance
+    pub fn add_balance(&mut self, user: Address, amount: U256) {
+        let current = self.get_balance(user);
+        self.balances.insert(user, current + amount);
+    }
+}`,
+          language: 'rust',
+          tip: 'StorageMap.get() returns Option<T>, so always handle the None case!'
+        },
+        {
+          id: 4,
+          title: 'Working with StorageVec',
+          content: `StorageVec is a dynamic array that lives in storage. Use it for lists that need to grow over time.`,
+          codeExample: `#[external]
+impl DataStore {
+    // Add user to list
+    pub fn add_user(&mut self, user: Address) {
+        self.user_list.push(user);
+    }
+    
+    // Get user at index
+    pub fn get_user(&self, index: U256) -> Address {
+        let idx = index.to::<usize>();
+        self.user_list.get(idx).unwrap()
+    }
+    
+    // Get total users
+    pub fn user_count(&self) -> U256 {
+        U256::from(self.user_list.len())
+    }
+    
+    // Remove last user
+    pub fn remove_last_user(&mut self) {
+        if !self.user_list.is_empty() {
+            self.user_list.pop();
+        }
+    }
+}`,
+          language: 'rust',
+          tip: 'Be careful with large arrays - iterating over them can be extremely expensive!'
+        }
+      ],
+      assignment: {
+        id: 2,
+        title: 'Build a User Registry',
+        description: 'Create a contract that maintains a registry of users with balances. Implement functions to add users, update balances, and query user information.',
+        starterCode: `use stylus_sdk::{prelude::*, alloy_primitives::{U256, Address}};
+
+#[storage]
+pub struct UserRegistry {
+    // TODO: Add storage for user balances (mapping)
+    // TODO: Add storage for user list (vector)
+    // TODO: Add storage for total registered users
+}
+
+#[external]
+impl UserRegistry {
+    // TODO: register_user(address, initial_balance)
+    
+    // TODO: update_balance(address, new_balance)
+    
+    // TODO: get_balance(address) -> U256
+    
+    // TODO: get_user_count() -> U256
+    
+    // TODO: is_registered(address) -> bool
+}`,
+        solution: `use stylus_sdk::{prelude::*, alloy_primitives::{U256, Address}};
+
+#[storage]
+pub struct UserRegistry {
+    balances: StorageMap<StorageAddress, StorageU256>,
+    users: StorageVec<StorageAddress>,
+    user_count: StorageU256,
+}
+
+#[external]
+impl UserRegistry {
+    pub fn register_user(&mut self, user: Address, initial_balance: U256) {
+        if self.balances.get(user).is_none() {
+            self.balances.insert(user, initial_balance);
+            self.users.push(user);
+            let count = self.user_count.get();
+            self.user_count.set(count + U256::from(1));
+        }
+    }
+    
+    pub fn update_balance(&mut self, user: Address, new_balance: U256) {
+        if self.balances.get(user).is_some() {
+            self.balances.insert(user, new_balance);
+        }
+    }
+    
+    pub fn get_balance(&self, user: Address) -> U256 {
+        self.balances.get(user).unwrap_or(U256::ZERO)
+    }
+    
+    pub fn get_user_count(&self) -> U256 {
+        self.user_count.get()
+    }
+    
+    pub fn is_registered(&self, user: Address) -> bool {
+        self.balances.get(user).is_some()
+    }
+}`,
+        hints: [
+          'Use StorageMap for the balances to enable O(1) lookups',
+          'StorageVec is useful for keeping track of all registered users',
+          'Always check if a user exists before updating',
+          'Remember to increment the user count when registering'
+        ]
+      }
+    },
+    3: {
+      sections: [
+        {
+          id: 1,
+          title: 'Understanding Functions',
+          content: `Functions in Stylus contracts come in two main types:
+
+**Mutable Functions (&mut self):**
+- Can modify contract storage
+- Cost gas to execute
+- Change blockchain state
+- Example: transfer, mint, burn
+
+**View Functions (&self):**
+- Read-only, cannot modify storage
+- Free to call (no gas) when called externally
+- Don't change blockchain state
+- Example: balanceOf, totalSupply, owner
+
+The #[external] attribute makes functions callable from outside the contract.`,
+          tip: 'Use view functions whenever possible - they\'re free for users to call!'
+        },
+        {
+          id: 2,
+          title: 'Function Visibility',
+          content: `Control who can call your functions with Rust's visibility modifiers:`,
+          codeExample: `#[external]
+impl MyContract {
+    // Public - anyone can call
+    pub fn public_function(&self) -> U256 {
+        self.some_value.get()
+    }
+    
+    // Internal - only used within contract
+    // NOT marked with pub, so not externally callable
+    fn internal_helper(&self) -> U256 {
+        // Helper logic
+        U256::from(42)
+    }
+}
+
+// Private implementation (not in #[external] block)
+impl MyContract {
+    // Only usable within the contract
+    fn private_calculation(&self, x: U256, y: U256) -> U256 {
+        x + y
+    }
+}`,
+          language: 'rust',
+          tip: 'Functions outside the #[external] block are automatically internal!'
+        },
+        {
+          id: 3,
+          title: 'Function Parameters and Returns',
+          content: `Stylus functions can accept various types and return values:`,
+          codeExample: `use stylus_sdk::{prelude::*, alloy_primitives::{U256, Address}};
+
+#[external]
+impl MyContract {
+    // Simple types
+    pub fn set_value(&mut self, value: U256) {
+        self.value.set(value);
+    }
+    
+    // Multiple parameters
+    pub fn transfer(&mut self, to: Address, amount: U256) -> bool {
+        // Transfer logic
+        true
+    }
+    
+    // Multiple return values (using tuple)
+    pub fn get_info(&self) -> (Address, U256, bool) {
+        (
+            self.owner.get(),
+            self.balance.get(),
+            self.is_active.get()
+        )
+    }
+    
+    // Array parameters
+    pub fn batch_update(&mut self, addresses: Vec<Address>, amounts: Vec<U256>) {
+        for (addr, amt) in addresses.iter().zip(amounts.iter()) {
+            self.balances.insert(*addr, *amt);
+        }
+    }
+}`,
+          language: 'rust'
+        },
+        {
+          id: 4,
+          title: 'Access Control',
+          content: `Protect sensitive functions with access control modifiers:`,
+          codeExample: `use stylus_sdk::{prelude::*, alloy_primitives::Address, msg};
+
+#[storage]
+pub struct Controlled {
+    owner: StorageAddress,
+}
+
+#[external]
+impl Controlled {
+    // Initialize with owner
+    pub fn initialize(&mut self) {
+        self.owner.set(msg::sender());
+    }
+    
+    // Only owner can call
+    pub fn admin_function(&mut self) {
+        require(msg::sender() == self.owner.get(), "Not owner");
+        // Admin logic here
+    }
+    
+    // Transfer ownership
+    pub fn transfer_ownership(&mut self, new_owner: Address) {
+        require(msg::sender() == self.owner.get(), "Not owner");
+        self.owner.set(new_owner);
+    }
+    
+    // Public view function
+    pub fn get_owner(&self) -> Address {
+        self.owner.get()
+    }
+}
+
+// Helper function for access control
+fn require(condition: bool, message: &str) {
+    if !condition {
+        panic!("{}", message);
+    }
+}`,
+          language: 'rust',
+          tip: 'Always validate msg::sender() for sensitive operations!'
+        }
+      ],
+      assignment: {
+        id: 3,
+        title: 'Build an Access-Controlled Vault',
+        description: 'Create a vault contract where only the owner can deposit and withdraw, but anyone can view the balance. Include ownership transfer functionality.',
+        starterCode: `use stylus_sdk::{prelude::*, alloy_primitives::{U256, Address}, msg};
+
+#[storage]
+pub struct Vault {
+    // TODO: Add owner address
+    // TODO: Add balance
+}
+
+#[external]
+impl Vault {
+    // TODO: initialize() - sets msg::sender() as owner
+    
+    // TODO: deposit(amount) - only owner
+    
+    // TODO: withdraw(amount) - only owner
+    
+    // TODO: get_balance() -> U256 - public view
+    
+    // TODO: get_owner() -> Address - public view
+    
+    // TODO: transfer_ownership(new_owner) - only owner
+}`,
+        solution: `use stylus_sdk::{prelude::*, alloy_primitives::{U256, Address}, msg};
+
+#[storage]
+pub struct Vault {
+    owner: StorageAddress,
+    balance: StorageU256,
+}
+
+#[external]
+impl Vault {
+    pub fn initialize(&mut self) {
+        self.owner.set(msg::sender());
+        self.balance.set(U256::ZERO);
+    }
+    
+    pub fn deposit(&mut self, amount: U256) {
+        require(msg::sender() == self.owner.get(), "Not owner");
+        let current = self.balance.get();
+        self.balance.set(current + amount);
+    }
+    
+    pub fn withdraw(&mut self, amount: U256) {
+        require(msg::sender() == self.owner.get(), "Not owner");
+        let current = self.balance.get();
+        require(current >= amount, "Insufficient balance");
+        self.balance.set(current - amount);
+    }
+    
+    pub fn get_balance(&self) -> U256 {
+        self.balance.get()
+    }
+    
+    pub fn get_owner(&self) -> Address {
+        self.owner.get()
+    }
+    
+    pub fn transfer_ownership(&mut self, new_owner: Address) {
+        require(msg::sender() == self.owner.get(), "Not owner");
+        self.owner.set(new_owner);
+    }
+}
+
+fn require(condition: bool, message: &str) {
+    if !condition {
+        panic!("{}", message);
+    }
+}`,
+        hints: [
+          'Use msg::sender() to get the caller\'s address',
+          'Create a require helper function for cleaner code',
+          'Remember to check balance before withdrawing',
+          'View functions use &self, not &mut self'
+        ]
+      }
+    }
+  };
 
   const tutorials: Tutorial[] = [
     {
@@ -29,7 +638,8 @@ export default function TutorialPage() {
       completed: true,
       locked: false,
       icon: 'rocket_launch',
-      color: '#58a6ff'
+      color: '#58a6ff',
+      sections: []
     },
     {
       id: 2,
@@ -40,7 +650,8 @@ export default function TutorialPage() {
       completed: true,
       locked: false,
       icon: 'storage',
-      color: '#3fb950'
+      color: '#3fb950',
+      sections: []
     },
     {
       id: 3,
@@ -51,7 +662,8 @@ export default function TutorialPage() {
       completed: false,
       locked: false,
       icon: 'code',
-      color: '#a371f7'
+      color: '#a371f7',
+      sections: []
     },
     {
       id: 4,
@@ -62,7 +674,8 @@ export default function TutorialPage() {
       completed: false,
       locked: false,
       icon: 'notifications',
-      color: '#f85149'
+      color: '#f85149',
+      sections: []
     },
     {
       id: 5,
@@ -73,7 +686,8 @@ export default function TutorialPage() {
       completed: false,
       locked: false,
       icon: 'error',
-      color: '#f85149'
+      color: '#f85149',
+      sections: []
     },
     {
       id: 6,
@@ -84,7 +698,8 @@ export default function TutorialPage() {
       completed: false,
       locked: false,
       icon: 'science',
-      color: '#58a6ff'
+      color: '#58a6ff',
+      sections: []
     },
     {
       id: 7,
@@ -95,7 +710,8 @@ export default function TutorialPage() {
       completed: false,
       locked: false,
       icon: 'speed',
-      color: '#3fb950'
+      color: '#3fb950',
+      sections: []
     },
     {
       id: 8,
@@ -106,7 +722,8 @@ export default function TutorialPage() {
       completed: false,
       locked: true,
       icon: 'architecture',
-      color: '#a371f7'
+      color: '#a371f7',
+      sections: []
     },
     {
       id: 9,
@@ -117,7 +734,8 @@ export default function TutorialPage() {
       completed: false,
       locked: true,
       icon: 'currency_exchange',
-      color: '#f85149'
+      color: '#f85149',
+      sections: []
     },
     {
       id: 10,
@@ -128,7 +746,8 @@ export default function TutorialPage() {
       completed: false,
       locked: true,
       icon: 'storefront',
-      color: '#58a6ff'
+      color: '#58a6ff',
+      sections: []
     },
   ];
 
@@ -142,6 +761,289 @@ export default function TutorialPage() {
     if (selectedCategory === 'defi') return tutorial.title.includes('DeFi') || tutorial.title.includes('Token') || tutorial.title.includes('NFT');
     return true;
   });
+
+  const selectedTutorialData = selectedTutorial ? tutorials.find(t => t.id === selectedTutorial) : null;
+  const lessonContent = selectedTutorial && tutorialContent[selectedTutorial] ? tutorialContent[selectedTutorial] : null;
+
+  // If a tutorial is selected, show the lesson view
+  if (selectedTutorial && selectedTutorialData && lessonContent) {
+    return (
+      <div className="relative flex h-screen w-full flex-col bg-[#0d1117] text-white overflow-hidden">
+        {/* Header */}
+        <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-[#21262d] bg-[#0d1117] px-6 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => {
+                setSelectedTutorial(null);
+                setActiveSection(0);
+                setShowHint(false);
+                setShowSolution(false);
+                setUserCode('');
+              }}
+              className="flex items-center justify-center p-2 text-[#8b949e] transition-all hover:text-white hover:bg-[#21262d] rounded-lg"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{backgroundColor: `${selectedTutorialData.color}20`}}
+              >
+                <span className="material-symbols-outlined text-lg" style={{color: selectedTutorialData.color}}>
+                  {selectedTutorialData.icon}
+                </span>
+              </div>
+              <div>
+                <h1 className="text-base font-semibold text-white">{selectedTutorialData.title}</h1>
+                <p className="text-xs text-[#8b949e]">{selectedTutorialData.difficulty} • {selectedTutorialData.duration}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#21262d] border border-[#30363d]">
+              <span className="material-symbols-outlined text-[#8b949e] text-sm">progress_activity</span>
+              <span className="text-[#8b949e] text-sm">Section {activeSection + 1}/{lessonContent.sections.length}</span>
+            </div>
+          </div>
+        </header>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar - Section Navigation */}
+          <aside className="w-80 border-r border-[#21262d] bg-[#0d1117] overflow-y-auto">
+            <div className="p-4 space-y-1">
+              <h3 className="text-[#8b949e] text-xs font-semibold uppercase mb-3 px-3">Lesson Sections</h3>
+              {lessonContent.sections.map((section, index) => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(index)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
+                    activeSection === index
+                      ? 'bg-[#58a6ff]/10 border border-[#58a6ff]/30 text-white'
+                      : 'text-[#8b949e] hover:bg-[#21262d] hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                      activeSection === index ? 'bg-[#58a6ff] text-white' : 'bg-[#21262d] text-[#8b949e]'
+                    }`}>
+                      {index + 1}
+                    </span>
+                    <span className="font-medium text-sm">{section.title}</span>
+                  </div>
+                </button>
+              ))}
+              
+              <div className="pt-4 mt-4 border-t border-[#21262d]">
+                <button
+                  onClick={() => setActiveSection(lessonContent.sections.length)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
+                    activeSection === lessonContent.sections.length
+                      ? 'bg-[#3fb950]/10 border border-[#3fb950]/30 text-white'
+                      : 'text-[#8b949e] hover:bg-[#21262d] hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-lg">assignment</span>
+                    <span className="font-semibold text-sm">Assignment</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-4xl mx-auto p-8 space-y-6">
+              
+              {activeSection < lessonContent.sections.length ? (
+                // Lesson Section View
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <span className="px-3 py-1 rounded-full bg-[#58a6ff]/10 text-[#58a6ff] text-xs font-semibold">
+                        Section {activeSection + 1}
+                      </span>
+                    </div>
+                    <h2 className="text-3xl font-bold text-white">
+                      {lessonContent.sections[activeSection].title}
+                    </h2>
+                  </div>
+
+                  <div className="prose prose-invert max-w-none">
+                    <div className="text-[#8b949e] text-base leading-relaxed whitespace-pre-line">
+                      {lessonContent.sections[activeSection].content}
+                    </div>
+                  </div>
+
+                  {lessonContent.sections[activeSection].codeExample && (
+                    <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                      <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
+                        <span className="text-[#8b949e] text-sm font-medium">
+                          {lessonContent.sections[activeSection].language || 'rust'}
+                        </span>
+                        <button className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all">
+                          <span className="material-symbols-outlined text-sm">content_copy</span>
+                          <span className="text-xs">Copy</span>
+                        </button>
+                      </div>
+                      <pre className="p-4 overflow-x-auto">
+                        <code className="text-sm text-[#e6edf3] font-mono">
+                          {lessonContent.sections[activeSection].codeExample}
+                        </code>
+                      </pre>
+                    </div>
+                  )}
+
+                  {lessonContent.sections[activeSection].tip && (
+                    <div className="flex gap-3 p-4 rounded-lg bg-[#58a6ff]/5 border border-[#58a6ff]/20">
+                      <span className="material-symbols-outlined text-[#58a6ff] text-xl">lightbulb</span>
+                      <div>
+                        <h4 className="text-[#58a6ff] font-semibold text-sm mb-1">Pro Tip</h4>
+                        <p className="text-[#8b949e] text-sm">
+                          {lessonContent.sections[activeSection].tip}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-6 border-t border-[#21262d]">
+                    <button
+                      onClick={() => activeSection > 0 && setActiveSection(activeSection - 1)}
+                      disabled={activeSection === 0}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                        activeSection === 0
+                          ? 'text-[#8b949e] cursor-not-allowed'
+                          : 'text-white hover:bg-[#21262d]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined">arrow_back</span>
+                      <span>Previous</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveSection(activeSection + 1)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#58a6ff] hover:bg-[#1f6feb] text-white transition-all"
+                    >
+                      <span>
+                        {activeSection === lessonContent.sections.length - 1 ? 'Go to Assignment' : 'Next Section'}
+                      </span>
+                      <span className="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // Assignment View
+                <>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <span className="px-3 py-1 rounded-full bg-[#3fb950]/10 text-[#3fb950] text-xs font-semibold">
+                        Assignment
+                      </span>
+                    </div>
+                    <h2 className="text-3xl font-bold text-white">
+                      {lessonContent.assignment.title}
+                    </h2>
+                    <p className="text-[#8b949e] text-base leading-relaxed">
+                      {lessonContent.assignment.description}
+                    </p>
+                  </div>
+
+                  {/* Code Editor */}
+                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                    <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
+                      <span className="text-[#8b949e] text-sm font-medium">Your Solution</span>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => setUserCode(lessonContent.assignment.starterCode)}
+                          className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">refresh</span>
+                          <span className="text-xs">Reset</span>
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      value={userCode || lessonContent.assignment.starterCode}
+                      onChange={(e) => setUserCode(e.target.value)}
+                      className="w-full h-96 p-4 bg-[#0d1117] text-[#e6edf3] font-mono text-sm resize-none focus:outline-none"
+                      spellCheck="false"
+                    />
+                  </div>
+
+                  {/* Hints Section */}
+                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                    <button
+                      onClick={() => setShowHint(!showHint)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-[#161b22] hover:bg-[#21262d] transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#a371f7]">help</span>
+                        <span className="text-white font-medium">Need Help? View Hints</span>
+                      </div>
+                      <span className={`material-symbols-outlined text-[#8b949e] transition-transform ${showHint ? 'rotate-180' : ''}`}>
+                        expand_more
+                      </span>
+                    </button>
+                    {showHint && (
+                      <div className="p-4 space-y-2">
+                        {lessonContent.assignment.hints.map((hint, index) => (
+                          <div key={index} className="flex gap-2 text-[#8b949e] text-sm">
+                            <span className="text-[#a371f7] font-bold">{index + 1}.</span>
+                            <span>{hint}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Solution Section */}
+                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                    <button
+                      onClick={() => setShowSolution(!showSolution)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-[#161b22] hover:bg-[#21262d] transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#3fb950]">check_circle</span>
+                        <span className="text-white font-medium">View Solution</span>
+                      </div>
+                      <span className={`material-symbols-outlined text-[#8b949e] transition-transform ${showSolution ? 'rotate-180' : ''}`}>
+                        expand_more
+                      </span>
+                    </button>
+                    {showSolution && (
+                      <div className="border-t border-[#30363d]">
+                        <pre className="p-4 overflow-x-auto">
+                          <code className="text-sm text-[#e6edf3] font-mono">
+                            {lessonContent.assignment.solution}
+                          </code>
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-6 border-t border-[#21262d]">
+                    <button
+                      onClick={() => setActiveSection(activeSection - 1)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-[#21262d] transition-all"
+                    >
+                      <span className="material-symbols-outlined">arrow_back</span>
+                      <span>Back to Lesson</span>
+                    </button>
+                    
+                    <button className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#3fb950] hover:bg-[#2ea043] text-white font-medium transition-all">
+                      <span className="material-symbols-outlined">check</span>
+                      <span>Mark as Complete</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex h-screen w-full flex-col bg-[#0d1117] text-white overflow-hidden">
