@@ -59,23 +59,23 @@ export default function Toolbar({ onCompile, onDeploy, onSave, hasUnsavedChanges
 
   return (
     <Toast.Provider swipeDirection="right">
-      <div className="flex items-center gap-2 px-4 py-2 bg-[#252526] border-b border-white/10">
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-[#252526] border-b border-[#1e1e1e]">
         <div className="flex items-center gap-2 flex-1">
           {/* Compile Button */}
           <button
             onClick={handleCompile}
             disabled={isCompiling}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#0e639c] hover:bg-[#1177bb] text-white rounded text-[13px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCompiling ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm font-medium">Compiling...</span>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Compiling...</span>
               </>
             ) : (
               <>
-                <Play className="h-4 w-4" />
-                <span className="text-sm font-medium">Compile</span>
+                <Play className="h-3.5 w-3.5" />
+                <span>Compile</span>
               </>
             )}
           </button>
@@ -84,71 +84,73 @@ export default function Toolbar({ onCompile, onDeploy, onSave, hasUnsavedChanges
           <button
             onClick={handleDeploy}
             disabled={isDeploying}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#16825d] hover:bg-[#1a9b6e] text-white rounded text-[13px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeploying ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm font-medium">Deploying...</span>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Deploying...</span>
               </>
             ) : (
               <>
-                <Upload className="h-4 w-4" />
-                <span className="text-sm font-medium">Deploy</span>
+                <Upload className="h-3.5 w-3.5" />
+                <span>Deploy</span>
               </>
             )}
           </button>
+
+          <div className="w-px h-5 bg-[#1e1e1e]"></div>
 
           {/* Save Button */}
           <button
             onClick={handleSave}
             disabled={!hasUnsavedChanges}
-            className="flex items-center gap-2 px-4 py-2 bg-[#3c3c3c] hover:bg-[#4a4a4a] text-white rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-3 py-1.5 bg-transparent hover:bg-[#2a2d2e] text-gray-300 rounded text-[13px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             title="Save (Ctrl+S)"
           >
-            <Save className="h-4 w-4" />
-            <span className="text-sm font-medium">Save</span>
-            {hasUnsavedChanges && <span className="h-2 w-2 bg-blue-400 rounded-full"></span>}
+            <Save className="h-3.5 w-3.5" />
+            <span>Save</span>
+            {hasUnsavedChanges && <span className="h-1.5 w-1.5 bg-[#0e639c] rounded-full"></span>}
           </button>
 
           {/* Export Button */}
           <button
-            className="flex items-center gap-2 px-4 py-2 bg-[#3c3c3c] hover:bg-[#4a4a4a] text-white rounded-md transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 bg-transparent hover:bg-[#2a2d2e] text-gray-300 rounded text-[13px] font-medium transition-all"
             title="Export Project"
           >
-            <Download className="h-4 w-4" />
-            <span className="text-sm font-medium">Export</span>
+            <Download className="h-3.5 w-3.5" />
+            <span>Export</span>
           </button>
         </div>
 
         {/* Settings Button */}
         <button
-          className="p-2 hover:bg-white/10 rounded-md transition-colors"
+          className="p-1.5 hover:bg-[#2a2d2e] rounded transition-colors"
           title="Settings"
         >
-          <Settings className="h-5 w-5 text-gray-400 hover:text-white" />
+          <Settings className="h-4 w-4 text-gray-400 hover:text-white" />
         </button>
       </div>
 
       {/* Toast Notification */}
       <Toast.Root
         className={`${
-          toastType === 'success' ? 'bg-green-600' : 'bg-red-600'
-        } rounded-lg shadow-lg p-4 flex items-center gap-3`}
+          toastType === 'success' ? 'bg-[#16825d]' : 'bg-[#f48771]'
+        } rounded shadow-xl p-3 flex items-center gap-3 border border-black/20`}
         open={toastOpen}
         onOpenChange={setToastOpen}
       >
         <Toast.Description className="flex items-center gap-2 text-white">
           {toastType === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
+            <CheckCircle className="h-4 w-4" />
           ) : (
-            <XCircle className="h-5 w-5" />
+            <XCircle className="h-4 w-4" />
           )}
-          <span className="text-sm font-medium">{toastMessage}</span>
+          <span className="text-[13px]">{toastMessage}</span>
         </Toast.Description>
       </Toast.Root>
 
-      <Toast.Viewport className="fixed bottom-4 right-4 flex flex-col gap-2 w-96 max-w-[100vw] z-50" />
+      <Toast.Viewport className="fixed bottom-6 right-6 flex flex-col gap-2 w-80 max-w-[100vw] z-50" />
     </Toast.Provider>
   );
 }

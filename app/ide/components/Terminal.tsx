@@ -191,66 +191,36 @@ export default function TerminalPanel({ onClose }: TerminalProps) {
   };
 
   return (
-    <div className={`flex flex-col bg-[#1e1e1e] border-t border-white/10 ${isMaximized ? 'h-full' : 'h-64'}`}>
-      {/* Terminal Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[#252526] border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-gray-400" />
-          <span className="text-sm font-medium text-gray-300">Terminal</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setIsMaximized(!isMaximized)}
-            className="p-1 hover:bg-white/10 rounded transition-colors"
-            title={isMaximized ? 'Minimize' : 'Maximize'}
-          >
-            {isMaximized ? (
-              <Minimize2 className="h-4 w-4 text-gray-400 hover:text-white" />
-            ) : (
-              <Maximize2 className="h-4 w-4 text-gray-400 hover:text-white" />
-            )}
-          </button>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-white/10 rounded transition-colors"
-              title="Close Terminal"
-            >
-              <X className="h-4 w-4 text-gray-400 hover:text-white" />
-            </button>
-          )}
-        </div>
-      </div>
-
+    <div className={`flex flex-col bg-[#1e1e1e] h-full`}>
       {/* Terminal Output */}
       <div
         ref={outputRef}
-        className="flex-1 overflow-y-auto px-3 py-2 font-mono text-sm"
+        className="flex-1 overflow-y-auto px-4 py-2 font-mono text-[13px] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
         onClick={() => inputRef.current?.focus()}
       >
         {output.map((line, index) => (
           <div
             key={index}
-            className={`${
+            className={`leading-relaxed ${
               line.type === 'input'
-                ? 'text-blue-400'
+                ? 'text-[#4fc1ff]'
                 : line.type === 'error'
-                ? 'text-red-400'
-                : 'text-gray-300'
+                ? 'text-[#f48771]'
+                : 'text-[#cccccc]'
             }`}
           >
             {line.text}
           </div>
         ))}
-        <div className="flex items-center gap-2 text-gray-300">
-          <span className="text-green-400">$</span>
+        <div className="flex items-center gap-2 text-[#cccccc]">
+          <span className="text-[#4fc1ff]">$</span>
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent outline-none border-none text-gray-300"
+            className="flex-1 bg-transparent outline-none border-none text-[#cccccc] caret-white"
             autoFocus
             spellCheck={false}
           />

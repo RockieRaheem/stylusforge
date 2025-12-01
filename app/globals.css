@@ -85,3 +85,140 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* VS Code Style Scrollbars */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #4e4e4e;
+}
+
+.scrollbar-thin::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #424242 transparent;
+}
+
+.scrollbar-thin:not(:hover)::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: #424242;
+}
+
+/* VS Code Selection */
+::selection {
+  background: #264f78;
+  color: white;
+}
+
+::-moz-selection {
+  background: #264f78;
+  color: white;
+}
+
+/* Smooth animations */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: slideInFromTop 150ms ease-out;
+}
+
+.fade-in {
+  animation: fadeIn 200ms ease-out;
+}
+
+.slide-in-from-top-1 {
+  animation: slideInFromTop 150ms ease-out;
+}
+
+.slide-in-from-top-2 {
+  animation: slideInFromTop 200ms ease-out;
+}
+
+/* VS Code Focus Styles */
+button:focus-visible,
+input:focus-visible {
+  outline: 1px solid #007acc;
+  outline-offset: -1px;
+}
+
+/* Custom resize cursor */
+.cursor-ns-resize {
+  cursor: ns-resize;
+}
+
+/* Monaco Editor Styles */
+.monaco-editor .margin {
+  background-color: #1e1e1e !important;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider {
+  background: #424242 !important;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider:hover {
+  background: #4e4e4e !important;
+}
+
+/* Toast animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+[data-state="open"] {
+  animation: slideInRight 200ms ease-out;
+}
+
+[data-state="closed"] {
+  animation: slideOutRight 200ms ease-in;
+}
+
