@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -7,7 +5,7 @@ export default function HomePage() {
     <div className="relative w-full min-h-screen flex flex-col items-center overflow-x-hidden">
       {/* Background Glows */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl filter opacity-30 animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl filter opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/20 rounded-full blur-3xl filter opacity-30 animate-pulse" style={{animationDelay: '1s'}}></div>
       
       <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 z-10">
         {/* TopNavBar */}
@@ -26,16 +24,16 @@ export default function HomePage() {
                 </defs>
               </svg>
             </div>
-            <h2 className="text-white text-2xl font-bold leading-tight">Stylus Studio</h2>
+            <h2 className="text-white text-2xl font-bold leading-tight">StylusForge</h2>
           </div>
           <div className="flex flex-1 justify-end items-center gap-8">
             <div className="hidden md:flex items-center gap-9">
-              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#features">Features</a>
-              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#pricing">Pricing</a>
-              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#docs">Docs</a>
+              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Features</a>
+              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Pricing</a>
+              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Docs</a>
             </div>
             <Link href="/ide">
-              <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold leading-normal tracking-wide shadow-lg hover:shadow-glow-primary transition-shadow duration-300">
+              <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold leading-normal tracking-wide shadow-lg hover:shadow-glow-cta transition-shadow duration-300">
                 <span className="truncate">Start Building</span>
               </button>
             </Link>
@@ -46,17 +44,17 @@ export default function HomePage() {
           {/* HeroSection */}
           <section className="flex flex-col gap-10 items-center text-center">
             <div className="flex flex-col gap-4">
-              <h1 className="text-white text-5xl md:text-7xl font-extrabold leading-tight tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-gray-100 to-gray-400">
+              <h1 className="text-white text-6xl md:text-8xl font-black leading-tight tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-gray-100 to-gray-500">
                 Build The Future of Smart Contracts
               </h1>
-              <h2 className="text-gray-300 text-lg md:text-xl font-normal leading-relaxed max-w-3xl mx-auto">
+              <h2 className="text-gray-400 text-lg md:text-xl font-normal leading-relaxed max-w-3xl mx-auto">
                 Write Rust. Deploy Instantly. Save Gas. The ultimate browser-based IDE and learning platform for Arbitrum Stylus.
               </h2>
             </div>
             <div className="flex flex-wrap gap-4 flex-row items-center justify-center">
               <Link href="/ide">
-                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-gradient-to-r from-primary via-blue-500 to-secondary text-white text-base font-bold leading-normal tracking-wide shadow-lg hover:shadow-glow-primary-hover hover:scale-105 transform-gpu transition-all duration-300 ease-in-out">
-                  <span className="truncate">Start Building</span>
+                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-gradient-to-r from-primary to-secondary text-white text-base font-bold leading-normal tracking-wide shadow-glow-cta hover:shadow-glow-cta-hover hover:scale-105 transform-gpu transition-all duration-300 ease-in-out">
+                  <span className="truncate">Start For Free</span>
                 </button>
               </Link>
               <Link href="/ide">
@@ -81,15 +79,15 @@ export default function HomePage() {
 
           {/* Animated Code Editor */}
           <section className="flex flex-col items-center gap-8 -mt-16 md:-mt-20">
-            <div className="w-full max-w-4xl glass-morphism rounded-2xl shadow-soft-lg overflow-hidden transform-gpu">
-              <div className="h-9 bg-black/20 flex items-center px-4 border-b border-white/10">
+            <div className="w-full max-w-4xl glass-morphism-window rounded-2xl shadow-soft-window overflow-hidden transform-gpu">
+              <div className="h-9 bg-black/30 flex items-center px-4 border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-[#ff5f56] rounded-full"></div>
                   <div className="w-3 h-3 bg-[#ffbd2e] rounded-full"></div>
                   <div className="w-3 h-3 bg-[#27c93f] rounded-full"></div>
                 </div>
               </div>
-              <div className="p-6 font-mono text-sm bg-black/10">
+              <div className="p-6 font-mono text-sm bg-black/20">
                 <pre className="whitespace-pre-wrap">
                   <code className="language-rust">
                     <span className="text-gray-500">// Real-time compilation and gas estimation</span>{'\n'}
@@ -113,26 +111,26 @@ export default function HomePage() {
               <p className="text-lg text-gray-400 max-w-3xl mx-auto">Develop, test, and deploy faster than ever with our integrated suite of tools.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 shadow-soft">
+              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft">
                 <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6">
-                  <span className="material-symbols-outlined !text-4xl">code_blocks</span>
+                  <span className="material-symbols-outlined !text-4xl !font-light">terminal</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Browser-Based IDE</h3>
-                <p className="text-gray-400">A full-featured code editor in your browser. No setup required. Write, compile, and test Rust smart contracts seamlessly.</p>
+                <p className="text-gray-400 leading-relaxed">A full-featured code editor in your browser. No setup required. Write, compile, and test Rust smart contracts seamlessly.</p>
               </div>
-              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 shadow-soft">
+              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft">
                 <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-secondary/10 text-secondary mb-6">
-                  <span className="material-symbols-outlined !text-4xl">rocket_launch</span>
+                  <span className="material-symbols-outlined !text-4xl !font-light">rocket_launch</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Instant Deployment</h3>
-                <p className="text-gray-400">Deploy your contracts to Arbitrum testnets or mainnet with a single click, directly from the IDE.</p>
+                <p className="text-gray-400 leading-relaxed">Deploy your contracts to Arbitrum testnets or mainnet with a single click, directly from the IDE.</p>
               </div>
-              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 shadow-soft">
+              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft">
                 <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6">
-                  <span className="material-symbols-outlined !text-4xl">school</span>
+                  <span className="material-symbols-outlined !text-4xl !font-light">school</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Interactive Learning</h3>
-                <p className="text-gray-400">Guided tutorials and code examples to help you master Rust and Stylus development, from beginner to expert.</p>
+                <p className="text-gray-400 leading-relaxed">Guided tutorials and code examples to help you master Rust and Stylus development, from beginner to expert.</p>
               </div>
             </div>
           </section>
@@ -141,21 +139,21 @@ export default function HomePage() {
           <section className="flex flex-col gap-8 items-center text-center">
             <div className="flex flex-col gap-4">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight">Live Platform Stats</h2>
-              <p className="text-lg text-gray-400 max-w-3xl mx-auto">See the power of Stylus Studio in action with real-time data from our platform.</p>
+              <p className="text-lg text-gray-400 max-w-3xl mx-auto">See the power of StylusForge in action with real-time data from our platform.</p>
             </div>
             <div className="w-full max-w-5xl glass-morphism-prominent rounded-2xl p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
-                <div className="flex flex-col items-center gap-2 p-4 pt-8 md:pt-4">
+                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4">
                   <p className="text-lg text-gray-400">Contracts Deployed</p>
-                  <p className="text-5xl font-bold text-white font-mono tracking-tight">1,204</p>
+                  <p className="text-5xl font-bold text-white font-mono tracking-tight animated-counter">1,204</p>
                 </div>
-                <div className="flex flex-col items-center gap-2 p-4 pt-8 md:pt-4">
+                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4">
                   <p className="text-lg text-gray-400">Avg. Gas Savings</p>
-                  <p className="text-5xl font-bold text-white font-mono tracking-tight">99.2%</p>
+                  <p className="text-5xl font-bold text-white font-mono tracking-tight animated-counter">99.2%</p>
                 </div>
-                <div className="flex flex-col items-center gap-2 p-4 pt-8 md:pt-4">
+                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4">
                   <p className="text-lg text-gray-400">Active Developers</p>
-                  <p className="text-5xl font-bold text-white font-mono tracking-tight">873</p>
+                  <p className="text-5xl font-bold text-white font-mono tracking-tight animated-counter">873</p>
                 </div>
               </div>
             </div>

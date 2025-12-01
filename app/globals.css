@@ -5,12 +5,12 @@
 :root {
   --color-primary: #28A0F0;
   --color-secondary: #A955FF;
-  --color-background-dark: #111827;
+  --color-background-dark: #0A0B12;
 }
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #111827;
+  background-color: #0A0B12;
 }
 
 .material-symbols-outlined {
@@ -29,12 +29,35 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.glass-morphism-window {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .glass-morphism-prominent {
   background: rgba(30, 41, 59, 0.3);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+.animated-counter {
+  animation: count-up 2s ease-out forwards;
+  display: inline-block;
+}
+
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar {
