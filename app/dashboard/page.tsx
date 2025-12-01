@@ -78,7 +78,7 @@ export default function DashboardPage() {
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Contracts Deployed
             </p>
-            <p className="text-white tracking-tight text-4xl font-bold leading-tight font-mono">
+            <p className="text-white tracking-tight text-4xl font-bold leading-tight" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
               24
             </p>
           </motion.div>
@@ -92,7 +92,7 @@ export default function DashboardPage() {
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Tutorials Done
             </p>
-            <p className="text-white tracking-tight text-4xl font-bold leading-tight font-mono">
+            <p className="text-white tracking-tight text-4xl font-bold leading-tight" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
               12
             </p>
           </motion.div>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Gas Saved
             </p>
-            <p className="text-white tracking-tight text-4xl font-bold leading-tight font-mono">
+            <p className="text-white tracking-tight text-4xl font-bold leading-tight" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
               $156
             </p>
           </motion.div>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Achievements
             </p>
-            <p className="text-white tracking-tight text-4xl font-bold leading-tight font-mono">
+            <p className="text-white tracking-tight text-4xl font-bold leading-tight" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
               8
             </p>
           </motion.div>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
                   className="h-2 rounded-full bg-gradient-to-r from-secondary to-accent-blue"
                 />
               </div>
-              <p className="text-text-light-secondary font-mono text-sm">67%</p>
+              <p className="text-text-light-secondary text-sm" style={{ fontFamily: 'JetBrains Mono, monospace' }}>67%</p>
             </div>
             <p className="text-text-light-secondary text-sm">
               Next up: Advanced Stylus Patterns

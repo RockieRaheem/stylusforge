@@ -42,7 +42,7 @@ export default function IDEPage() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col font-display text-ide-text bg-ide-bg">
+    <div className="h-screen w-screen flex flex-col text-ide-text bg-ide-bg" style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Top Navigation Bar */}
       <header className="bg-ide-sidebar border-b border-ide-border flex items-center justify-between px-3 py-2 shrink-0">
         <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export default function IDEPage() {
                 <Save className="w-4 h-4" />
               </button>
             </div>
-            <div className="font-mono text-sm text-ide-text">src/lib.rs</div>
+            <div className="text-sm text-ide-text" style={{ fontFamily: 'JetBrains Mono, monospace' }}>src/lib.rs</div>
             <div className="flex items-center gap-4 text-ide-text-secondary text-sm">
               <span>Rust</span>
             </div>
@@ -235,11 +235,11 @@ export default function IDEPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-ide-text-secondary">Gas Used</span>
-                    <span className="text-lg font-bold text-accent-green font-mono">21,000</span>
+                    <span className="text-lg font-bold text-accent-green" style={{ fontFamily: 'JetBrains Mono, monospace' }}>21,000</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-ide-text-secondary">vs Solidity</span>
-                    <span className="text-sm text-accent-orange font-mono">85,000</span>
+                    <span className="text-sm text-accent-orange" style={{ fontFamily: 'JetBrains Mono, monospace' }}>85,000</span>
                   </div>
                 </div>
                 <div className="p-3 rounded-lg bg-accent-green/10 border border-accent-green/20">

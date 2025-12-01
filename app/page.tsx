@@ -125,7 +125,7 @@ export default function HomePage() {
               <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
               <div className="h-3 w-3 rounded-full bg-green-500"></div>
             </div>
-            <pre className="p-4 text-sm font-mono overflow-x-auto text-ide-text">
+            <pre className="p-4 text-sm overflow-x-auto text-ide-text" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
               <code className="language-rust">
                 {`#[stylus_sdk::prelude::*]
 
