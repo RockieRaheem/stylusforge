@@ -69,6 +69,35 @@ body {
   }
 }
 
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+.shadow-glow-red {
+  box-shadow: 0 0 10px rgba(255, 95, 86, 0.5);
+}
+
+.shadow-glow-yellow {
+  box-shadow: 0 0 10px rgba(255, 189, 46, 0.5);
+}
+
+.shadow-glow-green {
+  box-shadow: 0 0 10px rgba(39, 201, 63, 0.5);
+}
+
 .success {
   color: #10B981;
 }
