@@ -8,8 +8,8 @@ export default function DashboardPage() {
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background-dark">
       {/* Top App Bar */}
-      <div className="flex items-center bg-surface-dark/80 backdrop-blur-sm sticky top-0 z-10 p-4 justify-between border-b border-white/10">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center bg-surface-dark/80 backdrop-blur-sm sticky top-0 z-10 p-5 justify-between border-b border-white/10">
+        <div className="flex items-center gap-3">
           <button className="p-1">
             <span className="material-symbols-outlined text-white text-3xl">menu</span>
           </button>
@@ -28,12 +28,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <main className="flex-1 p-4 pb-24 space-y-8">
+      <main className="flex-1 px-6 py-8 pb-24 space-y-10 max-w-7xl mx-auto w-full">
         {/* Headline Text */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-white tracking-light text-3xl font-bold leading-tight text-left"
+          className="text-white tracking-light text-4xl font-bold leading-tight text-left"
         >
           Welcome back, Alex! 👋
         </motion.h1>
@@ -43,13 +43,13 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-col gap-4 rounded-xl bg-surface-dark p-5 border border-white/10 shadow-lg"
+          className="flex flex-col gap-5 rounded-2xl bg-surface-dark p-6 border border-white/10 shadow-lg"
         >
           <div className="flex gap-6 justify-between items-center">
-            <p className="text-text-light-primary text-base font-medium leading-normal">
+            <p className="text-text-light-primary text-lg font-semibold leading-normal">
               Level 7 Developer
             </p>
-            <p className="text-text-light-secondary text-sm font-normal leading-normal">
+            <p className="text-text-light-secondary text-base font-normal leading-normal">
               450 / 1000 XP
             </p>
           </div>
@@ -68,12 +68,12 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-5">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-surface-dark border border-white/10 shadow-lg hover:border-primary/50 transition-colors"
+            className="flex flex-col gap-3 rounded-2xl p-6 bg-surface-dark border border-white/10 shadow-lg hover:border-primary/50 transition-colors"
           >
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Contracts Deployed
@@ -87,7 +87,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.25 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-surface-dark border border-white/10 shadow-lg hover:border-secondary/50 transition-colors"
+            className="flex flex-col gap-3 rounded-2xl p-6 bg-surface-dark border border-white/10 shadow-lg hover:border-secondary/50 transition-colors"
           >
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Tutorials Done
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-surface-dark border border-white/10 shadow-lg hover:border-accent-green/50 transition-colors"
+            className="flex flex-col gap-3 rounded-2xl p-6 bg-surface-dark border border-white/10 shadow-lg hover:border-accent-green/50 transition-colors"
           >
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Gas Saved
@@ -115,7 +115,7 @@ export default function DashboardPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.35 }}
-            className="flex flex-col gap-2 rounded-xl p-4 bg-surface-dark border border-white/10 shadow-lg hover:border-accent-yellow/50 transition-colors"
+            className="flex flex-col gap-3 rounded-2xl p-6 bg-surface-dark border border-white/10 shadow-lg hover:border-accent-yellow/50 transition-colors"
           >
             <p className="text-text-light-secondary text-sm font-medium leading-normal">
               Achievements
@@ -132,13 +132,13 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <h2 className="text-white text-xl font-bold leading-tight tracking-[-0.015em] pb-4">
+          <h2 className="text-white text-2xl font-bold leading-tight tracking-[-0.015em] pb-5">
             Recent Projects
           </h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-surface-dark p-4 border border-white/10 hover:border-white/30 transition-colors">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-dark p-5 border border-white/10 hover:border-white/30 transition-colors">
               <div className="flex-1">
-                <p className="text-white font-semibold">NFT Marketplace Contract</p>
+                <p className="text-white font-semibold text-lg">NFT Marketplace Contract</p>
                 <p className="text-text-light-secondary text-sm">Modified: 2 hours ago</p>
               </div>
               <Link href="/ide">
@@ -148,9 +148,9 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-surface-dark p-4 border border-white/10 hover:border-white/30 transition-colors">
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-dark p-5 border border-white/10 hover:border-white/30 transition-colors">
               <div className="flex-1">
-                <p className="text-white font-semibold">DEX Router</p>
+                <p className="text-white font-semibold text-lg">DEX Router</p>
                 <p className="text-text-light-secondary text-sm">Modified: 1 day ago</p>
               </div>
               <Link href="/ide">
@@ -160,9 +160,9 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-surface-dark p-4 border border-white/10 hover:border-white/30 transition-colors">
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-surface-dark p-5 border border-white/10 hover:border-white/30 transition-colors">
               <div className="flex-1">
-                <p className="text-white font-semibold">DAO Governance</p>
+                <p className="text-white font-semibold text-lg">DAO Governance</p>
                 <p className="text-text-light-secondary text-sm">Modified: 3 days ago</p>
               </div>
               <Link href="/ide">
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <h2 className="text-white text-xl font-bold leading-tight tracking-[-0.015em] pb-4">
+          <h2 className="text-white text-2xl font-bold leading-tight tracking-[-0.015em] pb-5">
             Achievement Gallery
           </h2>
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
@@ -254,10 +254,10 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <h2 className="text-white text-xl font-bold leading-tight tracking-[-0.015em] pb-4">
+          <h2 className="text-white text-2xl font-bold leading-tight tracking-[-0.015em] pb-5">
             Learning Path
           </h2>
-          <div className="flex flex-col gap-4 rounded-xl bg-surface-dark p-5 border border-white/10 shadow-lg">
+          <div className="flex flex-col gap-5 rounded-2xl bg-surface-dark p-6 border border-white/10 shadow-lg">
             <p className="text-white font-semibold">Stylus Basics</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 rounded-full bg-white/10 h-2">

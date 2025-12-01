@@ -52,19 +52,19 @@ export default function HomePage() {
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col gap-6 bg-cover bg-center bg-no-repeat items-center justify-center text-center">
+        <section className="py-20 md:py-32">
+          <div className="container mx-auto px-6 max-w-6xl">
+            <div className="flex flex-col gap-8 bg-cover bg-center bg-no-repeat items-center justify-center text-center">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="flex flex-col gap-4 max-w-3xl mx-auto"
+                className="flex flex-col gap-6 max-w-4xl mx-auto"
               >
-                <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] md:text-6xl">
+                <h1 className="text-white text-5xl font-black leading-[1.1] tracking-[-0.02em] md:text-7xl">
                   Build The Future of Smart Contracts
                 </h1>
-                <h2 className="text-white/80 text-base font-normal leading-normal md:text-xl">
+                <h2 className="text-white/70 text-lg font-normal leading-relaxed md:text-2xl">
                   Write Rust. Deploy Instantly. Save Gas.
                 </h2>
               </motion.div>
@@ -74,15 +74,15 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="flex w-full max-w-md flex-col sm:flex-row gap-3 justify-center pt-4"
+                className="flex w-full max-w-lg flex-col sm:flex-row gap-4 justify-center pt-6"
               >
                 <Link href="/ide" className="flex-1 sm:flex-initial">
-                  <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] w-full sm:w-auto hover:bg-primary/90 transition-colors">
+                  <button className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-8 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] w-full sm:w-auto hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30">
                     <span className="truncate">Start Building</span>
                   </button>
                 </Link>
                 <Link href="/ide" className="flex-1 sm:flex-initial">
-                  <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-5 bg-[#362348] text-white text-base font-bold leading-normal tracking-[0.015em] w-full sm:w-auto hover:bg-[#362348]/80 transition-colors">
+                  <button className="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-8 bg-[#362348] text-white text-base font-bold leading-normal tracking-[0.015em] w-full sm:w-auto hover:bg-[#362348]/80 transition-colors">
                     <span className="truncate">Try Demo</span>
                   </button>
                 </Link>
@@ -93,19 +93,16 @@ export default function HomePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex gap-3 pt-4 flex-wrap justify-center"
+                className="flex gap-3 pt-8 flex-wrap justify-center"
               >
-                <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-4">
-                  <p className="text-white text-sm font-medium leading-normal">✨ Zero Setup</p>
+                <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-5">
+                  <p className="text-white text-sm font-medium leading-normal">Zero Setup</p>
                 </div>
-                <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-4">
-                  <p className="text-white text-sm font-medium leading-normal">🚀 One-Click Deploy</p>
+                <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-5">
+                  <p className="text-white text-sm font-medium leading-normal">Rust-Powered</p>
                 </div>
-                <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-4">
-                  <p className="text-white text-sm font-medium leading-normal">💰 10x Cheaper Gas</p>
-                </div>
-                <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-4">
-                  <p className="text-white text-sm font-medium leading-normal">🎮 Earn NFT Badges</p>
+                <div className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#362348] px-5">
+                  <p className="text-white text-sm font-medium leading-normal">Low Gas Fees</p>
                 </div>
               </motion.div>
             </div>
@@ -113,12 +110,12 @@ export default function HomePage() {
         </section>
 
         {/* Code Editor Preview */}
-        <section className="container mx-auto px-4 py-8">
+        <section className="container mx-auto px-6 py-16 max-w-6xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="relative rounded-lg border border-white/10 bg-black/30 shadow-2xl shadow-primary/20 p-2 max-w-4xl mx-auto"
+            className="relative rounded-2xl border border-white/10 bg-black/30 shadow-2xl shadow-primary/20 p-3 max-w-5xl mx-auto"
           >
             <div className="flex items-center gap-1.5 p-2 border-b border-white/10">
               <div className="h-3 w-3 rounded-full bg-red-500"></div>
@@ -153,18 +150,18 @@ impl Counter {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="container mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section id="features" className="container mx-auto px-6 py-20 max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="glassmorphic rounded-2xl p-6"
+              className="glassmorphic rounded-2xl p-8"
             >
-              <div className="text-4xl mb-4">⚡</div>
-              <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
-              <p className="text-white/70">
+              <div className="text-5xl mb-6">⚡</div>
+              <h3 className="text-2xl font-bold mb-3">Lightning Fast</h3>
+              <p className="text-white/60 text-base leading-relaxed">
                 Compile and deploy Stylus contracts in seconds with our optimized WASM pipeline
               </p>
             </motion.div>
@@ -174,11 +171,11 @@ impl Counter {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
               viewport={{ once: true }}
-              className="glassmorphic rounded-2xl p-6"
+              className="glassmorphic rounded-2xl p-8"
             >
-              <div className="text-4xl mb-4">💎</div>
-              <h3 className="text-xl font-bold mb-2">Gas Savings</h3>
-              <p className="text-white/70">
+              <div className="text-5xl mb-6">💎</div>
+              <h3 className="text-2xl font-bold mb-3">Gas Savings</h3>
+              <p className="text-white/60 text-base leading-relaxed">
                 See real-time gas comparisons vs Solidity and save up to 90% on deployment costs
               </p>
             </motion.div>
@@ -188,11 +185,11 @@ impl Counter {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
-              className="glassmorphic rounded-2xl p-6"
+              className="glassmorphic rounded-2xl p-8"
             >
-              <div className="text-4xl mb-4">🎓</div>
-              <h3 className="text-xl font-bold mb-2">Learn & Earn</h3>
-              <p className="text-white/70">
+              <div className="text-5xl mb-6">🎓</div>
+              <h3 className="text-2xl font-bold mb-3">Learn & Earn</h3>
+              <p className="text-white/60 text-base leading-relaxed">
                 Complete interactive tutorials and earn on-chain NFT badges as you master Stylus
               </p>
             </motion.div>
@@ -200,15 +197,15 @@ impl Counter {
         </section>
 
         {/* Stats Section */}
-        <section className="container mx-auto px-4 py-16">
+        <section className="container mx-auto px-6 py-20 max-w-6xl">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="glassmorphic rounded-2xl p-8"
+            className="glassmorphic rounded-2xl p-12"
           >
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
               <div>
                 <div className="text-4xl font-bold text-primary mb-2">1,247</div>
                 <div className="text-white/60 text-sm">Contracts Deployed</div>
@@ -231,8 +228,8 @@ impl Counter {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8">
-        <div className="container mx-auto px-4">
+      <footer className="border-t border-white/10 py-12 mt-20">
+        <div className="container mx-auto px-6 max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-2xl">hub</span>
