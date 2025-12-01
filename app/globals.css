@@ -60,6 +60,23 @@ body {
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(40, 160, 240, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(40, 160, 240, 0.6);
+  }
+}
+
+.success {
+  color: #10B981;
+}
+
+.hover-glow-primary:hover {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

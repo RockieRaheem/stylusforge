@@ -44,7 +44,7 @@ export default function HomePage() {
           {/* HeroSection */}
           <section className="flex flex-col gap-10 items-center text-center">
             <div className="flex flex-col gap-4">
-              <h1 className="text-white text-6xl md:text-8xl font-black leading-tight tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-gray-100 to-gray-500">
+              <h1 className="text-6xl md:text-8xl font-black leading-tight tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white via-gray-100 to-gray-500 drop-shadow-lg">
                 Build The Future of Smart Contracts
               </h1>
               <h2 className="text-gray-400 text-lg md:text-xl font-normal leading-relaxed max-w-3xl mx-auto">
@@ -65,14 +65,14 @@ export default function HomePage() {
             </div>
             {/* Chips */}
             <div className="flex gap-3 pt-4 flex-wrap justify-center">
-              <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/10 px-4">
-                <p className="text-gray-200 text-sm font-medium leading-normal">Rust-Powered</p>
+              <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 px-4 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300 cursor-default">
+                <p className="text-primary text-sm font-medium leading-normal">⚡ Rust-Powered</p>
               </div>
-              <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/10 px-4">
-                <p className="text-gray-200 text-sm font-medium leading-normal">99% Cheaper Gas</p>
+              <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-gradient-to-r from-green-500/20 to-green-500/10 border border-green-500/30 px-4 hover:bg-green-500/20 hover:border-green-500/50 transition-all duration-300 cursor-default">
+                <p className="text-green-400 text-sm font-medium leading-normal">💰 99% Cheaper Gas</p>
               </div>
-              <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/10 px-4">
-                <p className="text-gray-200 text-sm font-medium leading-normal">EVM Compatible</p>
+              <div className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-gradient-to-r from-secondary/20 to-secondary/10 border border-secondary/30 px-4 hover:bg-secondary/20 hover:border-secondary/50 transition-all duration-300 cursor-default">
+                <p className="text-secondary text-sm font-medium leading-normal">🔗 EVM Compatible</p>
               </div>
             </div>
           </section>
@@ -111,22 +111,22 @@ export default function HomePage() {
               <p className="text-lg text-gray-400 max-w-3xl mx-auto">Develop, test, and deploy faster than ever with our integrated suite of tools.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
-              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft">
-                <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6">
+              <div className="group flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-primary/5 hover:border-primary/30 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft hover:shadow-glow-primary cursor-pointer">
+                <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6 group-hover:bg-primary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <span className="material-symbols-outlined !text-4xl !font-light">terminal</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Browser-Based IDE</h3>
-                <p className="text-gray-400 leading-relaxed">A full-featured code editor in your browser. No setup required. Write, compile, and test Rust smart contracts seamlessly.</p>
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors duration-300">Browser-Based IDE</h3>
+                <p className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">A full-featured code editor in your browser. No setup required. Write, compile, and test Rust smart contracts seamlessly.</p>
               </div>
-              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft">
-                <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-secondary/10 text-secondary mb-6">
+              <div className="group flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-secondary/5 hover:border-secondary/30 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft hover:shadow-glow-secondary cursor-pointer">
+                <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-secondary/10 text-secondary mb-6 group-hover:bg-secondary/20 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300">
                   <span className="material-symbols-outlined !text-4xl !font-light">rocket_launch</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Instant Deployment</h3>
-                <p className="text-gray-400 leading-relaxed">Deploy your contracts to Arbitrum testnets or mainnet with a single click, directly from the IDE.</p>
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-secondary transition-colors duration-300">Instant Deployment</h3>
+                <p className="text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors duration-300">Deploy your contracts to Arbitrum testnets or mainnet with a single click, directly from the IDE.</p>
               </div>
-              <div className="flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft">
-                <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6">
+              <div className="group flex flex-col items-center text-center p-8 bg-white/5 rounded-2xl border border-white/10 hover:bg-primary/5 hover:border-primary/30 hover:-translate-y-2 transition-all duration-300 ease-in-out shadow-soft hover:shadow-glow-primary cursor-pointer">
+                <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-primary/10 text-primary mb-6 group-hover:bg-primary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <span className="material-symbols-outlined !text-4xl !font-light">school</span>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Interactive Learning</h3>
@@ -143,17 +143,17 @@ export default function HomePage() {
             </div>
             <div className="w-full max-w-5xl glass-morphism-prominent rounded-2xl p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-white/10">
-                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4">
+                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4 hover:scale-105 transition-transform duration-300 cursor-default">
                   <p className="text-lg text-gray-400">Contracts Deployed</p>
-                  <p className="text-5xl font-bold text-white font-mono tracking-tight animated-counter">1,204</p>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400 font-mono tracking-tight animated-counter">1,204</p>
                 </div>
-                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4">
+                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4 hover:scale-105 transition-transform duration-300 cursor-default">
                   <p className="text-lg text-gray-400">Avg. Gas Savings</p>
-                  <p className="text-5xl font-bold text-white font-mono tracking-tight animated-counter">99.2%</p>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400 font-mono tracking-tight animated-counter">99.2%</p>
                 </div>
-                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4">
+                <div className="flex flex-col items-center gap-2 pt-8 md:pt-4 hover:scale-105 transition-transform duration-300 cursor-default">
                   <p className="text-lg text-gray-400">Active Developers</p>
-                  <p className="text-5xl font-bold text-white font-mono tracking-tight animated-counter">873</p>
+                  <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-secondary to-purple-400 font-mono tracking-tight animated-counter">873</p>
                 </div>
               </div>
             </div>
