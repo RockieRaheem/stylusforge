@@ -57,6 +57,9 @@ export default function IDEPage() {
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [problems, setProblems] = useState<Array<{ type: 'error' | 'warning'; message: string; line: number }>>([]);
   const [activePanel, setActivePanel] = useState<'terminal' | 'problems' | 'output'>('terminal');
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [creatingNew, setCreatingNew] = useState<{ type: 'file' | 'folder'; parentId: string | null } | null>(null);
+  const [newItemName, setNewItemName] = useState('');
 
   // Initialize with first file
   useEffect(() => {
@@ -107,7 +110,14 @@ export default function IDEPage() {
     }
   };
 
+  const startCreatingNew = (type: 'file' | 'folder', parentId: string | null = null) => {
+    setCreatingNew({ type, parentId });
+    setNewItemName('');
+  };
+
   const handleFileCreate = (parentId: string | null, type: 'file' | 'folder', name: string) => {
+    if (!name.trim()) return;
+    
     const newNode: FileNode = {
       id: `${Date.now()}-${name}`,
       name,
@@ -135,6 +145,23 @@ export default function IDEPage() {
       };
       setFiles(addToParent(files));
     }
+    
+    setCreatingNew(null);
+    setNewItemName('');
+  };
+
+  const completeCreation = () => {
+    if (creatingNew && newItemName.trim()) {
+      handleFileCreate(creatingNew.parentId, creatingNew.type, newItemName);
+    } else {
+      setCreatingNew(null);
+      setNewItemName('');
+    }
+  };
+
+  const cancelCreation = () => {
+    setCreatingNew(null);
+    setNewItemName('');
   };
 
   const handleFileDelete = (fileId: string) => {
@@ -247,146 +274,371 @@ export default function IDEPage() {
     };
   }, [isResizingSidebar]);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenu(null);
+    if (openMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenu]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S - Save file
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+      // Ctrl+` - Toggle terminal
+      if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+        e.preventDefault();
+        setShowTerminal(!showTerminal);
+      }
+      // Ctrl+B - Toggle sidebar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setSidebarCollapsed(!sidebarCollapsed);
+      }
+      // F5 - Compile
+      if (e.key === 'F5') {
+        e.preventDefault();
+        handleCompile();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedFile, fileContent, showTerminal, sidebarCollapsed]);
+
   return (
-    <div className="relative flex h-screen w-full bg-[#1e1e1e] text-white overflow-hidden select-none">
+    <div className="relative flex flex-col h-screen w-full bg-[#1e1e1e] text-white overflow-hidden select-none">
       {/* VS Code Title Bar */}
-      <div className="flex h-[35px] items-center justify-between bg-[#323233] border-b border-[#1e1e1e] px-2 flex-none">
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 text-blue-500">
+      <div className="flex h-[35px] items-center justify-between bg-[#323233] border-b border-[#2d2d30] px-3 flex-none shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <div className="h-4 w-4 text-[#0098ff]">
             <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor"/>
             </svg>
           </div>
-          <span className="text-xs text-gray-300">Stylus Studio</span>
+          <span className="text-[13px] text-[#cccccc] font-normal tracking-tight">Stylus Studio</span>
           {selectedFile && (
             <>
-              <span className="text-gray-600">-</span>
-              <span className="text-xs text-gray-400">{selectedFile.name}</span>
-              {hasUnsavedChanges && <span className="text-xs text-gray-400">●</span>}
+              <span className="text-[#6e6e6e] text-[13px] mx-1">—</span>
+              <span className="text-[13px] text-[#999999] font-normal">{selectedFile.name}</span>
+              {hasUnsavedChanges && <span className="text-[13px] text-white ml-1.5">●</span>}
             </>
           )}
         </div>
-        <div className="flex items-center gap-1">
+
+        {/* Menu Bar */}
+        <div className="flex items-center gap-1 ml-6">
+          <div className="relative">
+            <button
+              onClick={() => setOpenMenu(openMenu === 'file' ? null : 'file')}
+              className="px-2 py-1 text-[13px] text-[#cccccc] hover:bg-[#2d2d30] rounded-sm transition-colors"
+            >
+              File
+            </button>
+            {openMenu === 'file' && (
+              <div className="absolute top-full left-0 mt-1 w-56 bg-[#252526] border border-[#454545] rounded-sm shadow-xl z-50">
+                <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between">
+                  New File
+                  <span className="text-[#858585] text-[11px]">Ctrl+N</span>
+                </button>
+                <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between">
+                  Save
+                  <span className="text-[#858585] text-[11px]">Ctrl+S</span>
+                </button>
+                <div className="h-[1px] bg-[#454545] my-1"></div>
+                <Link href="/dashboard">
+                  <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e]">
+                    Close Editor
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => setOpenMenu(openMenu === 'edit' ? null : 'edit')}
+              className="px-2 py-1 text-[13px] text-[#cccccc] hover:bg-[#2d2d30] rounded-sm transition-colors"
+            >
+              Edit
+            </button>
+            {openMenu === 'edit' && (
+              <div className="absolute top-full left-0 mt-1 w-56 bg-[#252526] border border-[#454545] rounded-sm shadow-xl z-50">
+                <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between">
+                  Undo
+                  <span className="text-[#858585] text-[11px]">Ctrl+Z</span>
+                </button>
+                <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between">
+                  Redo
+                  <span className="text-[#858585] text-[11px]">Ctrl+Y</span>
+                </button>
+                <div className="h-[1px] bg-[#454545] my-1"></div>
+                <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between">
+                  Find
+                  <span className="text-[#858585] text-[11px]">Ctrl+F</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => setOpenMenu(openMenu === 'view' ? null : 'view')}
+              className="px-2 py-1 text-[13px] text-[#cccccc] hover:bg-[#2d2d30] rounded-sm transition-colors"
+            >
+              View
+            </button>
+            {openMenu === 'view' && (
+              <div className="absolute top-full left-0 mt-1 w-56 bg-[#252526] border border-[#454545] rounded-sm shadow-xl z-50">
+                <button
+                  onClick={() => {
+                    setSidebarCollapsed(!sidebarCollapsed);
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between"
+                >
+                  Toggle Sidebar
+                  <span className="text-[#858585] text-[11px]">Ctrl+B</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowTerminal(!showTerminal);
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between"
+                >
+                  Toggle Terminal
+                  <span className="text-[#858585] text-[11px]">Ctrl+`</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => setOpenMenu(openMenu === 'run' ? null : 'run')}
+              className="px-2 py-1 text-[13px] text-[#cccccc] hover:bg-[#2d2d30] rounded-sm transition-colors"
+            >
+              Run
+            </button>
+            {openMenu === 'run' && (
+              <div className="absolute top-full left-0 mt-1 w-56 bg-[#252526] border border-[#454545] rounded-sm shadow-xl z-50">
+                <button
+                  onClick={() => {
+                    handleCompile();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4" />
+                    Compile Project
+                  </div>
+                  <span className="text-[#858585] text-[11px]">F5</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeploy();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center gap-2"
+                >
+                  <Package className="h-4 w-4" />
+                  Deploy to Arbitrum
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowTerminal(true);
+                setActivePanel('terminal');
+                setOpenMenu(null);
+              }}
+              className="px-2 py-1 text-[13px] text-[#cccccc] hover:bg-[#2d2d30] rounded-sm transition-colors flex items-center gap-1.5"
+            >
+              <TerminalIcon className="h-3.5 w-3.5" />
+              Terminal
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
           <Link href="/dashboard">
-            <button className="p-1 hover:bg-white/10 rounded transition-colors">
-              <Menu className="h-3.5 w-3.5 text-gray-400" />
+            <button className="p-1.5 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150">
+              <Menu className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
             </button>
           </Link>
         </div>
       </div>
 
+      {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Main Content Area */}
         {/* Activity Bar - VS Code Style */}
-        <div className="w-[48px] bg-[#333333] border-r border-[#1e1e1e] flex flex-col items-center py-2 gap-1 flex-none">
+        <div className="w-[48px] bg-[#333333] border-r border-[#2d2d30] flex flex-col items-center py-3 gap-0 flex-none">
           <button
             onClick={() => { setActiveView('explorer'); setSidebarCollapsed(false); }}
             className={`w-[48px] h-[48px] flex items-center justify-center relative group ${
-              activeView === 'explorer' ? 'text-white' : 'text-gray-400 hover:text-white'
-            } transition-colors`}
+              activeView === 'explorer' ? 'text-white' : 'text-[#858585] hover:text-white'
+            } transition-all duration-150`}
             title="Explorer (Ctrl+Shift+E)"
           >
-            <Files className="h-6 w-6" />
+            <Files className="h-[22px] w-[22px]" />
             {activeView === 'explorer' && (
-              <div className="absolute left-0 top-0 h-full w-[2px] bg-white"></div>
+              <div className="absolute left-0 top-0 h-full w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"></div>
             )}
           </button>
           <button
             onClick={() => { setActiveView('search'); setSidebarCollapsed(false); }}
             className={`w-[48px] h-[48px] flex items-center justify-center relative group ${
-              activeView === 'search' ? 'text-white' : 'text-gray-400 hover:text-white'
-            } transition-colors`}
+              activeView === 'search' ? 'text-white' : 'text-[#858585] hover:text-white'
+            } transition-all duration-150`}
             title="Search (Ctrl+Shift+F)"
           >
-            <Search className="h-6 w-6" />
+            <Search className="h-[22px] w-[22px]" />
             {activeView === 'search' && (
-              <div className="absolute left-0 top-0 h-full w-[2px] bg-white"></div>
+              <div className="absolute left-0 top-0 h-full w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"></div>
             )}
           </button>
           <button
             onClick={() => { setActiveView('git'); setSidebarCollapsed(false); }}
             className={`w-[48px] h-[48px] flex items-center justify-center relative group ${
-              activeView === 'git' ? 'text-white' : 'text-gray-400 hover:text-white'
-            } transition-colors`}
+              activeView === 'git' ? 'text-white' : 'text-[#858585] hover:text-white'
+            } transition-all duration-150`}
             title="Source Control (Ctrl+Shift+G)"
           >
-            <GitBranch className="h-6 w-6" />
+            <GitBranch className="h-[22px] w-[22px]" />
             {activeView === 'git' && (
-              <div className="absolute left-0 top-0 h-full w-[2px] bg-white"></div>
+              <div className="absolute left-0 top-0 h-full w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"></div>
             )}
           </button>
           <button
             onClick={() => { setActiveView('extensions'); setSidebarCollapsed(false); }}
             className={`w-[48px] h-[48px] flex items-center justify-center relative group ${
-              activeView === 'extensions' ? 'text-white' : 'text-gray-400 hover:text-white'
-            } transition-colors`}
+              activeView === 'extensions' ? 'text-white' : 'text-[#858585] hover:text-white'
+            } transition-all duration-150`}
             title="Extensions (Ctrl+Shift+X)"
           >
-            <Package className="h-6 w-6" />
+            <Package className="h-[22px] w-[22px]" />
             {activeView === 'extensions' && (
-              <div className="absolute left-0 top-0 h-full w-[2px] bg-white"></div>
+              <div className="absolute left-0 top-0 h-full w-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"></div>
             )}
           </button>
           <div className="flex-1"></div>
           <button
-            className="w-[48px] h-[48px] flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+            className="w-[48px] h-[48px] flex items-center justify-center text-[#858585] hover:text-white transition-all duration-150"
             title="Settings"
           >
-            <SettingsIcon className="h-5 w-5" />
+            <SettingsIcon className="h-[22px] w-[22px]" />
           </button>
         </div>
 
         {/* Sidebar */}
         {!sidebarCollapsed && (
-          <div className="bg-[#252526] border-r border-[#1e1e1e] flex flex-none relative" style={{ width: `${sidebarWidth}px` }}>
+          <div className="bg-[#252526] border-r border-[#2d2d30] flex flex-none relative shadow-[2px_0_8px_rgba(0,0,0,0.2)]" style={{ width: `${sidebarWidth}px` }}>
             <div className="flex flex-col w-full">
               {/* Sidebar Header */}
-              <div className="h-[35px] flex items-center justify-between px-4 border-b border-[#1e1e1e]">
-                <span className="text-xs font-medium text-gray-300 uppercase tracking-wider">
+              <div className="h-[35px] flex items-center justify-between px-3 border-b border-[#2d2d30]">
+                <span className="text-[11px] font-semibold text-[#cccccc] uppercase tracking-wider">
                   {activeView === 'explorer' && 'Explorer'}
                   {activeView === 'search' && 'Search'}
                   {activeView === 'git' && 'Source Control'}
                   {activeView === 'extensions' && 'Extensions'}
                 </span>
-                <button
-                  onClick={() => setSidebarCollapsed(true)}
-                  className="p-1 hover:bg-white/10 rounded transition-colors"
-                >
-                  <X className="h-3.5 w-3.5 text-gray-400" />
-                </button>
+                <div className="flex items-center gap-0.5">
+                  {activeView === 'explorer' && (
+                    <>
+                      <button
+                        onClick={() => startCreatingNew('file')}
+                        className="p-1 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150"
+                        title="New File"
+                      >
+                        <FileCode className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
+                      </button>
+                      <button
+                        onClick={() => startCreatingNew('folder')}
+                        className="p-1 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150"
+                        title="New Folder"
+                      >
+                        <Files className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setSidebarCollapsed(true)}
+                    className="p-1 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150"
+                  >
+                    <X className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
+                  </button>
+                </div>
               </div>
 
               {/* Sidebar Content */}
               <div className="flex-1 overflow-hidden">
               {activeView === 'explorer' && (
-                <FileTree
-                  files={files}
-                  selectedFile={selectedFile?.id || null}
-                  onFileSelect={handleFileSelect}
-                  onFileCreate={handleFileCreate}
-                  onFileDelete={handleFileDelete}
-                />
+                <div className="h-full overflow-y-auto overflow-x-hidden px-2 py-2">
+                  {creatingNew && (
+                    <div className="flex items-center gap-1.5 px-2 py-1 mb-1">
+                      {creatingNew.type === 'file' ? (
+                        <FileCode className="h-4 w-4 text-[#858585] flex-shrink-0" />
+                      ) : (
+                        <Files className="h-4 w-4 text-[#858585] flex-shrink-0" />
+                      )}
+                      <input
+                        type="text"
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            completeCreation();
+                          } else if (e.key === 'Escape') {
+                            cancelCreation();
+                          }
+                        }}
+                        onBlur={completeCreation}
+                        autoFocus
+                        placeholder={creatingNew.type === 'file' ? 'filename.rs' : 'foldername'}
+                        className="flex-1 bg-[#3c3c3c] text-[#cccccc] text-[13px] px-2 py-0.5 border border-[#0098ff] outline-none rounded-sm"
+                      />
+                    </div>
+                  )}
+                  <FileTree
+                    files={files}
+                    selectedFile={selectedFile?.id || null}
+                    onFileSelect={handleFileSelect}
+                    onFileCreate={handleFileCreate}
+                    onFileDelete={handleFileDelete}
+                  />
+                </div>
               )}
               {activeView === 'search' && (
                 <div className="p-4">
                   <input
                     type="text"
                     placeholder="Search in files..."
-                    className="w-full px-3 py-2 bg-[#3c3c3c] text-white text-sm rounded border border-[#555] focus:border-blue-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 bg-[#3c3c3c] text-[#cccccc] text-[13px] rounded-sm border border-[#3c3c3c] focus:border-[#007acc] focus:outline-none transition-colors placeholder:text-[#6e6e6e]"
                   />
-                  <div className="mt-4 text-sm text-gray-500">
-                    No results found
+                  <div className="mt-6 text-[13px] text-[#6e6e6e] text-center">
+                    No results
                   </div>
                 </div>
               )}
               {activeView === 'git' && (
                 <div className="p-4">
-                  <div className="text-sm text-gray-400 space-y-2">
-                    <div className="flex items-center gap-2">
+                  <div className="text-[13px] text-[#cccccc] space-y-3">
+                    <div className="flex items-center gap-2.5 font-medium">
                       <GitBranch className="h-4 w-4" />
                       <span>master</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-4">No changes</p>
+                    <p className="text-[13px] text-[#6e6e6e] mt-6">No changes</p>
                   </div>
                 </div>
               )}
@@ -395,13 +647,13 @@ export default function IDEPage() {
                   <input
                     type="text"
                     placeholder="Search Extensions"
-                    className="w-full px-3 py-2 bg-[#3c3c3c] text-white text-sm border border-[#1e1e1e] rounded focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-1.5 bg-[#3c3c3c] text-[#cccccc] text-[13px] border border-[#3c3c3c] rounded-sm focus:outline-none focus:border-[#007acc] transition-colors placeholder:text-[#6e6e6e]"
                   />
-                  <div className="mt-4 space-y-2">
-                    <div className="text-xs text-gray-400">Recommended</div>
-                    <div className="p-2 hover:bg-white/5 rounded cursor-pointer">
-                      <div className="text-sm text-white">Rust Analyzer</div>
-                      <div className="text-xs text-gray-500">Installed</div>
+                  <div className="mt-5 space-y-2">
+                    <div className="text-[11px] text-[#858585] uppercase font-semibold tracking-wider mb-3">Recommended</div>
+                    <div className="p-2.5 hover:bg-[#2d2d30] rounded-sm cursor-pointer transition-colors duration-150">
+                      <div className="text-[13px] text-[#cccccc] font-medium">Rust Analyzer</div>
+                      <div className="text-[12px] text-[#6e6e6e] mt-0.5">Installed</div>
                     </div>
                   </div>
                 </div>
@@ -410,7 +662,7 @@ export default function IDEPage() {
             
             {/* Resize Handle */}
             <div
-              className="absolute top-0 right-0 h-full w-[4px] cursor-col-resize hover:bg-blue-500/50 active:bg-blue-500 transition-colors z-10"
+              className="absolute top-0 right-0 h-full w-[4px] cursor-col-resize hover:bg-[#007acc]/60 active:bg-[#007acc] transition-all duration-150 z-10"
               onMouseDown={() => setIsResizingSidebar(true)}
             />
           </div>
@@ -429,20 +681,20 @@ export default function IDEPage() {
 
           {/* Tabs Bar */}
           {selectedFile && (
-            <div className="h-[35px] flex items-center bg-[#252526] border-b border-[#1e1e1e] overflow-x-auto flex-none">
-              <div className="flex items-center h-full px-3 bg-[#1e1e1e] border-r border-[#1e1e1e] gap-2 min-w-fit cursor-pointer hover:bg-[#2a2d2e] transition-colors">
-                <FileCode className="h-3.5 w-3.5 text-gray-400" />
-                <span className="text-[13px] text-gray-300">{selectedFile.name}</span>
-                {hasUnsavedChanges && <span className="text-white">●</span>}
+            <div className="h-[35px] flex items-center bg-[#252526] border-b border-[#2d2d30] overflow-x-auto flex-none">
+              <div className="flex items-center h-full px-4 bg-[#1e1e1e] border-r border-[#252526] gap-2.5 min-w-fit cursor-pointer hover:bg-[#2a2d2e] transition-colors duration-150 group">
+                <FileCode className="h-4 w-4 text-[#858585]" />
+                <span className="text-[13px] text-[#cccccc] font-normal">{selectedFile.name}</span>
+                {hasUnsavedChanges && <span className="text-[#cccccc] text-[16px] leading-none">●</span>}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedFile(null);
                     setFileContent('');
                   }}
-                  className="ml-2 p-0.5 hover:bg-white/10 rounded transition-colors"
+                  className="ml-1 p-1 opacity-0 group-hover:opacity-100 hover:bg-[#3e3e42] rounded-sm transition-all duration-150"
                 >
-                  <X className="h-3 w-3 text-gray-400" />
+                  <X className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc]" />
                 </button>
               </div>
             </div>
@@ -460,9 +712,9 @@ export default function IDEPage() {
             ) : (
               <div className="flex items-center justify-center h-full bg-[#1e1e1e]">
                 <div className="text-center">
-                  <Code2 className="h-20 w-20 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-sm font-medium text-gray-400 mb-2">No file open</h3>
-                  <p className="text-xs text-gray-600">Select a file from the explorer to start editing</p>
+                  <Code2 className="h-24 w-24 text-[#3e3e42] mx-auto mb-6" />
+                  <h3 className="text-[15px] font-medium text-[#858585] mb-2">No file open</h3>
+                  <p className="text-[13px] text-[#6e6e6e]">Select a file from the explorer to start editing</p>
                 </div>
               </div>
             )}
@@ -476,65 +728,65 @@ export default function IDEPage() {
             >
               {/* Resize Handle */}
               <div
-                className="h-[4px] hover:bg-blue-500/50 cursor-ns-resize active:bg-blue-500 transition-colors"
+                className="h-[4px] hover:bg-[#007acc]/60 cursor-ns-resize active:bg-[#007acc] transition-all duration-150"
                 onMouseDown={() => setIsResizing(true)}
               />
 
               {/* Panel Tabs */}
-              <div className="flex items-center h-[35px] bg-[#252526] border-b border-[#1e1e1e] px-2 gap-1">
+              <div className="flex items-center h-[35px] bg-[#252526] border-b border-[#2d2d30] px-2 gap-0.5">
                 <button
                   onClick={() => setActivePanel('terminal')}
-                  className={`px-3 py-1 text-xs rounded ${
+                  className={`px-3 py-1.5 text-[13px] font-normal rounded-sm ${
                     activePanel === 'terminal'
-                      ? 'bg-[#1e1e1e] text-white'
-                      : 'text-gray-400 hover:text-white'
-                  } transition-colors`}
+                      ? 'bg-[#1e1e1e] text-[#cccccc]'
+                      : 'text-[#858585] hover:text-[#cccccc]'
+                  } transition-all duration-150`}
                 >
                   Terminal
                 </button>
                 <button
                   onClick={() => setActivePanel('problems')}
-                  className={`px-3 py-1 text-xs rounded flex items-center gap-1 ${
+                  className={`px-3 py-1.5 text-[13px] font-normal rounded-sm flex items-center gap-1.5 ${
                     activePanel === 'problems'
-                      ? 'bg-[#1e1e1e] text-white'
-                      : 'text-gray-400 hover:text-white'
-                  } transition-colors`}
+                      ? 'bg-[#1e1e1e] text-[#cccccc]'
+                      : 'text-[#858585] hover:text-[#cccccc]'
+                  } transition-all duration-150`}
                 >
                   Problems
                   {problems.length > 0 && (
-                    <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                    <span className="bg-[#f48771] text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
                       {problems.length}
                     </span>
                   )}
                 </button>
                 <button
                   onClick={() => setActivePanel('output')}
-                  className={`px-3 py-1 text-xs rounded ${
+                  className={`px-3 py-1.5 text-[13px] font-normal rounded-sm ${
                     activePanel === 'output'
-                      ? 'bg-[#1e1e1e] text-white'
-                      : 'text-gray-400 hover:text-white'
-                  } transition-colors`}
+                      ? 'bg-[#1e1e1e] text-[#cccccc]'
+                      : 'text-[#858585] hover:text-[#cccccc]'
+                  } transition-all duration-150`}
                 >
                   Output
                 </button>
                 <div className="flex-1"></div>
                 <button
                   onClick={() => setPanelHeight(panelHeight === 250 ? 400 : 250)}
-                  className="p-1 hover:bg-white/10 rounded transition-colors"
+                  className="p-1 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150"
                   title="Maximize Panel"
                 >
                   {panelHeight > 300 ? (
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                    <ChevronDown className="h-4 w-4 text-[#858585] hover:text-[#cccccc] transition-colors" />
                   ) : (
-                    <ChevronUp className="h-4 w-4 text-gray-400" />
+                    <ChevronUp className="h-4 w-4 text-[#858585] hover:text-[#cccccc] transition-colors" />
                   )}
                 </button>
                 <button
-                  onClick={() => setShowTerminal(false)}
-                  className="p-1 hover:bg-white/10 rounded transition-colors"
-                  title="Close Panel"
+                  onClick={() => setShowTerminal(!showTerminal)}
+                  className="p-1 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150"
+                  title="Toggle Panel (Ctrl+`)"
                 >
-                  <X className="h-4 w-4 text-gray-400" />
+                  <X className="h-4 w-4 text-[#858585] hover:text-[#cccccc] transition-colors" />
                 </button>
               </div>
 
@@ -542,23 +794,23 @@ export default function IDEPage() {
               <div className="flex-1 overflow-hidden">
                 {activePanel === 'terminal' && <TerminalPanel />}
                 {activePanel === 'problems' && (
-                  <div className="h-full overflow-y-auto p-2 font-mono text-xs">
+                  <div className="h-full overflow-y-auto p-3 font-mono text-[13px]">
                     {problems.length === 0 ? (
-                      <div className="flex items-center justify-center h-full text-gray-500">
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
+                      <div className="flex items-center justify-center h-full text-[#858585]">
+                        <CheckCircle2 className="h-5 w-5 mr-2.5" />
                         No problems detected
                       </div>
                     ) : (
                       problems.map((problem, idx) => (
-                        <div key={idx} className="flex items-start gap-2 p-2 hover:bg-white/5 cursor-pointer">
+                        <div key={idx} className="flex items-start gap-2.5 p-2.5 hover:bg-[#2d2d30] cursor-pointer transition-colors duration-150 rounded-sm">
                           {problem.type === 'error' ? (
-                            <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-[#f48771] flex-shrink-0 mt-0.5" />
                           ) : (
-                            <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-[#cca700] flex-shrink-0 mt-0.5" />
                           )}
                           <div>
-                            <div className="text-gray-300">{problem.message}</div>
-                            <div className="text-gray-600 text-[11px]">
+                            <div className="text-[#cccccc]">{problem.message}</div>
+                            <div className="text-[#858585] text-[12px] mt-1">
                               {selectedFile?.name} [Ln {problem.line}]
                             </div>
                           </div>
@@ -568,8 +820,8 @@ export default function IDEPage() {
                   </div>
                 )}
                 {activePanel === 'output' && (
-                  <div className="h-full overflow-y-auto p-2 font-mono text-xs text-gray-300">
-                    <div>Build output will appear here...</div>
+                  <div className="h-full overflow-y-auto p-3 font-mono text-[13px] text-[#cccccc]">
+                    <div className="text-[#858585]">Build output will appear here...</div>
                   </div>
                 )}
               </div>
@@ -579,31 +831,31 @@ export default function IDEPage() {
       </div>
 
       {/* Status Bar - VS Code Style (Bottom) */}
-      <div className="h-[22px] bg-[#007acc] flex items-center justify-between px-3 text-xs text-white flex-none w-full">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-white/10 px-2 py-0.5 rounded">
-            <GitBranch className="h-3 w-3" />
-            <span>master</span>
+      <div className="h-[22px] bg-[#007acc] flex items-center justify-between px-3 text-[12px] text-white flex-none w-full shadow-[0_-1px_0_rgba(0,0,0,0.3)]">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-[#005a9e] px-2 py-0.5 rounded-sm transition-colors duration-150">
+            <GitBranch className="h-3.5 w-3.5" />
+            <span className="font-normal">master</span>
           </div>
-          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-white/10 px-2 py-0.5 rounded" onClick={() => setActivePanel('problems')}>
-            <AlertCircle className="h-3 w-3" />
-            <span>0</span>
+          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-[#005a9e] px-2 py-0.5 rounded-sm transition-colors duration-150" onClick={() => setActivePanel('problems')}>
+            <AlertCircle className="h-3.5 w-3.5" />
+            <span className="font-normal">0</span>
           </div>
-          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-white/10 px-2 py-0.5 rounded" onClick={() => setActivePanel('problems')}>
-            <CheckCircle2 className="h-3 w-3" />
-            <span>0</span>
+          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-[#005a9e] px-2 py-0.5 rounded-sm transition-colors duration-150" onClick={() => setActivePanel('problems')}>
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <span className="font-normal">0</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {selectedFile && (
             <>
-              <span className="cursor-default">Ln 1, Col 1</span>
-              <span className="cursor-default">{getLanguageFromFilename(selectedFile.name).toUpperCase()}</span>
-              <span className="cursor-default">UTF-8</span>
+              <span className="cursor-default font-normal">Ln 1, Col 1</span>
+              <span className="cursor-default font-normal">{getLanguageFromFilename(selectedFile.name).toUpperCase()}</span>
+              <span className="cursor-default font-normal">UTF-8</span>
             </>
           )}
-          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-white/10 px-2 py-0.5 rounded">
-            <Wifi className="h-3 w-3" />
+          <div className="flex items-center gap-1.5 cursor-pointer hover:bg-[#005a9e] px-2 py-0.5 rounded-sm transition-colors duration-150">
+            <Wifi className="h-3.5 w-3.5" />
           </div>
         </div>
       </div>

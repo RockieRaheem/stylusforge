@@ -87,7 +87,7 @@ function FileItem({ node, level, selectedFile, onFileSelect, onFileDelete, expan
         <span className={`text-[13px] flex-1 select-none ${isSelected ? 'text-white' : 'text-gray-300'}`}>
           {node.name}
         </span>
-        {isHovered && node.type === 'file' && (
+        {isHovered && (
           <button
             onClick={(e) => {
               e.stopPropagation();
