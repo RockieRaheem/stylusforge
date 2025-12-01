@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
 interface Tutorial {
   id: number;
@@ -876,21 +879,40 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   {lessonContent.sections[activeSection].codeExample && (
-                    <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                    <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
                       <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
                         <span className="text-[#8b949e] text-sm font-medium">
                           {lessonContent.sections[activeSection].language || 'rust'}
                         </span>
-                        <button className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(lessonContent.sections[activeSection].codeExample || '');
+                          }}
+                          className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                        >
                           <span className="material-symbols-outlined text-sm">content_copy</span>
                           <span className="text-xs">Copy</span>
                         </button>
                       </div>
-                      <pre className="p-4 overflow-x-auto">
-                        <code className="text-sm text-[#e6edf3] font-mono">
-                          {lessonContent.sections[activeSection].codeExample}
-                        </code>
-                      </pre>
+                      <MonacoEditor
+                        height="400px"
+                        language={lessonContent.sections[activeSection].language || 'rust'}
+                        value={lessonContent.sections[activeSection].codeExample}
+                        theme="vs-dark"
+                        options={{
+                          readOnly: true,
+                          minimap: { enabled: false },
+                          scrollBeyondLastLine: false,
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          renderLineHighlight: 'none',
+                          scrollbar: {
+                            vertical: 'auto',
+                            horizontal: 'auto',
+                          },
+                          padding: { top: 16, bottom: 16 },
+                        }}
+                      />
                     </div>
                   )}
 
@@ -949,9 +971,9 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   {/* Code Editor */}
-                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
                     <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
-                      <span className="text-[#8b949e] text-sm font-medium">Your Solution</span>
+                      <span className="text-[#8b949e] text-sm font-medium">Your Solution - src/lib.rs</span>
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => setUserCode(lessonContent.assignment.starterCode)}
@@ -960,13 +982,40 @@ fn require(condition: bool, message: &str) {
                           <span className="material-symbols-outlined text-sm">refresh</span>
                           <span className="text-xs">Reset</span>
                         </button>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(userCode || lessonContent.assignment.starterCode);
+                          }}
+                          className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">content_copy</span>
+                          <span className="text-xs">Copy</span>
+                        </button>
                       </div>
                     </div>
-                    <textarea
+                    <MonacoEditor
+                      height="500px"
+                      language="rust"
                       value={userCode || lessonContent.assignment.starterCode}
-                      onChange={(e) => setUserCode(e.target.value)}
-                      className="w-full h-96 p-4 bg-[#0d1117] text-[#e6edf3] font-mono text-sm resize-none focus:outline-none"
-                      spellCheck="false"
+                      onChange={(value) => setUserCode(value || '')}
+                      theme="vs-dark"
+                      options={{
+                        minimap: { enabled: true },
+                        scrollBeyondLastLine: false,
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        renderLineHighlight: 'all',
+                        scrollbar: {
+                          vertical: 'auto',
+                          horizontal: 'auto',
+                        },
+                        padding: { top: 16, bottom: 16 },
+                        bracketPairColorization: { enabled: true },
+                        automaticLayout: true,
+                        tabSize: 4,
+                        insertSpaces: true,
+                        wordWrap: 'on',
+                      }}
                     />
                   </div>
 
@@ -997,7 +1046,7 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   {/* Solution Section */}
-                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
                     <button
                       onClick={() => setShowSolution(!showSolution)}
                       className="w-full flex items-center justify-between px-4 py-3 bg-[#161b22] hover:bg-[#21262d] transition-all"
@@ -1012,11 +1061,37 @@ fn require(condition: bool, message: &str) {
                     </button>
                     {showSolution && (
                       <div className="border-t border-[#30363d]">
-                        <pre className="p-4 overflow-x-auto">
-                          <code className="text-sm text-[#e6edf3] font-mono">
-                            {lessonContent.assignment.solution}
-                          </code>
-                        </pre>
+                        <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
+                          <span className="text-[#3fb950] text-sm font-medium">Complete Solution</span>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(lessonContent.assignment.solution);
+                            }}
+                            className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                          >
+                            <span className="material-symbols-outlined text-sm">content_copy</span>
+                            <span className="text-xs">Copy</span>
+                          </button>
+                        </div>
+                        <MonacoEditor
+                          height="500px"
+                          language="rust"
+                          value={lessonContent.assignment.solution}
+                          theme="vs-dark"
+                          options={{
+                            readOnly: true,
+                            minimap: { enabled: true },
+                            scrollBeyondLastLine: false,
+                            fontSize: 14,
+                            lineNumbers: 'on',
+                            renderLineHighlight: 'none',
+                            scrollbar: {
+                              vertical: 'auto',
+                              horizontal: 'auto',
+                            },
+                            padding: { top: 16, bottom: 16 },
+                          }}
+                        />
                       </div>
                     )}
                   </div>
