@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function DeployPage() {
   return (
     <div
@@ -13,9 +15,11 @@ export default function DeployPage() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 p-6 border-b border-white/10">
           <h1 className="text-white tracking-light text-2xl font-bold leading-tight">Deploy Your Contract</h1>
-          <button className="flex items-center justify-center p-1.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/20">
-            <span className="material-symbols-outlined text-2xl">close</span>
-          </button>
+          <Link href="/ide">
+            <button className="flex items-center justify-center p-1.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/20" title="Back to IDE">
+              <span className="material-symbols-outlined text-2xl">close</span>
+            </button>
+          </Link>
         </div>
 
         {/* Body */}

@@ -347,14 +347,30 @@ export default function IDEPage() {
                   New File
                   <span className="text-[#858585] text-[11px]">Ctrl+N</span>
                 </button>
-                <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between">
+                <button 
+                  onClick={() => {
+                    handleSave();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between"
+                >
                   Save
                   <span className="text-[#858585] text-[11px]">Ctrl+S</span>
                 </button>
                 <div className="h-[1px] bg-[#454545] my-1"></div>
+                <Link href="/">
+                  <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e]">
+                    Home
+                  </button>
+                </Link>
                 <Link href="/dashboard">
                   <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e]">
-                    Close Editor
+                    Dashboard
+                  </button>
+                </Link>
+                <Link href="/tutorial">
+                  <button className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e]">
+                    Tutorials
                   </button>
                 </Link>
               </div>

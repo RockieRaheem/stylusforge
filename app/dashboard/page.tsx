@@ -7,16 +7,18 @@ export default function DashboardPage() {
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-white">
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-6 sm:px-10 py-3 fixed top-0 left-0 right-0 bg-background-dark/80 backdrop-blur-sm z-50">
         <div className="flex items-center gap-4">
-          <div className="size-6 text-primary">
-            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"/></svg>
-          </div>
+          <Link href="/">
+            <div className="size-6 text-primary cursor-pointer hover:scale-110 transition-transform">
+              <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"/></svg>
+            </div>
+          </Link>
           <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Stylus Platform</h2>
         </div>
         <div className="hidden md:flex items-center gap-9">
+          <Link href="/" className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors">Home</Link>
           <Link href="/tutorial" className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors">Learn</Link>
           <Link href="/ide" className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors">IDE</Link>
           <a className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Docs</a>
-          <a className="text-white/80 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Community</a>
         </div>
         <div className="flex items-center gap-4">
           <button className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-card-dark text-white/80 hover:text-white hover:bg-border-dark transition-colors">

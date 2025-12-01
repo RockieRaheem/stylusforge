@@ -12,13 +12,15 @@ export default function TutorialPage() {
       <header className="flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#16222b] px-6">
         <div className="flex items-center gap-4">
           <Link href="/dashboard">
-            <button className="flex items-center justify-center p-2 text-white/80 transition-colors hover:text-white">
+            <button className="flex items-center justify-center p-2 text-white/80 transition-colors hover:text-white" title="Back to Dashboard">
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
           </Link>
           <h1 className="text-lg font-medium text-white">Tutorial: Build Your First Stylus Contract</h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-white/80 hover:text-white text-sm font-medium transition-colors">Home</Link>
+          <Link href="/ide" className="text-white/80 hover:text-white text-sm font-medium transition-colors">IDE</Link>
           <div 
             className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" 
             style={{backgroundImage: 'url("https://api.dicebear.com/7.x/avataaars/svg?seed=user")'}}

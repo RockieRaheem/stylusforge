@@ -28,8 +28,8 @@ export default function HomePage() {
           </div>
           <div className="flex flex-1 justify-end items-center gap-8">
             <div className="hidden md:flex items-center gap-9">
-              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Features</a>
-              <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Pricing</a>
+              <Link href="/dashboard" className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors">Dashboard</Link>
+              <Link href="/tutorial" className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors">Tutorials</Link>
               <a className="text-gray-300 hover:text-white text-sm font-medium leading-normal transition-colors" href="#">Docs</a>
             </div>
             <Link href="/ide">

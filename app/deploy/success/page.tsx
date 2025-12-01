@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function DeploySuccessPage() {
   return (
     <div
@@ -27,9 +29,11 @@ export default function DeploySuccessPage() {
             {/* Title + close */}
             <div className="flex flex-wrap justify-between items-start gap-4">
               <p className="text-[#F0F0F0] tracking-tight text-2xl sm:text-[32px] font-bold leading-tight">Contract Deployed Successfully!</p>
-              <button className="flex items-center justify-center rounded-lg h-8 w-8 bg-white/5 text-[#A0AEC0] hover:bg-white/10 transition-colors">
-                <span className="material-symbols-outlined text-xl">close</span>
-              </button>
+              <Link href="/ide">
+                <button className="flex items-center justify-center rounded-lg h-8 w-8 bg-white/5 text-[#A0AEC0] hover:bg-white/10 transition-colors" title="Back to IDE">
+                  <span className="material-symbols-outlined text-xl">close</span>
+                </button>
+              </Link>
             </div>
 
             {/* Badge / Achievement */}
@@ -96,10 +100,18 @@ export default function DeploySuccessPage() {
               <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
               <span>Share on Twitter</span>
             </button>
-            <button className="group relative flex w-full sm:w-auto cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 bg-gradient-to-r from-[#28A0F0] to-stylus-purple text-white text-sm font-bold leading-normal transition-all duration-300">
-              <span className="absolute inset-0 bg-white/20 opacity=0 transition-opacity duration-300 group-hover:opacity-100 group-hover:scale-150" />
-              <span className="relative z-10">Continue Coding</span>
-            </button>
+            <Link href="/dashboard" className="w-full sm:w-auto">
+              <button className="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-white/10 text-[#F0F0F0] text-sm font-medium leading-normal transition-all duration-300 hover:bg-white/20">
+                <span className="material-symbols-outlined text-base">dashboard</span>
+                <span>Dashboard</span>
+              </button>
+            </Link>
+            <Link href="/ide" className="w-full sm:w-auto">
+              <button className="group relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 bg-gradient-to-r from-[#28A0F0] to-stylus-purple text-white text-sm font-bold leading-normal transition-all duration-300">
+                <span className="absolute inset-0 bg-white/20 opacity=0 transition-opacity duration-300 group-hover:opacity-100 group-hover:scale-150" />
+                <span className="relative z-10">Continue Coding</span>
+              </button>
+            </Link>
           </div>
         </div>
       </div>
