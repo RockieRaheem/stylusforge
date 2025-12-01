@@ -44,6 +44,19 @@ export default function TutorialPage() {
   const [showHint, setShowHint] = useState<boolean>(false);
   const [userCode, setUserCode] = useState<string>('');
   const [showSolution, setShowSolution] = useState<boolean>(false);
+  const [copied, setCopied] = useState<string>('');
+  const [completedTutorials, setCompletedTutorials] = useState<Set<number>>(new Set());
+
+  const markTutorialComplete = (tutorialId: number) => {
+    setCompletedTutorials(prev => new Set([...prev, tutorialId]));
+  };
+
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(id);
+      setTimeout(() => setCopied(''), 2000);
+    });
+  };
 
   const tutorialContent: Record<number, { sections: LessonSection[], assignment: Assignment }> = {
     1: {
@@ -638,7 +651,7 @@ fn require(condition: bool, message: &str) {
       description: 'Learn the basics of Stylus SDK and create your first smart contract',
       difficulty: 'Beginner',
       duration: '15 min',
-      completed: true,
+      completed: false,
       locked: false,
       icon: 'rocket_launch',
       color: '#58a6ff',
@@ -650,7 +663,7 @@ fn require(condition: bool, message: &str) {
       description: 'Understand how to work with storage and manage contract state',
       difficulty: 'Beginner',
       duration: '20 min',
-      completed: true,
+      completed: false,
       locked: false,
       icon: 'storage',
       color: '#3fb950',
@@ -723,7 +736,7 @@ fn require(condition: bool, message: &str) {
       difficulty: 'Advanced',
       duration: '40 min',
       completed: false,
-      locked: true,
+      locked: false,
       icon: 'architecture',
       color: '#a371f7',
       sections: []
@@ -735,7 +748,7 @@ fn require(condition: bool, message: &str) {
       difficulty: 'Advanced',
       duration: '45 min',
       completed: false,
-      locked: true,
+      locked: false,
       icon: 'currency_exchange',
       color: '#f85149',
       sections: []
@@ -747,17 +760,23 @@ fn require(condition: bool, message: &str) {
       difficulty: 'Advanced',
       duration: '60 min',
       completed: false,
-      locked: true,
+      locked: false,
       icon: 'storefront',
       color: '#58a6ff',
       sections: []
     },
   ];
 
-  const completedCount = tutorials.filter(t => t.completed).length;
-  const progressPercent = Math.round((completedCount / tutorials.length) * 100);
+  // Update tutorials with completion status
+  const updatedTutorials = tutorials.map(tutorial => ({
+    ...tutorial,
+    completed: completedTutorials.has(tutorial.id)
+  }));
 
-  const filteredTutorials = tutorials.filter(tutorial => {
+  const completedCount = updatedTutorials.filter(t => t.completed).length;
+  const progressPercent = Math.round((completedCount / updatedTutorials.length) * 100);
+
+  const filteredTutorials = updatedTutorials.filter(tutorial => {
     if (selectedCategory === 'all') return true;
     if (selectedCategory === 'basics') return tutorial.difficulty === 'Beginner';
     if (selectedCategory === 'advanced') return tutorial.difficulty === 'Advanced';
@@ -765,7 +784,7 @@ fn require(condition: bool, message: &str) {
     return true;
   });
 
-  const selectedTutorialData = selectedTutorial ? tutorials.find(t => t.id === selectedTutorial) : null;
+  const selectedTutorialData = selectedTutorial ? updatedTutorials.find(t => t.id === selectedTutorial) : null;
   const lessonContent = selectedTutorial && tutorialContent[selectedTutorial] ? tutorialContent[selectedTutorial] : null;
 
   // If a tutorial is selected, show the lesson view
@@ -885,13 +904,13 @@ fn require(condition: bool, message: &str) {
                           {lessonContent.sections[activeSection].language || 'rust'}
                         </span>
                         <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(lessonContent.sections[activeSection].codeExample || '');
-                          }}
+                          onClick={() => handleCopy(lessonContent.sections[activeSection].codeExample || '', 'example')}
                           className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
                         >
-                          <span className="material-symbols-outlined text-sm">content_copy</span>
-                          <span className="text-xs">Copy</span>
+                          <span className="material-symbols-outlined text-sm">
+                            {copied === 'example' ? 'check' : 'content_copy'}
+                          </span>
+                          <span className="text-xs">{copied === 'example' ? 'Copied!' : 'Copy'}</span>
                         </button>
                       </div>
                       <MonacoEditor
@@ -976,27 +995,29 @@ fn require(condition: bool, message: &str) {
                       <span className="text-[#8b949e] text-sm font-medium">Your Solution - src/lib.rs</span>
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => setUserCode(lessonContent.assignment.starterCode)}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                          onClick={() => {
+                            setUserCode('');
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
                         >
                           <span className="material-symbols-outlined text-sm">refresh</span>
-                          <span className="text-xs">Reset</span>
+                          <span className="text-xs font-medium">Clear</span>
                         </button>
                         <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(userCode || lessonContent.assignment.starterCode);
-                          }}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                          onClick={() => handleCopy(userCode || '', 'usercode')}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
                         >
-                          <span className="material-symbols-outlined text-sm">content_copy</span>
-                          <span className="text-xs">Copy</span>
+                          <span className="material-symbols-outlined text-sm">
+                            {copied === 'usercode' ? 'check' : 'content_copy'}
+                          </span>
+                          <span className="text-xs font-medium">{copied === 'usercode' ? 'Copied!' : 'Copy'}</span>
                         </button>
                       </div>
                     </div>
                     <MonacoEditor
                       height="500px"
                       language="rust"
-                      value={userCode || lessonContent.assignment.starterCode}
+                      value={userCode}
                       onChange={(value) => setUserCode(value || '')}
                       theme="vs-dark"
                       options={{
@@ -1064,13 +1085,13 @@ fn require(condition: bool, message: &str) {
                         <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
                           <span className="text-[#3fb950] text-sm font-medium">Complete Solution</span>
                           <button 
-                            onClick={() => {
-                              navigator.clipboard.writeText(lessonContent.assignment.solution);
-                            }}
-                            className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
+                            onClick={() => handleCopy(lessonContent.assignment.solution, 'solution')}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
                           >
-                            <span className="material-symbols-outlined text-sm">content_copy</span>
-                            <span className="text-xs">Copy</span>
+                            <span className="material-symbols-outlined text-sm">
+                              {copied === 'solution' ? 'check' : 'content_copy'}
+                            </span>
+                            <span className="text-xs font-medium">{copied === 'solution' ? 'Copied!' : 'Copy'}</span>
                           </button>
                         </div>
                         <MonacoEditor
@@ -1106,7 +1127,17 @@ fn require(condition: bool, message: &str) {
                       <span>Back to Lesson</span>
                     </button>
                     
-                    <button className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#3fb950] hover:bg-[#2ea043] text-white font-medium transition-all">
+                    <button 
+                      onClick={() => {
+                        markTutorialComplete(selectedTutorial);
+                        setSelectedTutorial(null);
+                        setActiveSection(0);
+                        setUserCode('');
+                        setShowHint(false);
+                        setShowSolution(false);
+                      }}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#3fb950] hover:bg-[#2ea043] text-white font-medium transition-all"
+                    >
                       <span className="material-symbols-outlined">check</span>
                       <span>Mark as Complete</span>
                     </button>
