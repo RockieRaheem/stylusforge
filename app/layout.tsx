@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "StylusForge - Build The Future of Smart Contracts",
+  title: "Stylus Studio - Build The Future of Smart Contracts",
   description: "Write Rust. Deploy Instantly. Save Gas. The easiest way to learn, write, and deploy Stylus smart contracts with zero setup.",
 };
 

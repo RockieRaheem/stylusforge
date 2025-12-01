@@ -58,7 +58,7 @@ export default function IDEPage() {
             >
               <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM4 8.236L12 12.736L20 8.236V16.764L12 20.264L4 16.764V8.236ZM12 4.472L18.944 8.5L12 12.528L5.056 8.5L12 4.472Z" />
             </svg>
-            <span className="text-sm font-semibold text-ide-text">StylusForge</span>
+            <span className="text-sm font-semibold text-ide-text">Stylus Studio</span>
           </Link>
         </div>
 

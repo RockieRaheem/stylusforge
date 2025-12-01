@@ -15,7 +15,7 @@ export default function DashboardPage() {
           </button>
           <Link href="/">
             <h2 className="text-white text-xl font-bold leading-tight tracking-[-0.015em] flex-1 hover:text-primary transition-colors">
-              StylusForge
+              Stylus Studio
             </h2>
           </Link>
         </div>
