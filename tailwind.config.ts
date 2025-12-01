@@ -12,8 +12,10 @@ const config: Config = {
       colors: {
         primary: "#28A0F0",
         secondary: "#A955FF",
+        success: "#10b981",
         "background-light": "#f3f4f6",
         "background-dark": "#0A0B12",
+        "stylus-purple": "#A456F0",
         "arbitrum-blue-primary": "#28A0F0",
         "arbitrum-blue-dark": "#2D374B",
         "stylus-purple-primary": "#A78BFA",

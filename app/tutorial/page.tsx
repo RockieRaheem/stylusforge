@@ -57,51 +57,51 @@ export default function TutorialPage() {
                 <p className="text-white/90 text-sm font-medium leading-normal">Overall Completion</p>
                 <p className="text-primary text-sm font-bold leading-normal">40%</p>
               </div>
-              <div className="w-full rounded-full bg-white/10 h-2">
-                <div className="h-2 rounded-full bg-primary transition-all duration-500" style={{width: '40%'}}></div>
+              <div className="w-full rounded-full bg-[#283139] h-2 overflow-hidden">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-[#5eb8f5] shadow-[0_0_10px_rgba(40,160,240,0.5)] transition-all duration-500 ease-out" style={{width: '40%'}}></div>
               </div>
             </div>
 
             {/* Steps List */}
             <div className="flex flex-col gap-3">
               {/* Step 1 - Completed */}
-              <div className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-success/10 transition-all duration-200 cursor-pointer">
-                <div className="flex items-center justify-center size-6 rounded-full bg-success animate-bounce-in group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-success/50 transition-all duration-200">
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                <div className="flex items-center justify-center size-6 rounded-full bg-success animate-bounce-in">
                   <span className="material-symbols-outlined text-base text-background-dark" style={{fontVariationSettings: "'wght' 600"}}>check</span>
                 </div>
-                <p className="text-white/80 text-sm font-medium leading-normal group-hover:text-success transition-colors duration-200">Project Setup</p>
+                <p className="text-white/80 text-sm font-medium leading-normal">Project Setup</p>
               </div>
 
               {/* Step 2 - Completed */}
-              <div className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-success/10 transition-all duration-200 cursor-pointer">
-                <div className="flex items-center justify-center size-6 rounded-full bg-success animate-bounce-in group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-success/50 transition-all duration-200" style={{animationDelay: '0.1s'}}>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
+                <div className="flex items-center justify-center size-6 rounded-full bg-success animate-bounce-in" style={{animationDelay: '0.1s'}}>
                   <span className="material-symbols-outlined text-base text-background-dark" style={{fontVariationSettings: "'wght' 600"}}>check</span>
                 </div>
-                <p className="text-white/80 text-sm font-medium leading-normal group-hover:text-success transition-colors duration-200">Define Contract State</p>
+                <p className="text-white/80 text-sm font-medium leading-normal">Define Contract State</p>
               </div>
 
               {/* Step 3 - Active */}
-              <div className="group flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary/30 hover:border-primary/50 transition-all duration-200 cursor-pointer shadow-lg shadow-primary/20">
-                <div className="flex items-center justify-center size-6 rounded-full bg-primary animate-bounce-in group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/50 transition-all duration-200" style={{animationDelay: '0.2s'}}>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20">
+                <div className="flex items-center justify-center size-6 rounded-full bg-primary animate-bounce-in" style={{animationDelay: '0.2s'}}>
                   <span className="text-xs font-bold text-background-dark">3</span>
                 </div>
-                <p className="text-primary text-sm font-bold leading-normal group-hover:text-white transition-colors duration-200">Implement Logic</p>
+                <p className="text-primary text-sm font-bold leading-normal">Implement Logic</p>
               </div>
 
               {/* Step 4 - Locked */}
-              <div className="group flex items-center gap-3 px-3 py-2 rounded-lg text-white/50 hover:bg-white/5 transition-all duration-200 cursor-not-allowed">
-                <div className="flex items-center justify-center size-6 rounded-full border-2 border-white/30 group-hover:border-white/40 transition-all duration-200">
-                  <span className="text-xs font-bold text-white/50 group-hover:text-white/60 transition-colors duration-200">4</span>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/50">
+                <div className="flex items-center justify-center size-6 rounded-full border-2 border-white/30">
+                  <span className="text-xs font-bold text-white/50">4</span>
                 </div>
-                <p className="text-sm font-medium leading-normal group-hover:text-white/60 transition-colors duration-200">Compile &amp; Test</p>
+                <p className="text-sm font-medium leading-normal">Compile &amp; Test</p>
               </div>
 
               {/* Step 5 - Locked */}
-              <div className="group flex items-center gap-3 px-3 py-2 rounded-lg text-white/50 hover:bg-white/5 transition-all duration-200 cursor-not-allowed">
-                <div className="flex items-center justify-center size-6 rounded-full border-2 border-white/30 group-hover:border-white/40 transition-all duration-200">
-                  <span className="text-xs font-bold text-white/50 group-hover:text-white/60 transition-colors duration-200">5</span>
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/50">
+                <div className="flex items-center justify-center size-6 rounded-full border-2 border-white/30">
+                  <span className="text-xs font-bold text-white/50">5</span>
                 </div>
-                <p className="text-sm font-medium leading-normal group-hover:text-white/60 transition-colors duration-200">Deploy Contract</p>
+                <p className="text-sm font-medium leading-normal">Deploy Contract</p>
               </div>
             </div>
           </div>
@@ -122,21 +122,21 @@ export default function TutorialPage() {
                 <h3 className="text-white text-2xl font-bold leading-tight tracking-tight">Create a Storage Variable</h3>
               </div>
               <p className="text-white/70 text-base font-normal leading-relaxed mt-4 max-w-3xl">
-                In this step, you&apos;ll define a storage variable to hold a value on the blockchain. This is a fundamental concept in smart contract development. Use the <code className="font-mono bg-white/10 text-secondary text-sm px-1.5 py-0.5 rounded">#[storage]</code> attribute to declare a struct that will hold your contract&apos;s state.
+                In this step, you&apos;ll define a storage variable to hold a value on the blockchain. This is a fundamental concept in smart contract development. Use the <code className="font-mono bg-white/10 text-[#A456F0] text-sm px-1.5 py-0.5 rounded">#[storage]</code> attribute to declare a struct that will hold your contract&apos;s state.
               </p>
 
               {/* Hint Section */}
               <div className="mt-6">
                 <details className="group" open={hintOpen} onToggle={(e) => setHintOpen((e.target as HTMLDetailsElement).open)}>
-                  <summary className="list-none flex items-center gap-2 rounded-lg h-9 px-3 bg-secondary/20 text-secondary text-sm font-medium transition-all duration-300 hover:bg-secondary/30 hover:shadow-lg hover:shadow-secondary/30 hover:scale-105 cursor-pointer w-fit border border-secondary/30 hover:border-secondary/50">
-                    <span className="material-symbols-outlined text-base group-hover:animate-pulse">lightbulb</span>
+                  <summary className="list-none flex items-center gap-2 rounded-lg h-9 px-3 bg-[#A456F0]/20 text-[#A456F0] text-sm font-medium transition-colors hover:bg-[#A456F0]/30 cursor-pointer w-fit">
+                    <span className="material-symbols-outlined text-base">lightbulb</span>
                     <span className="truncate">Show Hint</span>
-                    <span className="material-symbols-outlined text-base transition-transform group-open:rotate-180 duration-300">expand_more</span>
+                    <span className="material-symbols-outlined text-base transition-transform group-open:rotate-180">expand_more</span>
                   </summary>
                   <div className="hint-content overflow-hidden">
                     <div className="mt-4 rounded-lg bg-black/20 p-4 border border-white/10">
                       <p className="text-white/70 text-sm">
-                        You need to declare a public struct. Inside this struct, define a variable to hold a number. For example: <code className="font-mono bg-white/10 text-secondary text-xs px-1 py-0.5 rounded">pub number: u64</code>.
+                        You need to declare a public struct. Inside this struct, define a variable to hold a number. For example: <code className="font-mono bg-white/10 text-[#A456F0] text-xs px-1 py-0.5 rounded">pub number: u64</code>.
                       </p>
                     </div>
                   </div>
@@ -150,11 +150,11 @@ export default function TutorialPage() {
               <div className="flex h-12 items-center justify-between border-b border-white/10 bg-[#16222b] px-4">
                 <p className="text-sm font-medium text-white/80">src/lib.rs</p>
                 <div className="flex items-center gap-2">
-                  <button className="group flex items-center justify-center p-2 text-white/60 transition-all duration-200 hover:text-primary hover:bg-primary/10 rounded-lg hover:scale-110 active:scale-95">
-                    <span className="material-symbols-outlined text-base group-hover:rotate-12 transition-transform duration-200">content_copy</span>
+                  <button className="flex items-center justify-center p-2 text-white/60 transition-colors hover:text-white">
+                    <span className="material-symbols-outlined text-base">content_copy</span>
                   </button>
-                  <button className="group flex items-center justify-center p-2 text-white/60 transition-all duration-200 hover:text-secondary hover:bg-secondary/10 rounded-lg hover:scale-110 active:scale-95">
-                    <span className="material-symbols-outlined text-base group-hover:-rotate-12 transition-transform duration-200">history</span>
+                  <button className="flex items-center justify-center p-2 text-white/60 transition-colors hover:text-white">
+                    <span className="material-symbols-outlined text-base">history</span>
                   </button>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function TutorialPage() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right text-gray-500 w-4">2</div>
-                      <div><span className="text-secondary">use</span> stylus_sdk::prelude::*;</div>
+                      <div><span className="text-[#A456F0]">use</span> stylus_sdk::prelude::*;</div>
                       <span className="material-symbols-outlined text-success text-lg ml-2">check_circle</span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -200,16 +200,14 @@ export default function TutorialPage() {
 
           {/* Bottom Action Bar */}
           <div className="flex h-20 items-center justify-end gap-4 border-t border-white/10 bg-[#16222b] px-8">
-            <button className="group flex min-w-[140px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-gradient-to-r from-secondary to-primary text-white text-sm font-bold leading-normal tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 hover:scale-105 active:scale-95">
-              <span className="material-symbols-outlined text-base mr-2 group-hover:rotate-12 transition-transform duration-300">check_circle</span>
+            <button className="flex min-w-[140px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-gradient-to-r from-[#A456F0] to-primary text-white text-sm font-bold leading-normal tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 active:scale-95">
               <span className="truncate">Check Solution</span>
             </button>
             <button 
-              className="group flex min-w-[120px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-white/10 text-white/50 text-sm font-bold leading-normal tracking-wide" 
+              className="flex min-w-[120px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-white/10 text-white/50 text-sm font-bold leading-normal tracking-wide" 
               disabled
             >
               <span className="truncate">Next Step</span>
-              <span className="material-symbols-outlined text-base ml-2">arrow_forward</span>
             </button>
           </div>
         </main>
