@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const users = new Map();
+import { UserService } from '@/lib/firebase/users';
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -14,25 +13,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Find user by ID
-    let userEntry = null;
-    for (const [address, user] of users.entries()) {
-      if (user.id === userId) {
-        userEntry = { address, user };
-        break;
-      }
-    }
+    await UserService.updateProfile(userId, updateData);
+    const updatedUser = await UserService.getUser(userId);
 
-    if (!userEntry) {
+    if (!updatedUser) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
-
-    // Update user
-    const updatedUser = { ...userEntry.user, ...updateData };
-    users.set(userEntry.address, updatedUser);
 
     return NextResponse.json(updatedUser);
   } catch (error) {
@@ -56,16 +45,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    for (const user of users.values()) {
-      if (user.id === userId) {
-        return NextResponse.json(user);
-      }
+    const user = await UserService.getUser(userId);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(
-      { error: 'User not found' },
-      { status: 404 }
-    );
+    return NextResponse.json(user);
   } catch (error) {
     console.error('Profile fetch error:', error);
     return NextResponse.json(

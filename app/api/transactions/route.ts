@@ -1,50 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Transaction {
-  id: string;
-  userId: string;
-  type: 'deployment' | 'funding' | 'withdrawal' | 'refund';
-  hash: string;
-  from: string;
-  to?: string;
-  value: string;
-  gasUsed?: string;
-  status: 'pending' | 'confirmed' | 'failed';
-  network: string;
-  timestamp: string;
-  projectId?: string;
-  contractAddress?: string;
-}
-
-const transactions = new Map<string, Transaction[]>();
+import { TransactionService } from '@/lib/firebase/transactions';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const txHash = searchParams.get('hash');
+    const txId = searchParams.get('id');
+    const projectId = searchParams.get('projectId');
 
-    if (txHash) {
-      // Find transaction by hash
-      for (const userTxs of transactions.values()) {
-        const tx = userTxs.find(t => t.hash === txHash);
-        if (tx) {
-          return NextResponse.json(tx);
-        }
+    if (txId) {
+      const tx = await TransactionService.getTransaction(txId);
+      if (!tx) {
+        return NextResponse.json(
+          { error: 'Transaction not found' },
+          { status: 404 }
+        );
       }
-      return NextResponse.json(
-        { error: 'Transaction not found' },
-        { status: 404 }
-      );
+      return NextResponse.json(tx);
+    }
+
+    if (projectId) {
+      const txs = await TransactionService.getProjectTransactions(projectId);
+      return NextResponse.json(txs);
     }
 
     if (userId) {
-      const userTransactions = transactions.get(userId) || [];
+      const userTransactions = await TransactionService.getUserTransactions(userId);
       return NextResponse.json(userTransactions);
     }
 
     return NextResponse.json(
-      { error: 'User ID or transaction hash required' },
+      { error: 'User ID, project ID or transaction ID required' },
       { status: 400 }
     );
   } catch (error) {
@@ -61,43 +47,38 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       userId,
+      projectId,
       type,
       hash,
       from,
       to,
       value,
       gasUsed,
+      gasPrice,
       network,
-      projectId,
-      contractAddress,
+      status,
     } = body;
 
-    if (!userId || !type || !hash || !from || !value || !network) {
+    if (!userId || !projectId || !type || !hash || !from || !network) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const transaction: Transaction = {
-      id: crypto.randomUUID(),
+    const transaction = await TransactionService.createTransaction({
       userId,
+      projectId,
       type,
       hash,
       from,
       to,
       value,
       gasUsed,
-      status: 'pending',
+      gasPrice,
+      status: status || 'pending',
       network,
-      timestamp: new Date().toISOString(),
-      projectId,
-      contractAddress,
-    };
-
-    const userTransactions = transactions.get(userId) || [];
-    userTransactions.push(transaction);
-    transactions.set(userId, userTransactions);
+    });
 
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
@@ -112,33 +93,24 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { hash, status, gasUsed } = body;
+    const { id, status, gasUsed, gasPrice, blockNumber, error } = body;
 
-    if (!hash || !status) {
+    if (!id || !status) {
       return NextResponse.json(
-        { error: 'Transaction hash and status required' },
+        { error: 'Transaction ID and status required' },
         { status: 400 }
       );
     }
 
-    // Find and update transaction
-    for (const [userId, userTxs] of transactions.entries()) {
-      const txIndex = userTxs.findIndex(t => t.hash === hash);
-      if (txIndex >= 0) {
-        userTxs[txIndex] = {
-          ...userTxs[txIndex],
-          status,
-          ...(gasUsed && { gasUsed }),
-        };
-        transactions.set(userId, userTxs);
-        return NextResponse.json(userTxs[txIndex]);
-      }
-    }
+    await TransactionService.updateTransactionStatus(id, status, {
+      gasUsed,
+      gasPrice,
+      blockNumber,
+      error,
+    });
 
-    return NextResponse.json(
-      { error: 'Transaction not found' },
-      { status: 404 }
-    );
+    const updated = await TransactionService.getTransaction(id);
+    return NextResponse.json(updated);
   } catch (error) {
     console.error('Transaction update error:', error);
     return NextResponse.json(

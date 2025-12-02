@@ -1,21 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Project {
-  id: string;
-  userId: string;
-  name: string;
-  description: string;
-  code: string;
-  language: string;
-  createdAt: string;
-  updatedAt: string;
-  deployedAddress?: string;
-  network?: string;
-  status: 'draft' | 'deployed' | 'failed';
-}
-
-// In-memory storage (replace with database in production)
-const projects = new Map<string, Project>();
+import { ProjectService } from '@/lib/firebase/projects';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +8,7 @@ export async function GET(request: NextRequest) {
     const projectId = searchParams.get('projectId');
 
     if (projectId) {
-      const project = projects.get(projectId);
+      const project = await ProjectService.getProject(projectId);
       if (!project) {
         return NextResponse.json(
           { error: 'Project not found' },
@@ -35,14 +19,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (userId) {
-      const userProjects = Array.from(projects.values()).filter(
-        p => p.userId === userId
-      );
+      const userProjects = await ProjectService.getUserProjects(userId);
       return NextResponse.json(userProjects);
     }
 
-    // Return all projects (for admin/public view)
-    return NextResponse.json(Array.from(projects.values()));
+    return NextResponse.json({ error: 'userId required' }, { status: 400 });
   } catch (error) {
     console.error('Project fetch error:', error);
     return NextResponse.json(
@@ -64,19 +45,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const project: Project = {
-      id: crypto.randomUUID(),
+    const project = await ProjectService.createProject({
       userId,
       name,
       description: description || '',
       code,
       language: language || 'rust',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: 'draft',
-    };
-
-    projects.set(project.id, project);
+      isDeployed: false,
+    });
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
@@ -100,21 +76,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const project = projects.get(projectId);
-    if (!project) {
+    await ProjectService.updateProject(projectId, updateData);
+    const updatedProject = await ProjectService.getProject(projectId);
+
+    if (!updatedProject) {
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }
       );
     }
-
-    const updatedProject = {
-      ...project,
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    projects.set(projectId, updatedProject);
 
     return NextResponse.json(updatedProject);
   } catch (error) {
@@ -138,14 +108,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    if (!projects.has(projectId)) {
-      return NextResponse.json(
-        { error: 'Project not found' },
-        { status: 404 }
-      );
-    }
-
-    projects.delete(projectId);
+    await ProjectService.deleteProject(projectId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

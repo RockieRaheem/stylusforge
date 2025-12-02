@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface TutorialProgress {
-  userId: string;
-  tutorialId: number;
-  completedSections: number[];
-  assignmentCompleted: boolean;
-  userCode: string;
-  completedAt?: string;
-}
-
-const tutorialProgress = new Map<string, TutorialProgress[]>();
+import { TutorialService } from '@/lib/firebase/tutorials';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const progress = tutorialProgress.get(userId) || [];
+    const progress = await TutorialService.getUserProgress(userId);
     return NextResponse.json(progress);
   } catch (error) {
     console.error('Progress fetch error:', error);
@@ -46,25 +36,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const userProgress = tutorialProgress.get(userId) || [];
-    const existingIndex = userProgress.findIndex(p => p.tutorialId === tutorialId);
-
-    const progress: TutorialProgress = {
-      userId,
-      tutorialId,
-      completedSections: completedSections || [],
-      assignmentCompleted: assignmentCompleted || false,
-      userCode: userCode || '',
-      ...(assignmentCompleted && { completedAt: new Date().toISOString() }),
-    };
-
-    if (existingIndex >= 0) {
-      userProgress[existingIndex] = progress;
-    } else {
-      userProgress.push(progress);
-    }
-
-    tutorialProgress.set(userId, userProgress);
+    const progress = await TutorialService.saveProgress(userId, tutorialId, {
+      completedSections,
+      assignmentCompleted,
+      userCode,
+    });
 
     return NextResponse.json(progress);
   } catch (error) {
