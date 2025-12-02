@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { 
+  tutorial4Content, 
+  tutorial5Content, 
+  tutorial6Content, 
+  tutorial7Content, 
+  tutorial8Content, 
+  tutorial9Content, 
+  tutorial10Content 
+} from './tutorial-data';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -641,7 +650,14 @@ fn require(condition: bool, message: &str) {
           'View functions use &self, not &mut self'
         ]
       }
-    }
+    },
+    4: tutorial4Content,
+    5: tutorial5Content,
+    6: tutorial6Content,
+    7: tutorial7Content,
+    8: tutorial8Content,
+    9: tutorial9Content,
+    10: tutorial10Content,
   };
 
   const tutorials: Tutorial[] = [
