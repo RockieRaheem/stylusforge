@@ -29,7 +29,7 @@ const NETWORKS = {
 };
 
 export class ContractDeployer {
-  private provider: ethers.Provider | null = null;
+  private provider: ethers.BrowserProvider | null = null;
   private signer: ethers.Signer | null = null;
 
   async connectWallet(): Promise<string> {

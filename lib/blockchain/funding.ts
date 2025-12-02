@@ -18,7 +18,7 @@ const FUNDING_CONTRACT_ABI = [
 const FUNDING_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000'; // Placeholder
 
 export class FundingManager {
-  private provider: ethers.Provider | null = null;
+  private provider: ethers.BrowserProvider | null = null;
   private signer: ethers.Signer | null = null;
   private contract: ethers.Contract | null = null;
 
