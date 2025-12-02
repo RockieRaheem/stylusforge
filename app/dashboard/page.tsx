@@ -31,6 +31,7 @@ export default function DashboardPage() {
           <Link href="/" className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors">Home</Link>
           <Link href="/tutorial" className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors">Learn</Link>
           <Link href="/ide" className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors">IDE</Link>
+          <Link href="/marketplace" className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors">Marketplace</Link>
           <a className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors" href="#">Docs</a>
         </div>
         <div className="flex items-center gap-3">
@@ -60,6 +61,10 @@ export default function DashboardPage() {
                 <p className="text-[#8b949e] text-base">Here's what's happening with your projects today.</p>
               </div>
               <div className="flex items-center gap-3">
+                <Link href="/marketplace" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-[#30363d] hover:border-[#a371f7] text-[#8b949e] hover:text-white text-sm font-medium transition-all">
+                  <span className="material-symbols-outlined text-lg">storefront</span>
+                  Marketplace
+                </Link>
                 <Link href="/tutorial" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-[#30363d] hover:border-[#58a6ff] text-[#8b949e] hover:text-white text-sm font-medium transition-all">
                   <span className="material-symbols-outlined text-lg">school</span>
                   Tutorials
