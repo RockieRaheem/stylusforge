@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In production, this would connect to a database
-const users = new Map();
+import { UserService } from '@/lib/firebase/users';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,19 +12,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists
-    let user = users.get(address);
-
-    if (!user) {
-      // Create new user
-      user = {
-        id: crypto.randomUUID(),
-        address,
-        username: `user_${address.slice(0, 6)}`,
-        createdAt: new Date().toISOString(),
-      };
-      users.set(address, user);
-    }
+    // Create or update user in Firebase
+    const user = await UserService.upsertUser(address, {
+      username: `user_${address.slice(0, 6)}`,
+    });
 
     return NextResponse.json(user);
   } catch (error) {
