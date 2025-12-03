@@ -211,11 +211,15 @@ export default function IDEPage() {
       if (result.success) {
         const logs = [
           'Compiling Stylus contract...',
+          result.mockMode && '⚠️  Using mock compilation (cargo-stylus not installed)',
+          result.mockMode && '   Install cargo-stylus for real compilation: cargo install --force cargo-stylus',
+          result.mockMode && '',
           `✓ Compilation successful!`,
           `  Bytecode: ${result.bytecode?.slice(0, 42)}...`,
           `  WASM size: ${result.wasmSize} bytes`,
           result.gasEstimate && `  Gas estimate: ${result.gasEstimate}`,
-          result.warnings && result.warnings.length > 0 && '⚠ Warnings:',
+          result.warnings && result.warnings.length > 0 && '',
+          result.warnings && result.warnings.length > 0 && 'Warnings:',
           ...(result.warnings || []).map((w: string) => `  ${w}`),
         ].filter(Boolean);
 

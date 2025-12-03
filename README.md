@@ -1,36 +1,316 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stylus Studio
 
-## Getting Started
+**A modern web-based IDE for building, compiling, and deploying Arbitrum Stylus smart contracts in Rust.**
 
-First, run the development server:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+
+---
+
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open browser
+# Navigate to http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**That's it!** The IDE works immediately with mock compilation.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ✨ Features
 
-## Learn More
+### 🎨 Full-Featured IDE
+- **VS Code-style interface** with familiar keyboard shortcuts
+- **Monaco Editor** with Rust syntax highlighting
+- **File explorer** with create/delete/rename operations
+- **Integrated terminal** for command execution
+- **Problems panel** showing compilation errors
+- **Split view** and resizable panels
 
-To learn more about Next.js, take a look at the following resources:
+### 📚 Interactive Tutorials
+- **10 comprehensive tutorials** from basics to advanced
+- **Built-in code editor** with starter code
+- **Step-by-step sections** with detailed explanations
+- **Practice assignments** with solutions
+- **Test cases** to verify your code
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🔧 Compilation (Two Modes)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Mock Mode (Default - No Setup)
+- ✅ Works immediately
+- ✅ Returns fake bytecode for testing
+- ✅ Perfect for learning and UI testing
+- ⚠️ Not real WASM compilation
 
-## Deploy on Vercel
+#### Real Mode (Requires Setup)
+- ✅ Actual Rust → WASM compilation
+- ✅ Uses cargo-stylus
+- ✅ Generates real bytecode and ABI
+- ✅ Gas estimation
+- 📋 Requires: `cargo install --force cargo-stylus`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 💾 Storage (Two Modes)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### In-Memory (Default - No Setup)
+- ✅ Works immediately
+- ✅ Store projects, users, progress
+- ⚠️ Data lost on server restart
+
+#### Firebase (Requires Setup)
+- ✅ Persistent database
+- ✅ User authentication
+- ✅ Cloud storage
+- 📋 Requires: Firebase project configuration
+
+---
+
+## 📖 Documentation
+
+| File | Purpose |
+|------|---------|
+| **CURRENT_STATUS.md** | What works now vs what needs setup |
+| **SETUP_REQUIRED.md** | Step-by-step setup instructions |
+| **CARGO_STYLUS_SETUP.md** | Install cargo-stylus for real compilation |
+| **FIREBASE_SETUP.md** | Configure Firebase for persistence |
+| **COMPILER_INTEGRATION.md** | How the compilation system works |
+
+**Start with:** `CURRENT_STATUS.md`
+
+---
+
+## 🎯 Current Status
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| IDE | ✅ Working | Full VS Code clone |
+| Tutorials | ✅ Working | 10 complete tutorials |
+| Mock Compilation | ✅ Working | No setup required |
+| Real Compilation | ⚠️ Setup Required | Install cargo-stylus |
+| In-Memory Storage | ✅ Working | Resets on restart |
+| Firebase Storage | ⚠️ Setup Required | Create Firebase project |
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript 5
+- **UI:** React 19, Tailwind CSS
+- **Editor:** Monaco Editor
+- **Terminal:** xterm.js
+- **Icons:** Lucide React
+- **Blockchain:** ethers.js v6
+- **Database (Optional):** Firebase Firestore
+- **Auth (Optional):** Firebase Auth
+- **Compilation (Optional):** cargo-stylus
+
+---
+
+## 📋 Setup Options
+
+### Option 1: Quick Start (No Setup)
+```bash
+npm install
+npm run dev
+```
+Uses mock compilation + in-memory storage. Perfect for testing!
+
+### Option 2: Real Compilation
+```bash
+# Install Rust
+winget install Rustlang.Rustup
+
+# Install cargo-stylus
+cargo install --force cargo-stylus
+
+# Restart dev server
+npm run dev
+```
+Now compilation produces real WASM bytecode!
+
+### Option 3: Full Production Setup
+```bash
+# 1. Install cargo-stylus (see Option 2)
+
+# 2. Create Firebase project
+# Visit https://console.firebase.google.com
+
+# 3. Configure environment variables
+# Create .env.local with Firebase credentials
+
+# 4. Restart dev server
+npm run dev
+```
+Full persistence + real compilation!
+
+See **SETUP_REQUIRED.md** for detailed instructions.
+
+---
+
+## 📚 Project Structure
+
+```
+stylus_studio/
+├── app/                      # Next.js app directory
+│   ├── api/                 # API routes
+│   │   ├── compile/        # Compilation endpoint
+│   │   ├── projects/       # Project management
+│   │   ├── tutorials/      # Tutorial progress
+│   │   └── transactions/   # Transaction history
+│   ├── dashboard/          # User dashboard
+│   ├── ide/                # Main IDE interface
+│   ├── tutorial/           # Tutorial system
+│   └── deploy/             # Deployment interface
+├── lib/                     # Shared libraries
+│   ├── compiler/           # Compilation services
+│   │   ├── stylus.ts       # cargo-stylus wrapper
+│   │   └── error-parser.ts # Error parsing
+│   └── firebase/           # Firebase services
+│       ├── config.ts       # Client config
+│       ├── admin.ts        # Admin SDK
+│       ├── users.ts        # User service
+│       ├── projects.ts     # Project service
+│       ├── tutorials.ts    # Tutorial service
+│       └── transactions.ts # Transaction service
+└── public/                 # Static assets
+```
+
+---
+
+## 🎓 Tutorials
+
+1. **Getting Started** - Your first Stylus contract
+2. **Storage & State** - Managing contract state
+3. **Functions & Calls** - External and internal functions
+4. **Events & Logging** - Emitting and indexing events
+5. **Error Handling** - Result types and custom errors
+6. **Testing Contracts** - Unit and integration tests
+7. **Gas Optimization** - Writing efficient contracts
+8. **Advanced Patterns** - Upgradeable contracts, RBAC
+9. **DeFi Token** - ERC-20 implementation
+10. **NFT Marketplace** - ERC-721 with marketplace features
+
+Each tutorial includes:
+- 📖 Detailed explanations
+- 💻 Interactive code editor
+- ✏️ Practice assignments
+- ✅ Test cases
+- 💡 Best practices
+
+---
+
+## 🔐 Security Notes
+
+### Current Implementation
+- ⚠️ Compilation runs on server without sandboxing
+- ⚠️ No rate limiting on API routes
+- ⚠️ Test mode Firestore rules (if Firebase configured)
+
+### Production Recommendations
+- Use Docker containers for compilation isolation
+- Implement rate limiting (e.g., with Vercel limits)
+- Configure proper Firestore security rules
+- Add authentication middleware
+- Scan uploaded code for malicious patterns
+- Set resource limits (CPU, memory, disk)
+
+See **FIREBASE_SETUP.md** for production security rules.
+
+---
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+```bash
+# 1. Push to GitHub
+git push
+
+# 2. Import to Vercel
+# Visit https://vercel.com/new
+
+# 3. Add environment variables (if using Firebase)
+# Add all NEXT_PUBLIC_* and FIREBASE_* vars
+
+# 4. Deploy
+```
+
+### Docker
+```bash
+# Build image
+docker build -t stylus-studio .
+
+# Run container
+docker run -p 3000:3000 stylus-studio
+```
+
+### Notes
+- cargo-stylus must be installed in deployment environment
+- Firebase credentials must be set as environment variables
+- Consider using serverless functions for compilation
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+---
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Arbitrum Stylus](https://docs.arbitrum.io/stylus) - Rust smart contracts on Arbitrum
+- [cargo-stylus](https://github.com/OffchainLabs/cargo-stylus) - Stylus compilation toolchain
+- [Next.js](https://nextjs.org) - React framework
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) - VS Code editor
+- [Firebase](https://firebase.google.com) - Backend services
+
+---
+
+## 📞 Support
+
+- **Documentation:** See docs in project root
+- **Issues:** Open GitHub issue
+- **Arbitrum Discord:** https://discord.gg/arbitrum
+- **Stylus Docs:** https://docs.arbitrum.io/stylus
+
+---
+
+## 🎯 Roadmap
+
+- [x] Full IDE with Monaco editor
+- [x] 10 comprehensive tutorials
+- [x] Mock compilation for development
+- [x] Firebase integration (optional)
+- [x] Real cargo-stylus compilation (optional)
+- [ ] WebSocket for real-time collaboration
+- [ ] One-click deployment to Arbitrum
+- [ ] Contract templates library
+- [ ] Gas profiling and optimization suggestions
+- [ ] Debug support for WASM
+- [ ] AI-powered code suggestions
+- [ ] Community contract sharing
+
+---
+
+**Built with ❤️ for the Arbitrum Stylus community**
