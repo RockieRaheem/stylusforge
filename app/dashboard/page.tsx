@@ -2,9 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function DashboardPage() {
+  const { userData, loading } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'projects' | 'activity'>('overview');
+  
+  // Get user's display name, fallback to first part of email
+  const displayName = userData?.displayName || userData?.email?.split('@')[0] || '';
+  const firstName = displayName.split(' ')[0] || displayName;
+  
+  // Get user initials for avatar
+  const initials = displayName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
   
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-[#0d1117] text-white">
@@ -34,14 +48,22 @@ export default function DashboardPage() {
           <Link href="/marketplace" className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors">Marketplace</Link>
           <a className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors" href="#">Docs</a>
         </div>
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <button className="relative flex h-9 w-9 items-center justify-center rounded-md border border-[#30363d] hover:border-[#8b949e] hover:bg-[#161b22] transition-all">
             <span className="material-symbols-outlined text-lg text-[#8b949e]">notifications</span>
             <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#3fb950] rounded-full"></span>
           </button>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7d8590] to-[#484f58] flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-            AX
-          </div>
+          {userData?.photoURL ? (
+            <img
+              src={userData.photoURL}
+              alt={displayName}
+              className="w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity border border-[#30363d]"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7d8590] to-[#484f58] flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+              {initials}
+            </div>
+          )}
         </div>
       </header>
 
@@ -57,8 +79,8 @@ export default function DashboardPage() {
                   <div className="w-2 h-2 rounded-full bg-[#3fb950] animate-pulse"></div>
                   <span className="text-[#8b949e] text-sm font-medium">Active</span>
                 </div>
-                <h1 className="text-white text-4xl font-bold mb-2 bg-gradient-to-r from-white to-[#8b949e] bg-clip-text text-transparent">Good morning, Alex</h1>
-                <p className="text-[#8b949e] text-base">Here's what's happening with your projects today.</p>
+                <h1 className="text-white text-4xl font-bold mb-2 bg-gradient-to-r from-white to-[#8b949e] bg-clip-text text-transparent">Welcome back, {firstName}!</h1>
+                <p className="text-[#8b949e] text-base">Ready to build something amazing today?</p>
               </div>
               <div className="flex items-center gap-3">
                 <Link href="/marketplace" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-[#30363d] hover:border-[#a371f7] text-[#8b949e] hover:text-white text-sm font-medium transition-all">
