@@ -107,10 +107,10 @@ class ProjectService {
    */
   async getUserProjects(userId: string, limitCount: number = 100): Promise<Project[]> {
     try {
+      // Query without orderBy to avoid composite index requirement
       const q = query(
         collection(db, this.PROJECTS_COLLECTION),
         where('userId', '==', userId),
-        orderBy('updatedAt', 'desc'),
         limit(limitCount)
       );
 
@@ -134,7 +134,8 @@ class ProjectService {
         });
       });
 
-      return projects;
+      // Sort in memory by updatedAt descending
+      return projects.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
     } catch (error) {
       console.error('Error getting user projects:', error);
       return [];
