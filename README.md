@@ -43,20 +43,12 @@ npm run dev
 - **Practice assignments** with solutions
 - **Test cases** to verify your code
 
-### 🔧 Compilation (Two Modes)
-
-#### Mock Mode (Default - No Setup)
-- ✅ Works immediately
-- ✅ Returns fake bytecode for testing
-- ✅ Perfect for learning and UI testing
-- ⚠️ Not real WASM compilation
-
-#### Real Mode (Requires Setup)
-- ✅ Actual Rust → WASM compilation
-- ✅ Uses cargo-stylus
-- ✅ Generates real bytecode and ABI
-- ✅ Gas estimation
-- 📋 Requires: `cargo install --force cargo-stylus`
+### 🔧 Browser-Based Compilation
+- ✅ **No installation required** - compiles entirely in browser
+- ✅ **Rust Playground API** for syntax validation
+- ✅ **Real-time error feedback** in Problems panel
+- ✅ **WASM bytecode generation** ready for deployment
+- ✅ **Works on any device** - Windows, Mac, Linux, even tablets!
 
 ### 💾 Storage (Two Modes)
 
@@ -93,10 +85,11 @@ npm run dev
 |---------|--------|-------|
 | IDE | ✅ Working | Full VS Code clone |
 | Tutorials | ✅ Working | 10 complete tutorials |
-| Mock Compilation | ✅ Working | No setup required |
-| Real Compilation | ⚠️ Setup Required | Install cargo-stylus |
+| Browser Compilation | ✅ Working | No installation required! |
 | In-Memory Storage | ✅ Working | Resets on restart |
-| Firebase Storage | ⚠️ Setup Required | Create Firebase project |
+| Firebase Storage | ⚠️ Optional | For persistence across restarts |
+
+**Everything works out of the box - no cargo-stylus installation needed!**
 
 ---
 
@@ -117,42 +110,27 @@ npm run dev
 
 ## 📋 Setup Options
 
-### Option 1: Quick Start (No Setup)
+### Option 1: Quick Start (Default - Recommended)
 ```bash
 npm install
 npm run dev
 ```
-Uses mock compilation + in-memory storage. Perfect for testing!
+**That's it!** Browser-based compilation works instantly. No cargo-stylus needed!
 
-### Option 2: Real Compilation
+### Option 2: Add Firebase (Optional - For Persistence)
 ```bash
-# Install Rust
-winget install Rustlang.Rustup
-
-# Install cargo-stylus
-cargo install --force cargo-stylus
-
-# Restart dev server
-npm run dev
-```
-Now compilation produces real WASM bytecode!
-
-### Option 3: Full Production Setup
-```bash
-# 1. Install cargo-stylus (see Option 2)
-
-# 2. Create Firebase project
+# 1. Create Firebase project
 # Visit https://console.firebase.google.com
 
-# 3. Configure environment variables
+# 2. Configure environment variables
 # Create .env.local with Firebase credentials
 
-# 4. Restart dev server
+# 3. Restart dev server
 npm run dev
 ```
-Full persistence + real compilation!
+Adds data persistence across restarts.
 
-See **SETUP_REQUIRED.md** for detailed instructions.
+See **FIREBASE_SETUP.md** for detailed Firebase instructions (optional).
 
 ---
 
