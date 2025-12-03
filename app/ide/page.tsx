@@ -184,16 +184,94 @@ export default function IDEPage() {
   };
 
   const handleCompile = async () => {
-    // Simulate compilation
-    return new Promise<{ success: boolean; message: string; logs?: string[] }>((resolve) => {
-      setTimeout(() => {
-        resolve({
+    if (!selectedFile || !fileContent) {
+      return {
+        success: false,
+        message: 'No file selected',
+        logs: ['Error: Select a file to compile'],
+      };
+    }
+
+    try {
+      setActivePanel('output');
+      setShowTerminal(true);
+
+      const response = await fetch('/api/compile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: fileContent,
+          language: 'rust',
+          projectName: selectedFile.name.replace('.rs', ''),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const logs = [
+          'Compiling Stylus contract...',
+          `✓ Compilation successful!`,
+          `  Bytecode: ${result.bytecode?.slice(0, 42)}...`,
+          `  WASM size: ${result.wasmSize} bytes`,
+          result.gasEstimate && `  Gas estimate: ${result.gasEstimate}`,
+          result.warnings && result.warnings.length > 0 && '⚠ Warnings:',
+          ...(result.warnings || []).map((w: string) => `  ${w}`),
+        ].filter(Boolean);
+
+        // Clear problems on success
+        setProblems([]);
+
+        return {
           success: true,
           message: 'Compilation successful! ✓',
-          logs: ['Building project...', 'Finished in 2.34s'],
-        });
-      }, 2000);
-    });
+          logs,
+        };
+      } else {
+        // Parse errors and add to problems panel
+        const errorProblems = (result.errors || []).map((err: string, idx: number) => ({
+          type: 'error' as const,
+          message: err,
+          line: idx + 1,
+        }));
+
+        const warningProblems = (result.warnings || []).map((warn: string, idx: number) => ({
+          type: 'warning' as const,
+          message: warn,
+          line: idx + 1,
+        }));
+
+        setProblems([...errorProblems, ...warningProblems]);
+
+        return {
+          success: false,
+          message: 'Compilation failed',
+          logs: [
+            'Compilation errors:',
+            ...(result.errors || []),
+            result.warnings && result.warnings.length > 0 && '',
+            result.warnings && result.warnings.length > 0 && 'Warnings:',
+            ...(result.warnings || []),
+          ].filter(Boolean),
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Compilation failed';
+      setProblems([{
+        type: 'error',
+        message: errorMessage,
+        line: 1,
+      }]);
+
+      return {
+        success: false,
+        message: 'Compilation failed',
+        logs: [
+          'Error: ' + errorMessage,
+          'Check that cargo-stylus is installed: cargo install --force cargo-stylus',
+        ],
+      };
+    }
   };
 
   const handleDeploy = async () => {
