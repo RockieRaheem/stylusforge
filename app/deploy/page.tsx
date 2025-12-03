@@ -1,6 +1,113 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useDeployment } from '@/lib/hooks/useDeployment';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+type DeploymentStep = 'compile' | 'upload' | 'verify' | 'finalize';
 
 export default function DeployPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { deploy, connectWallet, getBalance, isDeploying, deploymentResult, connectedAddress } = useDeployment();
+  
+  const [currentStep, setCurrentStep] = useState<DeploymentStep>('compile');
+  const [progress, setProgress] = useState(0);
+  const [network, setNetwork] = useState<'arbitrum-sepolia' | 'arbitrum-mainnet'>('arbitrum-sepolia');
+  const [contractCode, setContractCode] = useState('');
+  const [contractName, setContractName] = useState('MyContract.rs');
+  const [gasEstimate, setGasEstimate] = useState('0.0042');
+  const [userBalance, setUserBalance] = useState('0.0');
+  const [error, setError] = useState<string | null>(null);
+
+  // Load contract code from URL params or localStorage
+  useEffect(() => {
+    const code = searchParams?.get('code') || localStorage.getItem('currentContract') || '';
+    const name = searchParams?.get('name') || localStorage.getItem('contractName') || 'MyContract.rs';
+    setContractCode(code);
+    setContractName(name);
+  }, [searchParams]);
+
+  // Load user balance when wallet connects
+  useEffect(() => {
+    if (connectedAddress) {
+      getBalance(connectedAddress).then(balance => {
+        setUserBalance(parseFloat(balance).toFixed(4));
+      });
+    }
+  }, [connectedAddress, getBalance]);
+
+  const handleConnect = async () => {
+    try {
+      setError(null);
+      await connectWallet();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to connect wallet');
+    }
+  };
+
+  const handleDeploy = async () => {
+    if (!contractCode) {
+      setError('No contract code to deploy');
+      return;
+    }
+
+    if (!connectedAddress) {
+      await handleConnect();
+      return;
+    }
+
+    try {
+      setError(null);
+      setCurrentStep('compile');
+      setProgress(0);
+
+      // Simulate compile step
+      setProgress(25);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setCurrentStep('upload');
+      setProgress(50);
+
+      // Actual deployment
+      const result = await deploy({
+        code: contractCode,
+        network: network as 'arbitrum-sepolia' | 'arbitrum-mainnet',
+      });
+
+      setProgress(75);
+      setCurrentStep('verify');
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(100);
+      setCurrentStep('finalize');
+
+      if (result.success && result.contractAddress) {
+        // Redirect to success page
+        router.push(`/deploy/success?address=${result.contractAddress}&tx=${result.transactionHash}`);
+      } else {
+        setError(result.error || 'Deployment failed');
+        setCurrentStep('compile');
+        setProgress(0);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Deployment failed');
+      setCurrentStep('compile');
+      setProgress(0);
+    }
+  };
+
+  const getStepStatus = (step: DeploymentStep): 'done' | 'active' | 'pending' => {
+    const steps: DeploymentStep[] = ['compile', 'upload', 'verify', 'finalize'];
+    const currentIndex = steps.indexOf(currentStep);
+    const stepIndex = steps.indexOf(step);
+    
+    if (stepIndex < currentIndex) return 'done';
+    if (stepIndex === currentIndex) return 'active';
+    return 'pending';
+  };
+
   return (
     <div
       className="relative flex h-screen min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-hidden items-center justify-center p-4"
@@ -24,86 +131,219 @@ export default function DeployPage() {
 
         {/* Body */}
         <div className="p-6 space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Wallet Connection */}
+          {!connectedAddress && (
+            <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+              <p className="text-blue-400 text-sm mb-2">Connect your wallet to deploy</p>
+              <button 
+                onClick={handleConnect}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-medium transition-colors"
+              >
+                Connect Wallet
+              </button>
+            </div>
+          )}
+
           {/* Top form row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col flex-1">
               <p className="text-gray-300 text-sm font-medium leading-normal pb-2">Contract</p>
               <div className="flex items-center w-full min-w-0 flex-1 rounded-lg border border-white/20 bg-slate-900/50 h-12 px-4">
-                <span className="text-gray-200 text-base font-mono leading-normal">MyAwesomeContract.sol</span>
+                <span className="text-gray-200 text-base font-mono leading-normal truncate">{contractName}</span>
               </div>
             </div>
             <div className="flex flex-col flex-1">
               <p className="text-gray-300 text-sm font-medium leading-normal pb-2">Network</p>
-              <select className="form-select appearance-none w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#a855f7] border border-white/20 bg-slate-900/50 focus:border-[#a855f7] h-12 bg-[url('data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%20fill=%27%23a0aec0%27%3e%3cpath%20d=%27M7%2010l5%205%205-5H7z%27/%3e%3c/svg%3e')] bg-no-repeat bg-right-2.5 placeholder:text-gray-500 px-4 text-base font-normal leading-normal">
+              <select 
+                value={network}
+                onChange={(e) => setNetwork(e.target.value as any)}
+                disabled={isDeploying}
+                className="form-select appearance-none w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#a855f7] border border-white/20 bg-slate-900/50 focus:border-[#a855f7] h-12 bg-[url('data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2024%2024%27%20fill=%27%23a0aec0%27%3e%3cpath%20d=%27M7%2010l5%205%205-5H7z%27/%3e%3c/svg%3e')] bg-no-repeat bg-right-2.5 placeholder:text-gray-500 px-4 text-base font-normal leading-normal disabled:opacity-50 disabled:cursor-not-allowed">
                 <option value="arbitrum-sepolia">Arbitrum Sepolia</option>
-                <option value="arbitrum-one">Arbitrum One</option>
-                <option value="local-testnet">Local Testnet</option>
+                <option value="arbitrum-mainnet">Arbitrum One</option>
               </select>
             </div>
           </div>
 
           {/* Steps list */}
           <div className="space-y-3">
-            {/* Row 1 - Done */}
-            <div className="flex items-center gap-4 bg-slate-900/50 px-4 h-16 justify-between rounded-lg border border-white/10">
+            {/* Row 1 - Compile */}
+            <div className={`flex items-center gap-4 bg-slate-900/50 px-4 h-16 justify-between rounded-lg border ${
+              getStepStatus('compile') === 'done' ? 'border-white/10' : 
+              getStepStatus('compile') === 'active' ? 'border-[#a855f7]/50 ring-1 ring-[#a855f7]/50 shadow-lg shadow-[rgba(168,85,247,0.1)]' : 
+              'border-transparent opacity-60'
+            }`}>
               <div className="flex items-center gap-4">
-                <div className="text-[#22c55e] flex items-center justify-center rounded-full bg-[#22c55e]/20 shrink-0 size-9">
-                  <span className="material-symbols-outlined animated-checkmark" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500", fontSize: 22 }}>check_circle</span>
+                <div className={`flex items-center justify-center rounded-full shrink-0 size-9 ${
+                  getStepStatus('compile') === 'done' ? 'text-[#22c55e] bg-[#22c55e]/20' :
+                  getStepStatus('compile') === 'active' ? 'text-[#a855f7] bg-[#a855f7]/20' :
+                  'text-gray-400 bg-white/5'
+                }`}>
+                  {getStepStatus('compile') === 'done' ? (
+                    <span className="material-symbols-outlined animated-checkmark" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500", fontSize: 22 }}>check_circle</span>
+                  ) : getStepStatus('compile') === 'active' ? (
+                    <svg className="dynamic-spinner h-5 w-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                    </svg>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 22 }}>code</span>
+                  )}
                 </div>
-                <p className="text-white text-base font-medium leading-normal flex-1 truncate">Compiling Contract</p>
+                <p className={`text-base font-medium leading-normal flex-1 truncate ${
+                  getStepStatus('compile') === 'pending' ? 'text-gray-300' : 'text-white'
+                }`}>Compiling Contract</p>
               </div>
               <div className="shrink-0">
-                <p className="text-[#22c55e] text-sm font-medium leading-normal">Done</p>
+                <p className={`text-sm font-medium leading-normal ${
+                  getStepStatus('compile') === 'done' ? 'text-[#22c55e]' :
+                  getStepStatus('compile') === 'active' ? 'text-white' :
+                  'text-gray-500'
+                }`}>
+                  {getStepStatus('compile') === 'done' ? 'Done' : 
+                   getStepStatus('compile') === 'active' ? 'In Progress' : 
+                   'Pending'}
+                </p>
               </div>
             </div>
 
-            {/* Row 2 - In progress */}
-            <div className="flex items-center gap-4 bg-slate-900/50 px-4 min-h-[72px] py-2 justify-between rounded-lg border border-[#a855f7]/50 ring-1 ring-[#a855f7]/50 shadow-lg shadow-[rgba(168,85,247,0.1)]">
+            {/* Row 2 - Upload */}
+            <div className={`flex items-center gap-4 bg-slate-900/50 px-4 min-h-[72px] py-2 justify-between rounded-lg border ${
+              getStepStatus('upload') === 'done' ? 'border-white/10' : 
+              getStepStatus('upload') === 'active' ? 'border-[#a855f7]/50 ring-1 ring-[#a855f7]/50 shadow-lg shadow-[rgba(168,85,247,0.1)]' : 
+              'border-transparent opacity-60'
+            }`}>
               <div className="flex items-center gap-4">
-                <div className="text-[#a855f7] flex items-center justify-center rounded-full bg-[#a855f7]/20 shrink-0 size-9">
-                  <svg className="dynamic-spinner h-5 w-5 text-[#a855f7]" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
-                  </svg>
+                <div className={`flex items-center justify-center rounded-full shrink-0 size-9 ${
+                  getStepStatus('upload') === 'done' ? 'text-[#22c55e] bg-[#22c55e]/20' :
+                  getStepStatus('upload') === 'active' ? 'text-[#a855f7] bg-[#a855f7]/20' :
+                  'text-gray-400 bg-white/5'
+                }`}>
+                  {getStepStatus('upload') === 'done' ? (
+                    <span className="material-symbols-outlined animated-checkmark" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500", fontSize: 22 }}>check_circle</span>
+                  ) : getStepStatus('upload') === 'active' ? (
+                    <svg className="dynamic-spinner h-5 w-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                    </svg>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 22 }}>cloud_upload</span>
+                  )}
                 </div>
                 <div className="flex flex-col justify-center">
-                  <p className="text-white text-base font-medium leading-normal line-clamp-1">Upload to Arbitrum</p>
-                  <p className="text-gray-300 text-sm font-normal leading-normal line-clamp-2">In progress</p>
+                  <p className={`text-base font-medium leading-normal line-clamp-1 ${
+                    getStepStatus('upload') === 'pending' ? 'text-gray-300' : 'text-white'
+                  }`}>Upload to Arbitrum</p>
+                  {getStepStatus('upload') === 'active' && (
+                    <p className="text-gray-300 text-sm font-normal leading-normal line-clamp-2">Deploying to {network}</p>
+                  )}
                 </div>
               </div>
-              <div className="shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-24 overflow-hidden rounded-full bg-slate-700 h-2">
-                    <div className="h-full rounded-full bg-gradient-to-r from-[#a855f7] to-[#28a0f0] transition-all duration-500" style={{ width: "65%" }}></div>
+              {getStepStatus('upload') === 'active' && (
+                <div className="shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 overflow-hidden rounded-full bg-slate-700 h-2">
+                      <div className="h-full rounded-full bg-gradient-to-r from-[#a855f7] to-[#28a0f0] transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-white text-sm font-mono font-medium leading-normal w-9 text-right">{progress}%</p>
                   </div>
-                  <p className="text-white text-sm font-mono font-medium leading-normal w-9 text-right">65%</p>
                 </div>
+              )}
+              {getStepStatus('upload') !== 'active' && (
+                <div className="shrink-0">
+                  <p className={`text-sm font-medium leading-normal ${
+                    getStepStatus('upload') === 'done' ? 'text-[#22c55e]' : 'text-gray-500'
+                  }`}>
+                    {getStepStatus('upload') === 'done' ? 'Done' : 'Pending'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Row 3 - Verify */}
+            <div className={`flex items-center gap-4 bg-slate-900/50 px-4 h-16 justify-between rounded-lg border ${
+              getStepStatus('verify') === 'done' ? 'border-white/10' : 
+              getStepStatus('verify') === 'active' ? 'border-[#a855f7]/50 ring-1 ring-[#a855f7]/50 shadow-lg shadow-[rgba(168,85,247,0.1)]' : 
+              'border-transparent opacity-60'
+            }`}>
+              <div className="flex items-center gap-4">
+                <div className={`flex items-center justify-center rounded-full shrink-0 size-9 ${
+                  getStepStatus('verify') === 'done' ? 'text-[#22c55e] bg-[#22c55e]/20' :
+                  getStepStatus('verify') === 'active' ? 'text-[#a855f7] bg-[#a855f7]/20' :
+                  'text-gray-400 bg-white/5'
+                }`}>
+                  {getStepStatus('verify') === 'done' ? (
+                    <span className="material-symbols-outlined animated-checkmark" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500", fontSize: 22 }}>check_circle</span>
+                  ) : getStepStatus('verify') === 'active' ? (
+                    <svg className="dynamic-spinner h-5 w-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                    </svg>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 22 }}>shield</span>
+                  )}
+                </div>
+                <p className={`text-base font-normal leading-normal flex-1 truncate ${
+                  getStepStatus('verify') === 'pending' ? 'text-gray-300' : 'text-white'
+                }`}>Verifying on-chain</p>
+              </div>
+              <div className="shrink-0">
+                <p className={`text-sm font-medium leading-normal ${
+                  getStepStatus('verify') === 'done' ? 'text-[#22c55e]' :
+                  getStepStatus('verify') === 'active' ? 'text-white' :
+                  'text-gray-500'
+                }`}>
+                  {getStepStatus('verify') === 'done' ? 'Done' : 
+                   getStepStatus('verify') === 'active' ? 'In Progress' : 
+                   'Pending'}
+                </p>
               </div>
             </div>
 
-            {/* Row 3 - Pending */}
-            <div className="flex items-center gap-4 bg-slate-900/50 px-4 h-16 justify-between rounded-lg border border-transparent opacity-60">
+            {/* Row 4 - Finalize */}
+            <div className={`flex items-center gap-4 bg-slate-900/50 px-4 h-16 justify-between rounded-lg border ${
+              getStepStatus('finalize') === 'done' ? 'border-white/10' : 
+              getStepStatus('finalize') === 'active' ? 'border-[#a855f7]/50 ring-1 ring-[#a855f7]/50 shadow-lg shadow-[rgba(168,85,247,0.1)]' : 
+              'border-transparent opacity-60'
+            }`}>
               <div className="flex items-center gap-4">
-                <div className="text-gray-400 flex items-center justify-center rounded-full bg-white/5 shrink-0 size-9">
-                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>shield</span>
+                <div className={`flex items-center justify-center rounded-full shrink-0 size-9 ${
+                  getStepStatus('finalize') === 'done' ? 'text-[#22c55e] bg-[#22c55e]/20' :
+                  getStepStatus('finalize') === 'active' ? 'text-[#a855f7] bg-[#a855f7]/20' :
+                  'text-gray-400 bg-white/5'
+                }`}>
+                  {getStepStatus('finalize') === 'done' ? (
+                    <span className="material-symbols-outlined animated-checkmark" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500", fontSize: 22 }}>check_circle</span>
+                  ) : getStepStatus('finalize') === 'active' ? (
+                    <svg className="dynamic-spinner h-5 w-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+                    </svg>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: 22 }}>flag</span>
+                  )}
                 </div>
-                <p className="text-gray-300 text-base font-normal leading-normal flex-1 truncate">Verifying on-chain</p>
+                <p className={`text-base font-normal leading-normal flex-1 truncate ${
+                  getStepStatus('finalize') === 'pending' ? 'text-gray-300' : 'text-white'
+                }`}>Finalizing deployment</p>
               </div>
               <div className="shrink-0">
-                <p className="text-gray-500 text-sm font-medium leading-normal">Pending</p>
-              </div>
-            </div>
-
-            {/* Row 4 - Pending */}
-            <div className="flex items-center gap-4 bg-slate-900/50 px-4 h-16 justify-between rounded-lg border border-transparent opacity-60">
-              <div className="flex items-center gap-4">
-                <div className="text-gray-400 flex items-center justify-center rounded-full bg-white/5 shrink-0 size-9">
-                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>flag</span>
-                </div>
-                <p className="text-gray-300 text-base font-normal leading-normal flex-1 truncate">Finalizing deployment</p>
-              </div>
-              <div className="shrink-0">
-                <p className="text-gray-500 text-sm font-medium leading-normal">Pending</p>
+                <p className={`text-sm font-medium leading-normal ${
+                  getStepStatus('finalize') === 'done' ? 'text-[#22c55e]' :
+                  getStepStatus('finalize') === 'active' ? 'text-white' :
+                  'text-gray-500'
+                }`}>
+                  {getStepStatus('finalize') === 'done' ? 'Done' : 
+                   getStepStatus('finalize') === 'active' ? 'In Progress' : 
+                   'Pending'}
+                </p>
               </div>
             </div>
           </div>
@@ -113,15 +353,31 @@ export default function DeployPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 border-t border-white/10 bg-black/20">
           <div className="text-left w-full sm:w-auto">
             <p className="text-gray-400 text-sm">Estimated Gas Cost</p>
-            <p className="text-[#22c55e] font-mono text-lg font-medium">0.0042 ETH</p>
+            <p className="text-[#22c55e] font-mono text-lg font-medium">{gasEstimate} ETH</p>
+            {connectedAddress && (
+              <p className="text-gray-500 text-xs mt-1">Balance: {userBalance} ETH</p>
+            )}
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
-            <button className="flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white/5 text-gray-200 text-base font-medium leading-normal hover:bg-white/10 active:bg-white/5 transition-colors duration-200">
-              <span className="truncate">Cancel</span>
-            </button>
-            <button className="group relative flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-gradient-to-r from-[var(--arbitrum-blue-start)] to-[var(--arbitrum-blue-end)] text-white text-base font-bold leading-normal shadow-lg shadow-[color:var(--arbitrum-blue-start)]/20 transition-all duration-300">
+            <Link href="/ide">
+              <button 
+                className="flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white/5 text-gray-200 text-base font-medium leading-normal hover:bg-white/10 active:bg-white/5 transition-colors duration-200"
+                disabled={isDeploying}
+              >
+                <span className="truncate">Cancel</span>
+              </button>
+            </Link>
+            <button 
+              onClick={handleDeploy}
+              disabled={isDeploying || !contractCode}
+              className="group relative flex w-full sm:w-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-gradient-to-r from-[var(--arbitrum-blue-start)] to-[var(--arbitrum-blue-end)] text-white text-base font-bold leading-normal shadow-lg shadow-[color:var(--arbitrum-blue-start)]/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <span className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-0"></span>
-              <span className="truncate">Deploy for 0.0042 ETH</span>
+              <span className="truncate">
+                {!connectedAddress ? 'Connect Wallet' :
+                 isDeploying ? 'Deploying...' :
+                 `Deploy for ${gasEstimate} ETH`}
+              </span>
             </button>
           </div>
         </div>
