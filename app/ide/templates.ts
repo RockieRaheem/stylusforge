@@ -1,42 +1,48 @@
 // Sample Stylus contract templates
 
-export const DEFAULT_CONTRACT = `#![cfg_attr(not(feature = "export-abi"), no_main)]
-extern crate alloc;
+// NOTE: This default template uses standard Rust for browser-based compilation.
+// The Rust Playground doesn't support stylus_sdk, so we use a simplified version.
+// When deploying actual Stylus contracts, replace with proper stylus_sdk code.
 
-use stylus_sdk::{alloy_primitives::U256, prelude::*, storage::{StorageU256}};
+export const DEFAULT_CONTRACT = `// Simple Counter Example (Standard Rust)
+// This compiles in the browser for syntax validation.
+// For actual Stylus deployment, use stylus_sdk with proper storage types.
 
-#[storage]
-#[entrypoint]
 pub struct Counter {
-    count: StorageU256,
+    count: u64,
 }
 
-#[external]
 impl Counter {
-    pub fn increment(&mut self) -> Result<(), Vec<u8>> {
-        let count = self.count.get() + U256::from(1);
-        self.count.set(count);
-        Ok(())
+    pub fn new() -> Self {
+        Counter { count: 0 }
     }
 
-    pub fn decrement(&mut self) -> Result<(), Vec<u8>> {
-        let count = self.count.get();
-        if count > U256::from(0) {
-            self.count.set(count - U256::from(1));
+    pub fn increment(&mut self) {
+        self.count = self.count.saturating_add(1);
+    }
+
+    pub fn decrement(&mut self) -> Result<(), String> {
+        if self.count > 0 {
+            self.count -= 1;
             Ok(())
         } else {
-            Err(b"Counter cannot be negative".to_vec())
+            Err("Counter cannot be negative".to_string())
         }
     }
 
-    pub fn get(&self) -> Result<U256, Vec<u8>> {
-        Ok(self.count.get())
+    pub fn get(&self) -> u64 {
+        self.count
     }
 
-    pub fn set(&mut self, value: U256) -> Result<(), Vec<u8>> {
-        self.count.set(value);
-        Ok(())
+    pub fn set(&mut self, value: u64) {
+        self.count = value;
     }
+}
+
+fn main() {
+    let mut counter = Counter::new();
+    counter.increment();
+    println!("Count: {}", counter.get());
 }`;
 
 export const ERC20_CONTRACT = `#![cfg_attr(not(feature = "export-abi"), no_main)]
