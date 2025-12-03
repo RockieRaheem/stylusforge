@@ -54,9 +54,10 @@ export default function IDEPage() {
   const [panelHeight, setPanelHeight] = useState(250);
   const [isResizing, setIsResizing] = useState(false);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(200);
   const [problems, setProblems] = useState<Array<{ type: 'error' | 'warning'; message: string; line: number }>>([]);
   const [activePanel, setActivePanel] = useState<'terminal' | 'problems' | 'output'>('terminal');
+  const [buildOutput, setBuildOutput] = useState<string[]>([]);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [creatingNew, setCreatingNew] = useState<{ type: 'file' | 'folder'; parentId: string | null } | null>(null);
   const [newItemName, setNewItemName] = useState('');
@@ -195,6 +196,7 @@ export default function IDEPage() {
     try {
       setActivePanel('output');
       setShowTerminal(true);
+      setBuildOutput(['🔧 Starting compilation...', '']);
 
       const response = await fetch('/api/compile', {
         method: 'POST',
@@ -223,6 +225,9 @@ export default function IDEPage() {
           result.stdout && `  ${result.stdout}`,
         ].filter(Boolean);
 
+        // Update build output panel
+        setBuildOutput(logs as string[]);
+
         // Clear problems on success
         setProblems([]);
 
@@ -247,16 +252,22 @@ export default function IDEPage() {
 
         setProblems([...errorProblems, ...warningProblems]);
 
+        const errorLogs = [
+          '❌ Compilation failed',
+          '',
+          'Errors:',
+          ...(result.errors || []),
+          result.warnings && result.warnings.length > 0 && '',
+          result.warnings && result.warnings.length > 0 && 'Warnings:',
+          ...(result.warnings || []),
+        ].filter(Boolean);
+
+        setBuildOutput(errorLogs as string[]);
+
         return {
           success: false,
           message: 'Compilation failed',
-          logs: [
-            'Compilation errors:',
-            ...(result.errors || []),
-            result.warnings && result.warnings.length > 0 && '',
-            result.warnings && result.warnings.length > 0 && 'Warnings:',
-            ...(result.warnings || []),
-          ].filter(Boolean),
+          logs: errorLogs as string[],
         };
       }
     } catch (error: any) {
@@ -267,13 +278,19 @@ export default function IDEPage() {
         line: 1,
       }]);
 
+      const errorLogs = [
+        '❌ Compilation failed',
+        '',
+        'Error: ' + errorMessage,
+        'Hint: Check your network connection or try again',
+      ];
+
+      setBuildOutput(errorLogs);
+
       return {
         success: false,
         message: 'Compilation failed',
-        logs: [
-          'Error: ' + errorMessage,
-          'Check that cargo-stylus is installed: cargo install --force cargo-stylus',
-        ],
+        logs: errorLogs,
       };
     }
   };
@@ -395,9 +412,9 @@ export default function IDEPage() {
   }, [selectedFile, fileContent, showTerminal, sidebarCollapsed]);
 
   return (
-    <div className="relative flex flex-col h-screen w-full bg-[#1e1e1e] text-white overflow-hidden select-none">
+    <div className="relative flex flex-col h-screen w-full bg-[#1e1e1e] text-white overflow-hidden">
       {/* VS Code Title Bar */}
-      <div className="flex h-[35px] items-center justify-between bg-[#323233] border-b border-[#2d2d30] px-3 flex-none shadow-sm">
+      <div className="flex h-[35px] items-center justify-between bg-[#323233] border-b border-[#2d2d30] px-3 flex-none shadow-sm select-none">
         <div className="flex items-center gap-2.5">
           <div className="h-4 w-4 text-[#0098ff]">
             <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -892,7 +909,7 @@ export default function IDEPage() {
               <div className="flex-1 overflow-hidden">
                 {activePanel === 'terminal' && <TerminalPanel />}
                 {activePanel === 'problems' && (
-                  <div className="h-full overflow-y-auto p-3 font-mono text-[13px]">
+                  <div className="h-full overflow-y-auto p-3 font-mono text-[13px] select-text">
                     {problems.length === 0 ? (
                       <div className="flex items-center justify-center h-full text-[#858585]">
                         <CheckCircle2 className="h-5 w-5 mr-2.5" />
@@ -900,13 +917,13 @@ export default function IDEPage() {
                       </div>
                     ) : (
                       problems.map((problem, idx) => (
-                        <div key={idx} className="flex items-start gap-2.5 p-2.5 hover:bg-[#2d2d30] cursor-pointer transition-colors duration-150 rounded-sm">
+                        <div key={idx} className="flex items-start gap-2.5 p-2.5 hover:bg-[#2d2d30] transition-colors duration-150 rounded-sm group">
                           {problem.type === 'error' ? (
-                            <AlertCircle className="h-4 w-4 text-[#f48771] flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-[#f48771] flex-shrink-0 mt-0.5 select-none" />
                           ) : (
-                            <AlertCircle className="h-4 w-4 text-[#cca700] flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-[#cca700] flex-shrink-0 mt-0.5 select-none" />
                           )}
-                          <div>
+                          <div className="select-text cursor-text">
                             <div className="text-[#cccccc]">{problem.message}</div>
                             <div className="text-[#858585] text-[12px] mt-1">
                               {selectedFile?.name} [Ln {problem.line}]
@@ -918,8 +935,16 @@ export default function IDEPage() {
                   </div>
                 )}
                 {activePanel === 'output' && (
-                  <div className="h-full overflow-y-auto p-3 font-mono text-[13px] text-[#cccccc]">
-                    <div className="text-[#858585]">Build output will appear here...</div>
+                  <div className="h-full overflow-y-auto p-3 font-mono text-[13px] text-[#cccccc] select-text cursor-text">
+                    {buildOutput.length === 0 ? (
+                      <div className="text-[#858585]">Build output will appear here...</div>
+                    ) : (
+                      buildOutput.map((line, idx) => (
+                        <div key={idx} className="leading-relaxed whitespace-pre-wrap">
+                          {line}
+                        </div>
+                      ))
+                    )}
                   </div>
                 )}
               </div>

@@ -195,13 +195,13 @@ export default function TerminalPanel({ onClose }: TerminalProps) {
       {/* Terminal Output */}
       <div
         ref={outputRef}
-        className="flex-1 overflow-y-auto px-4 py-2 font-mono text-[13px] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto px-4 py-2 font-mono text-[13px] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent select-text cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
         {output.map((line, index) => (
           <div
             key={index}
-            className={`leading-relaxed ${
+            className={`leading-relaxed select-text ${
               line.type === 'input'
                 ? 'text-[#4fc1ff]'
                 : line.type === 'error'
