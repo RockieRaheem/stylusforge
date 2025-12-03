@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
-  const { userData, loading } = useAuth();
+  const { userData, loading, signOut } = useAuth();
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'projects' | 'activity'>('overview');
   const [imageError, setImageError] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Get user's display name, fallback to first part of email
   const displayName = userData?.displayName || userData?.email?.split('@')[0] || '';
@@ -20,6 +24,27 @@ export default function DashboardPage() {
     .join('')
     .toUpperCase()
     .slice(0, 2);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
   
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-[#0d1117] text-white">
@@ -54,19 +79,78 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-lg text-[#8b949e]">notifications</span>
             <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#3fb950] rounded-full"></span>
           </button>
-          {userData?.photoURL && !imageError ? (
-            <img
-              src={userData.photoURL}
-              alt={displayName}
-              className="w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity border border-[#30363d]"
-              onError={() => setImageError(true)}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7d8590] to-[#484f58] flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-              {initials}
-            </div>
-          )}
+          
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group"
+            >
+              {userData?.photoURL && !imageError ? (
+                <img
+                  alt={displayName}
+                  className="w-8 h-8 rounded-full border-2 border-purple-500/50 group-hover:border-purple-500 transition-colors"
+                  src={userData.photoURL}
+                  onError={() => setImageError(true)}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#a371f7] to-[#7d8590] border-2 border-purple-500/50 group-hover:border-purple-500 flex items-center justify-center text-xs font-semibold transition-colors">
+                  {initials}
+                </div>
+              )}
+              <span className="text-sm font-medium text-gray-200 hidden md:block">{displayName}</span>
+              <svg 
+                className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#30363d]">
+                  <p className="text-sm font-medium text-white">{displayName}</p>
+                  <p className="text-xs text-[#8b949e] mt-0.5">{userData?.email}</p>
+                </div>
+                
+                <div className="py-1">
+                  <Link href="/dashboard" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors">
+                    <span className="material-symbols-outlined text-lg">dashboard</span>
+                    Dashboard
+                  </Link>
+                  <Link href="/ide" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors">
+                    <span className="material-symbols-outlined text-lg">code</span>
+                    IDE
+                  </Link>
+                  <Link href="/tutorial" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors">
+                    <span className="material-symbols-outlined text-lg">school</span>
+                    Tutorials
+                  </Link>
+                  <Link href="/marketplace" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors">
+                    <span className="material-symbols-outlined text-lg">storefront</span>
+                    Marketplace
+                  </Link>
+                  <button className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors w-full">
+                    <span className="material-symbols-outlined text-lg">settings</span>
+                    Settings
+                  </button>
+                </div>
+                
+                <div className="border-t border-[#30363d] py-1">
+                  <button 
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors w-full"
+                  >
+                    <span className="material-symbols-outlined text-lg">logout</span>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

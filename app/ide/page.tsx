@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/context/AuthContext';
 import { 
   Menu, Bell, Settings as SettingsIcon, FileCode, Layout, Terminal as TerminalIcon,
   Files, Search, GitBranch, PlayCircle, Package, AlertCircle, CheckCircle2,
@@ -61,6 +63,30 @@ export default function IDEPage() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [creatingNew, setCreatingNew] = useState<{ type: 'file' | 'folder'; parentId: string | null } | null>(null);
   const [newItemName, setNewItemName] = useState('');
+  
+  // User profile dropdown
+  const { userData, signOut } = useAuth();
+  const router = useRouter();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const displayName = userData?.displayName || userData?.email?.split('@')[0] || '';
+  const initials = displayName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   // Initialize with first file
   useEffect(() => {
@@ -377,6 +403,18 @@ export default function IDEPage() {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [openMenu]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -582,12 +620,79 @@ export default function IDEPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <Link href="/dashboard">
-            <button className="p-1.5 hover:bg-[#2d2d30] rounded-sm transition-colors duration-150">
-              <Menu className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
+        <div className="flex items-center gap-3">
+          <button className="relative flex h-9 w-9 items-center justify-center rounded-md border border-[#454545] hover:border-[#858585] hover:bg-[#2d2d30] transition-all">
+            <Bell className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
+            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#3fb950] rounded-full"></span>
+          </button>
+          
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group"
+            >
+              {userData?.photoURL && !imageError ? (
+                <img
+                  alt={displayName}
+                  className="w-8 h-8 rounded-full border-2 border-purple-500/50 group-hover:border-purple-500 transition-colors"
+                  src={userData.photoURL}
+                  onError={() => setImageError(true)}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#a371f7] to-[#7d8590] border-2 border-purple-500/50 group-hover:border-purple-500 flex items-center justify-center text-xs font-semibold transition-colors">
+                  {initials}
+                </div>
+              )}
+              <span className="text-sm font-medium text-[#cccccc] hidden md:block">{displayName}</span>
+              <svg 
+                className={`w-4 h-4 text-[#858585] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
             </button>
-          </Link>
+            
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-[#252526] border border-[#454545] rounded-lg shadow-xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#454545]">
+                  <p className="text-sm font-medium text-white">{displayName}</p>
+                  <p className="text-xs text-[#858585] mt-0.5">{userData?.email}</p>
+                </div>
+                
+                <div className="py-1">
+                  <Link href="/dashboard" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#cccccc] hover:bg-[#2d2d30] transition-colors">
+                    <Layout className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <Link href="/ide" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#cccccc] hover:bg-[#2d2d30] transition-colors">
+                    <Code2 className="h-4 w-4" />
+                    IDE
+                  </Link>
+                  <Link href="/tutorial" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#cccccc] hover:bg-[#2d2d30] transition-colors">
+                    <FileCode className="h-4 w-4" />
+                    Tutorials
+                  </Link>
+                  <button onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-[#cccccc] hover:bg-[#2d2d30] transition-colors w-full">
+                    <SettingsIcon className="h-4 w-4" />
+                    Settings
+                  </button>
+                </div>
+                
+                <div className="border-t border-[#454545] py-1">
+                  <button 
+                    onClick={handleSignOut}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors w-full"
+                  >
+                    <X className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
