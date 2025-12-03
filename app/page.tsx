@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UserMenu from '@/components/UserMenu';
 
 export default function HomePage() {
   return (
@@ -30,11 +31,7 @@ export default function HomePage() {
             <Link href="/marketplace" className="text-gray-300 hover:text-white text-sm font-medium transition-colors hidden sm:block">
               Marketplace
             </Link>
-            <Link href="/dashboard">
-              <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold leading-normal tracking-wide shadow-lg hover:shadow-glow-cta transition-shadow duration-300">
-                <span className="truncate">Try Now</span>
-              </button>
-            </Link>
+            <UserMenu />
           </div>
         </header>
 
