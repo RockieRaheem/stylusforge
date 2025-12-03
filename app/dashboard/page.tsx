@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useDashboardData } from "@/lib/hooks/useDashboardData";
 
 export default function DashboardPage() {
-  const { userData, loading, signOut } = useAuth();
+  const { userData, loading: authLoading, signOut } = useAuth();
+  const { stats, recentProjects, tutorialProgress, loading: dataLoading, refetch } = useDashboardData();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'projects' | 'activity'>('overview');
   const [imageError, setImageError] = useState(false);
@@ -24,6 +26,19 @@ export default function DashboardPage() {
     .join('')
     .toUpperCase()
     .slice(0, 2);
+  
+  // Format time ago
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  };
   
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -192,16 +207,19 @@ export default function DashboardPage() {
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#58a6ff]/5 rounded-full blur-2xl group-hover:bg-[#58a6ff]/10 transition-all"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[#8b949e] text-sm font-medium">Contracts</span>
+                  <span className="text-[#8b949e] text-sm font-medium">Projects</span>
                   <div className="w-10 h-10 rounded-lg bg-[#1f6feb]/10 flex items-center justify-center group-hover:bg-[#1f6feb]/20 transition-all">
-                    <span className="material-symbols-outlined text-xl text-[#58a6ff]">rocket_launch</span>
+                    <span className="material-symbols-outlined text-xl text-[#58a6ff]">code</span>
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-white text-3xl font-bold">12</span>
-                  <span className="text-[#3fb950] text-xs font-semibold px-2 py-0.5 rounded-full bg-[#3fb950]/10">+2</span>
+                  {dataLoading ? (
+                    <div className="h-9 w-12 bg-[#21262d] animate-pulse rounded"></div>
+                  ) : (
+                    <span className="text-white text-3xl font-bold">{stats.totalProjectsCreated}</span>
+                  )}
                 </div>
-                <p className="text-[#8b949e] text-xs">this week</p>
+                <p className="text-[#8b949e] text-xs">total created</p>
               </div>
             </div>
 
@@ -215,10 +233,16 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-white text-3xl font-bold">8</span>
-                  <span className="text-[#8b949e] text-sm font-medium">/10</span>
+                  {dataLoading ? (
+                    <div className="h-9 w-16 bg-[#21262d] animate-pulse rounded"></div>
+                  ) : (
+                    <>
+                      <span className="text-white text-3xl font-bold">{tutorialProgress.completed}</span>
+                      <span className="text-[#8b949e] text-sm font-medium">/{tutorialProgress.total}</span>
+                    </>
+                  )}
                 </div>
-                <p className="text-[#8b949e] text-xs">80% complete</p>
+                <p className="text-[#8b949e] text-xs">{tutorialProgress.percentage}% complete</p>
               </div>
             </div>
 
@@ -226,16 +250,19 @@ export default function DashboardPage() {
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#3fb950]/5 rounded-full blur-2xl group-hover:bg-[#3fb950]/10 transition-all"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[#8b949e] text-sm font-medium">Gas Saved</span>
+                  <span className="text-[#8b949e] text-sm font-medium">Deployments</span>
                   <div className="w-10 h-10 rounded-lg bg-[#3fb950]/10 flex items-center justify-center group-hover:bg-[#3fb950]/20 transition-all">
-                    <span className="material-symbols-outlined text-xl text-[#3fb950]">savings</span>
+                    <span className="material-symbols-outlined text-xl text-[#3fb950]">rocket_launch</span>
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-white text-3xl font-bold">0.42</span>
-                  <span className="text-[#8b949e] text-sm font-medium">ETH</span>
+                  {dataLoading ? (
+                    <div className="h-9 w-12 bg-[#21262d] animate-pulse rounded"></div>
+                  ) : (
+                    <span className="text-white text-3xl font-bold">{stats.totalDeployments}</span>
+                  )}
                 </div>
-                <p className="text-[#8b949e] text-xs">99% optimized</p>
+                <p className="text-[#8b949e] text-xs">contracts deployed</p>
               </div>
             </div>
 
@@ -249,10 +276,16 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-white text-3xl font-bold">5</span>
-                  <span className="text-[#8b949e] text-sm font-medium">days</span>
+                  {dataLoading ? (
+                    <div className="h-9 w-12 bg-[#21262d] animate-pulse rounded"></div>
+                  ) : (
+                    <>
+                      <span className="text-white text-3xl font-bold">{stats.currentStreak}</span>
+                      <span className="text-[#8b949e] text-sm font-medium">day{stats.currentStreak !== 1 ? 's' : ''}</span>
+                    </>
+                  )}
                 </div>
-                <p className="text-[#8b949e] text-xs">Keep it up!</p>
+                <p className="text-[#8b949e] text-xs">{stats.currentStreak > 0 ? 'Keep it up!' : 'Start today!'}</p>
               </div>
             </div>
           </div>
@@ -301,36 +334,67 @@ export default function DashboardPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-white text-xl font-semibold">Recent Projects</h2>
-                  <Link href="/ide" className="text-[#58a6ff] hover:underline text-sm">View all</Link>
+                  <button onClick={() => setSelectedTab('projects')} className="text-[#58a6ff] hover:underline text-sm">View all</button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { name: 'Arbitrum NFT', desc: 'NFT minting contract on Arbitrum', time: '2 hours ago', language: 'Rust', icon: 'token', color: '#58a6ff' },
-                    { name: 'DeFi Token', desc: 'ERC-20 compatible token', time: '1 day ago', language: 'Stylus', icon: 'currency_exchange', color: '#3fb950' },
-                    { name: 'DAO Governance', desc: 'Smart contract for DAO voting', time: '3 days ago', language: 'Rust', icon: 'how_to_vote', color: '#a371f7' },
-                  ].map((project, i) => (
-                    <div key={i} className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#58a6ff] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#58a6ff]/10">
-                      <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" style={{backgroundColor: `${project.color}10`}}></div>
-                      <div className="relative z-10">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor: `${project.color}15`}}>
-                              <span className="material-symbols-outlined text-lg" style={{color: project.color}}>{project.icon}</span>
-                            </div>
-                            <h3 className="text-white font-semibold group-hover:text-[#58a6ff] transition-colors">{project.name}</h3>
-                          </div>
-                          <span className="text-[#8b949e] text-xs px-2.5 py-1 rounded-full bg-[#21262d] border border-[#30363d]">{project.language}</span>
-                        </div>
-                        <p className="text-[#8b949e] text-sm mb-4 ml-13">{project.desc}</p>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-[#8b949e]">Updated {project.time}</span>
-                          <Link href="/ide" className="text-[#58a6ff] hover:text-white font-medium transition-colors">Open →</Link>
+                {dataLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="border border-[#30363d] rounded-lg p-5 bg-[#0d1117]">
+                        <div className="space-y-3">
+                          <div className="h-10 bg-[#21262d] animate-pulse rounded"></div>
+                          <div className="h-12 bg-[#21262d] animate-pulse rounded"></div>
+                          <div className="h-4 bg-[#21262d] animate-pulse rounded w-2/3"></div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                ) : recentProjects.length === 0 ? (
+                  <div className="border border-[#30363d] rounded-lg p-12 bg-gradient-to-br from-[#161b22] to-[#0d1117] text-center">
+                    <div className="w-16 h-16 rounded-full bg-[#21262d] flex items-center justify-center mx-auto mb-4">
+                      <span className="material-symbols-outlined text-[#8b949e] text-3xl">code</span>
                     </div>
-                  ))}
-                </div>
+                    <h3 className="text-white text-lg font-semibold mb-2">No projects yet</h3>
+                    <p className="text-[#8b949e] text-sm mb-4">Create your first Stylus smart contract</p>
+                    <Link href="/ide" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#58a6ff] hover:bg-[#1f6feb] text-white text-sm font-medium transition-all">
+                      <span className="material-symbols-outlined text-lg">add</span>
+                      New Project
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recentProjects.slice(0, 3).map((project) => {
+                      const colors = ['#58a6ff', '#3fb950', '#a371f7', '#f85149'];
+                      const icons = ['code', 'token', 'currency_exchange', 'how_to_vote'];
+                      const randomColor = colors[project.name.length % colors.length];
+                      const randomIcon = icons[project.name.length % icons.length];
+                      
+                      return (
+                        <div key={project.id} className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#58a6ff] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#58a6ff]/10 cursor-pointer" onClick={() => router.push('/ide')}>
+                          <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" style={{backgroundColor: `${randomColor}10`}}></div>
+                          <div className="relative z-10">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{backgroundColor: `${randomColor}15`}}>
+                                  <span className="material-symbols-outlined text-lg" style={{color: randomColor}}>{randomIcon}</span>
+                                </div>
+                                <h3 className="text-white font-semibold group-hover:text-[#58a6ff] transition-colors truncate">{project.name}</h3>
+                              </div>
+                              <span className="text-[#8b949e] text-xs px-2.5 py-1 rounded-full bg-[#21262d] border border-[#30363d] flex-shrink-0 ml-2">{project.language}</span>
+                            </div>
+                            {project.description && (
+                              <p className="text-[#8b949e] text-sm mb-4 line-clamp-2">{project.description}</p>
+                            )}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-[#8b949e]">Updated {formatTimeAgo(project.updatedAt)}</span>
+                              <span className="text-[#58a6ff] hover:text-white font-medium transition-colors">Open →</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Learning Progress - Simple */}
@@ -340,7 +404,7 @@ export default function DashboardPage() {
                   <Link href="/tutorial" className="text-[#58a6ff] hover:underline text-sm">Continue learning</Link>
                 </div>
                 
-                <div className="relative overflow-hidden border border-[#30363d] rounded-lg p-6 bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:border-[#a371f7] transition-all">
+                <div className="relative overflow-hidden border border-[#30363d] rounded-lg p-6 bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:border-[#a371f7] transition-all cursor-pointer" onClick={() => router.push('/tutorial')}>
                   <div className="absolute top-0 right-0 w-48 h-48 bg-[#a371f7]/5 rounded-full blur-3xl"></div>
                   <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-5">
@@ -349,19 +413,38 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-white text-lg font-bold mb-1">Stylus Development Path</h3>
-                        <p className="text-[#8b949e] text-sm">8 of 10 tutorials completed</p>
+                        {dataLoading ? (
+                          <div className="h-4 w-40 bg-[#21262d] animate-pulse rounded"></div>
+                        ) : (
+                          <p className="text-[#8b949e] text-sm">{tutorialProgress.completed} of {tutorialProgress.total} tutorials completed</p>
+                        )}
                       </div>
                       <div className="text-center">
-                        <span className="text-white text-2xl font-bold block">80%</span>
-                        <span className="text-[#8b949e] text-xs">Progress</span>
+                        {dataLoading ? (
+                          <div className="h-8 w-16 bg-[#21262d] animate-pulse rounded"></div>
+                        ) : (
+                          <>
+                            <span className="text-white text-2xl font-bold block">{tutorialProgress.percentage}%</span>
+                            <span className="text-[#8b949e] text-xs">Progress</span>
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="w-full h-3 bg-[#21262d] rounded-full overflow-hidden mb-3">
-                      <div className="h-full bg-gradient-to-r from-[#a371f7] to-[#58a6ff] rounded-full transition-all" style={{width: '80%'}}></div>
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#a371f7] to-[#58a6ff] rounded-full transition-all duration-500" 
+                        style={{width: `${tutorialProgress.percentage}%`}}
+                      ></div>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-[#8b949e]">2 tutorials remaining</span>
-                      <Link href="/tutorial" className="text-[#58a6ff] hover:text-white font-medium transition-colors">Continue →</Link>
+                      {dataLoading ? (
+                        <div className="h-4 w-32 bg-[#21262d] animate-pulse rounded"></div>
+                      ) : (
+                        <span className="text-[#8b949e]">
+                          {tutorialProgress.total - tutorialProgress.completed} tutorial{tutorialProgress.total - tutorialProgress.completed !== 1 ? 's' : ''} remaining
+                        </span>
+                      )}
+                      <span className="text-[#58a6ff] hover:text-white font-medium transition-colors">Continue →</span>
                     </div>
                   </div>
                 </div>
