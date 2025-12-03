@@ -33,21 +33,56 @@ export class ContractDeployer {
   private signer: ethers.Signer | null = null;
 
   async connectWallet(): Promise<string> {
-    if (typeof window === 'undefined' || !(window as any).ethereum) {
-      throw new Error('MetaMask not installed');
+    if (typeof window === 'undefined') {
+      throw new Error('Window is not defined - must be run in browser');
+    }
+
+    const ethereum = (window as any).ethereum;
+    
+    if (!ethereum) {
+      throw new Error('MetaMask is not installed. Please install MetaMask to continue.');
     }
 
     try {
-      await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+      console.log('🦊 Attempting to connect to MetaMask...');
       
-      this.provider = new ethers.BrowserProvider((window as any).ethereum);
+      // Directly request accounts - this will show MetaMask popup if not connected
+      console.log('📋 Requesting accounts from MetaMask...');
+      const accounts = await ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
+      
+      console.log('📊 Received accounts:', accounts);
+      
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts returned from MetaMask. Please make sure you have at least one account created.');
+      }
+      
+      // Initialize provider and signer
+      console.log('🔧 Initializing provider and signer...');
+      this.provider = new ethers.BrowserProvider(ethereum);
       this.signer = await this.provider.getSigner();
       
       const address = await this.signer.getAddress();
+      console.log('✅ Wallet connected successfully:', address);
       return address;
-    } catch (error) {
-      console.error('Wallet connection error:', error);
-      throw new Error('Failed to connect wallet');
+    } catch (error: any) {
+      console.error('❌ Wallet connection error:', error);
+      
+      // Provide more specific error messages
+      if (error.code === 4001) {
+        throw new Error('Connection rejected. Please approve the connection in MetaMask.');
+      } else if (error.code === -32002) {
+        throw new Error('Connection request already pending. Please open MetaMask and approve the connection.');
+      } else if (error.code === -32603) {
+        throw new Error('MetaMask connection failed. Please try: 1) Click the MetaMask extension icon, 2) Click the three dots menu, 3) Select "Connected sites", 4) Make sure localhost:3000 is connected, 5) Refresh this page and try again.');
+      } else if (error.message && error.message.includes('No accounts')) {
+        throw new Error('No MetaMask accounts found. Please create an account in MetaMask first, then refresh this page.');
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('Failed to connect wallet. Please make sure MetaMask is unlocked and try again.');
+      }
     }
   }
 

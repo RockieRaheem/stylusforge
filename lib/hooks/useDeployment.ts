@@ -14,7 +14,8 @@ export function useDeployment() {
       setConnectedAddress(address);
       return address;
     } catch (error) {
-      throw new Error('Failed to connect wallet');
+      // Re-throw the original error to preserve the specific error message
+      throw error;
     }
   };
 

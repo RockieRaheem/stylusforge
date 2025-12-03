@@ -20,6 +20,31 @@ export default function DeployPage() {
   const [gasEstimate, setGasEstimate] = useState('0.0042');
   const [userBalance, setUserBalance] = useState('0.0');
   const [error, setError] = useState<string | null>(null);
+  const [metamaskStatus, setMetamaskStatus] = useState<'checking' | 'installed' | 'not-installed' | 'locked'>('checking');
+
+  // Check MetaMask status on mount
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (typeof window === 'undefined') {
+        setMetamaskStatus('not-installed');
+        return;
+      }
+
+      const ethereum = (window as any).ethereum;
+      
+      if (!ethereum) {
+        setMetamaskStatus('not-installed');
+        console.log('❌ MetaMask not detected');
+        return;
+      }
+
+      // MetaMask is installed, mark as ready
+      setMetamaskStatus('installed');
+      console.log('✅ MetaMask extension detected');
+    };
+
+    checkMetaMask();
+  }, []);
 
   // Load contract code from URL params or localStorage
   useEffect(() => {
@@ -42,8 +67,15 @@ export default function DeployPage() {
     try {
       setError(null);
       await connectWallet();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect wallet');
+    } catch (err: any) {
+      console.error('Connect wallet error:', err);
+      const errorMessage = err?.message || 'Failed to connect wallet';
+      setError(errorMessage);
+      
+      // Show user-friendly message
+      if (errorMessage.includes('MetaMask is not installed')) {
+        alert('Please install MetaMask extension to deploy contracts.\n\nVisit: https://metamask.io/download/');
+      }
     }
   };
 
@@ -131,10 +163,67 @@ export default function DeployPage() {
 
         {/* Body */}
         <div className="p-6 space-y-6">
+          {/* MetaMask Status Banner */}
+          {metamaskStatus === 'not-installed' && (
+            <div className="bg-orange-500/10 border border-orange-500/50 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-orange-400 text-xl flex-shrink-0 mt-0.5">warning</span>
+                <div className="flex-1">
+                  <p className="text-orange-400 font-semibold text-sm mb-1">MetaMask Not Detected</p>
+                  <p className="text-orange-300 text-sm mb-3">Please install MetaMask browser extension to deploy contracts.</p>
+                  <a 
+                    href="https://metamask.io/download/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 rounded text-orange-300 text-sm font-medium transition-colors"
+                  >
+                    Install MetaMask
+                    <span className="material-symbols-outlined text-base">open_in_new</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {metamaskStatus === 'locked' && !connectedAddress && (
+            <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-yellow-400 text-xl flex-shrink-0 mt-0.5">lock</span>
+                <div className="flex-1">
+                  <p className="text-yellow-400 font-semibold text-sm mb-1">MetaMask Setup Required</p>
+                  <p className="text-yellow-300 text-sm">Please unlock MetaMask and make sure you have at least one account created. Then click "Connect Wallet" below.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-              <p className="text-red-400 text-sm">{error}</p>
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-red-400 text-xl flex-shrink-0 mt-0.5">error</span>
+                <div className="flex-1">
+                  <p className="text-red-400 font-semibold text-sm mb-1">Deployment Error</p>
+                  <p className="text-red-300 text-sm">{error}</p>
+                  {error.includes('MetaMask is not installed') && (
+                    <a 
+                      href="https://metamask.io/download/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded text-red-300 text-sm font-medium transition-colors"
+                    >
+                      Download MetaMask
+                      <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    </a>
+                  )}
+                </div>
+                <button 
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
             </div>
           )}
 
