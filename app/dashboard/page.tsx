@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 export default function DashboardPage() {
   const { userData, loading } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'projects' | 'activity'>('overview');
+  const [imageError, setImageError] = useState(false);
   
   // Get user's display name, fallback to first part of email
   const displayName = userData?.displayName || userData?.email?.split('@')[0] || '';
@@ -53,11 +54,13 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-lg text-[#8b949e]">notifications</span>
             <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#3fb950] rounded-full"></span>
           </button>
-          {userData?.photoURL ? (
+          {userData?.photoURL && !imageError ? (
             <img
               src={userData.photoURL}
               alt={displayName}
               className="w-8 h-8 rounded-full cursor-pointer hover:opacity-80 transition-opacity border border-[#30363d]"
+              onError={() => setImageError(true)}
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7d8590] to-[#484f58] flex items-center justify-center text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity">
