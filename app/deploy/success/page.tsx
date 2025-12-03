@@ -1,6 +1,30 @@
+'use client';
+
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 
 export default function DeploySuccessPage() {
+  const searchParams = useSearchParams();
+  const contractAddress = searchParams?.get('address') || '0x0000000000000000000000000000000000000000';
+  const txHash = searchParams?.get('tx') || '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const [addressCopied, setAddressCopied] = useState(false);
+
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(contractAddress);
+    setAddressCopied(true);
+    setTimeout(() => setAddressCopied(false), 2000);
+  };
+
+  const handleShareTwitter = () => {
+    const text = `Just deployed my first Stylus contract on Arbitrum! 🚀\n\nContract: ${contractAddress}\n\nBuilt with @StylusStudio`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleViewExplorer = () => {
+    window.open(`https://sepolia.arbiscan.io/tx/${txHash}`, '_blank');
+  };
+
   return (
     <div
       className="relative flex min-h-screen w-full flex-col bg-background-dark overflow-hidden"
@@ -67,18 +91,26 @@ export default function DeploySuccessPage() {
               <div className="bg-black/20 rounded-lg p-4">
                 <label className="text-sm font-medium text-[#A0AEC0] tracking-wider uppercase">Contract Address</label>
                 <div className="flex items-center gap-4 mt-2">
-                  <p className="font-mono text-base text-[#F0F0F0] truncate">0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t</p>
-                  <button className="flex-shrink-0 flex items-center justify-center gap-1.5 rounded-md h-8 px-3 bg-white/10 text-[#A0AEC0] text-sm font-medium leading-normal hover:bg-white/20 transition-all duration-200 group">
-                    <span className="material-symbols-outlined text-base transition-transform group-hover:scale-110">content_copy</span>
-                    <span>Copy</span>
+                  <p className="font-mono text-base text-[#F0F0F0] truncate">{contractAddress}</p>
+                  <button 
+                    onClick={handleCopyAddress}
+                    className="flex-shrink-0 flex items-center justify-center gap-1.5 rounded-md h-8 px-3 bg-white/10 text-[#A0AEC0] text-sm font-medium leading-normal hover:bg-white/20 transition-all duration-200 group"
+                  >
+                    <span className="material-symbols-outlined text-base transition-transform group-hover:scale-110">
+                      {addressCopied ? 'check' : 'content_copy'}
+                    </span>
+                    <span>{addressCopied ? 'Copied!' : 'Copy'}</span>
                   </button>
                 </div>
               </div>
               <div className="bg-black/20 rounded-lg p-4">
                 <label className="text-sm font-medium text-[#A0AEC0] tracking-wider uppercase">Transaction Hash</label>
                 <div className="flex items-center gap-4 mt-2">
-                  <p className="font-mono text-base text-[#F0F0F0] truncate">0x9s8r7q6p5o4n3m2l1k0j9i8h7g6f5e4d3c2b1a0</p>
-                  <button className="flex-shrink-0 flex items-center justify-center gap-1.5 rounded-md h-8 px-3 bg-white/10 text-[#A0AEC0] text-sm font-medium leading-normal hover:bg-white/20 transition-all duration-200 group">
+                  <p className="font-mono text-base text-[#F0F0F0] truncate">{txHash}</p>
+                  <button 
+                    onClick={handleViewExplorer}
+                    className="flex-shrink-0 flex items-center justify-center gap-1.5 rounded-md h-8 px-3 bg-white/10 text-[#A0AEC0] text-sm font-medium leading-normal hover:bg-white/20 transition-all duration-200 group"
+                  >
                     <span className="material-symbols-outlined text-base transition-transform group-hover:scale-110">open_in_new</span>
                     <span>Explorer</span>
                   </button>
@@ -96,7 +128,10 @@ export default function DeploySuccessPage() {
 
           {/* Footer */}
           <div className="border-t border-white/10 bg-black/20 p-6 flex flex-col sm:flex-row gap-3 justify-end">
-            <button className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-white/10 text-[#F0F0F0] text-sm font-medium leading-normal transition-all duration-300 hover:bg-white/20 hover:shadow-lg hover:shadow-white/10">
+            <button 
+              onClick={handleShareTwitter}
+              className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-white/10 text-[#F0F0F0] text-sm font-medium leading-normal transition-all duration-300 hover:bg-white/20 hover:shadow-lg hover:shadow-white/10"
+            >
               <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
               <span>Share on Twitter</span>
             </button>

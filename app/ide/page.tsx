@@ -296,16 +296,12 @@ export default function IDEPage() {
   };
 
   const handleDeploy = async () => {
-    // Simulate deployment
-    return new Promise<{ success: boolean; address?: string; txHash?: string }>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          address: '0x' + Math.random().toString(16).substr(2, 40),
-          txHash: '0x' + Math.random().toString(16).substr(2, 64),
-        });
-      }, 3000);
-    });
+    // Save current contract to localStorage
+    localStorage.setItem('currentContract', fileContent);
+    localStorage.setItem('contractName', selectedFile?.name || 'MyContract.rs');
+    
+    // Navigate to deploy page
+    window.location.href = '/deploy';
   };
 
   const getLanguageFromFilename = (filename: string): string => {
