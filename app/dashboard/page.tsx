@@ -472,36 +472,59 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                {[
-                  { name: 'Arbitrum NFT Collection', desc: 'NFT minting and marketplace contract', updated: '2 hours ago', language: 'Rust', stars: 5 },
-                  { name: 'DeFi Token Protocol', desc: 'ERC-20 token with advanced features', updated: '1 day ago', language: 'Stylus', stars: 12 },
-                  { name: 'DAO Governance System', desc: 'Decentralized voting and proposals', updated: '3 days ago', language: 'Rust', stars: 8 },
-                  { name: 'Cross-chain Bridge', desc: 'Asset bridge between chains', updated: '5 days ago', language: 'Stylus', stars: 15 },
-                  { name: 'Lending Protocol', desc: 'Decentralized lending platform', updated: '1 week ago', language: 'Rust', stars: 20 },
-                ].map((project, i) => (
-                  <div key={i} className="border border-[#30363d] rounded-lg p-4 hover:border-[#8b949e] transition-colors bg-[#0d1117]">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="material-symbols-outlined text-[#8b949e]">code</span>
-                          <h3 className="text-[#58a6ff] font-semibold hover:underline cursor-pointer">{project.name}</h3>
-                          <span className="text-[#8b949e] text-xs px-2 py-0.5 rounded-full border border-[#30363d]">{project.language}</span>
-                        </div>
-                        <p className="text-[#8b949e] text-sm mb-2 ml-9">{project.desc}</p>
-                        <div className="flex items-center gap-4 text-xs text-[#8b949e] ml-9">
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-sm">star</span>
-                            {project.stars}
-                          </span>
-                          <span>Updated {project.updated}</span>
+              {dataLoading ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="border border-[#30363d] rounded-lg p-4 bg-[#0d1117]">
+                      <div className="space-y-3">
+                        <div className="h-6 bg-[#21262d] animate-pulse rounded w-1/3"></div>
+                        <div className="h-4 bg-[#21262d] animate-pulse rounded w-2/3"></div>
+                        <div className="h-3 bg-[#21262d] animate-pulse rounded w-1/4"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentProjects.length === 0 ? (
+                <div className="border border-[#30363d] rounded-lg p-12 bg-gradient-to-br from-[#161b22] to-[#0d1117] text-center">
+                  <div className="w-16 h-16 rounded-full bg-[#21262d] flex items-center justify-center mx-auto mb-4">
+                    <span className="material-symbols-outlined text-[#8b949e] text-3xl">code</span>
+                  </div>
+                  <h3 className="text-white text-lg font-semibold mb-2">No projects yet</h3>
+                  <p className="text-[#8b949e] text-sm mb-4">Create your first Stylus smart contract in the IDE</p>
+                  <Link href="/ide" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#58a6ff] hover:bg-[#1f6feb] text-white text-sm font-medium transition-all">
+                    <span className="material-symbols-outlined text-lg">add</span>
+                    New Project
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {recentProjects.map((project) => {
+                    const colors = ['#58a6ff', '#3fb950', '#a371f7', '#f85149'];
+                    const randomColor = colors[project.name.length % colors.length];
+                    
+                    return (
+                      <div key={project.id} className="border border-[#30363d] rounded-lg p-4 hover:border-[#8b949e] transition-colors bg-[#0d1117] cursor-pointer" onClick={() => router.push('/ide')}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="material-symbols-outlined text-[#8b949e]">code</span>
+                              <h3 className="text-[#58a6ff] font-semibold hover:underline">{project.name}</h3>
+                              <span className="text-[#8b949e] text-xs px-2 py-0.5 rounded-full border border-[#30363d]">{project.language}</span>
+                            </div>
+                            {project.description && (
+                              <p className="text-[#8b949e] text-sm mb-2 ml-9">{project.description}</p>
+                            )}
+                            <div className="flex items-center gap-4 text-xs text-[#8b949e] ml-9">
+                              <span>Updated {formatTimeAgo(project.updatedAt)}</span>
+                            </div>
+                          </div>
+                          <span className="text-[#58a6ff] hover:underline text-sm whitespace-nowrap ml-4">Open →</span>
                         </div>
                       </div>
-                      <Link href="/ide" className="text-[#58a6ff] hover:underline text-sm whitespace-nowrap ml-4">Open →</Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
 
             </div>
           )}
@@ -511,31 +534,95 @@ export default function DashboardPage() {
               
               <h2 className="text-white text-xl font-semibold">Recent Activity</h2>
 
-              <div className="border border-[#30363d] rounded-lg divide-y divide-[#21262d] bg-[#0d1117]">
-                {[
-                  { action: 'Deployed contract', project: 'Arbitrum NFT', time: '2 hours ago', icon: 'rocket_launch', color: '#58a6ff' },
-                  { action: 'Completed tutorial', project: 'Advanced Rust Patterns', time: '5 hours ago', icon: 'school', color: '#a371f7' },
-                  { action: 'Created project', project: 'DeFi Token', time: '1 day ago', icon: 'add_circle', color: '#3fb950' },
-                  { action: 'Earned badge', project: 'Rust Expert', time: '2 days ago', icon: 'military_tech', color: '#f85149' },
-                  { action: 'Gas optimization', project: 'DAO Governance', time: '3 days ago', icon: 'speed', color: '#f85149' },
-                  { action: 'Updated contract', project: 'Cross-chain Bridge', time: '4 days ago', icon: 'edit', color: '#8b949e' },
-                ].map((activity, i) => (
-                  <div key={i} className="p-4 hover:bg-[#161b22] transition-colors">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{backgroundColor: `${activity.color}20`}}>
-                        <span className="material-symbols-outlined text-base" style={{color: activity.color}}>{activity.icon}</span>
+              <div className="border border-[#30363d] rounded-lg bg-[#0d1117]">
+                {dataLoading ? (
+                  <div className="divide-y divide-[#21262d]">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-[#21262d] animate-pulse"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-[#21262d] animate-pulse rounded w-2/3"></div>
+                            <div className="h-3 bg-[#21262d] animate-pulse rounded w-1/4"></div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-white text-sm">
-                          <span className="font-medium">{activity.action}</span>
-                          {' '}
-                          <span className="text-[#58a6ff]">{activity.project}</span>
-                        </p>
-                        <p className="text-[#8b949e] text-xs mt-1">{activity.time}</p>
-                      </div>
+                    ))}
+                  </div>
+                ) : recentProjects.length === 0 && stats.totalDeployments === 0 && stats.totalTutorialsCompleted === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 rounded-full bg-[#21262d] flex items-center justify-center mx-auto mb-4">
+                      <span className="material-symbols-outlined text-[#8b949e] text-3xl">history</span>
+                    </div>
+                    <h3 className="text-white text-lg font-semibold mb-2">No activity yet</h3>
+                    <p className="text-[#8b949e] text-sm mb-4">Start by creating a project, completing a tutorial, or deploying a contract</p>
+                    <div className="flex items-center justify-center gap-3">
+                      <Link href="/tutorial" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#a371f7] hover:bg-[#8957e5] text-white text-sm font-medium transition-all">
+                        <span className="material-symbols-outlined text-lg">school</span>
+                        Start Learning
+                      </Link>
+                      <Link href="/ide" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#58a6ff] hover:bg-[#1f6feb] text-white text-sm font-medium transition-all">
+                        <span className="material-symbols-outlined text-lg">code</span>
+                        New Project
+                      </Link>
                     </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="divide-y divide-[#21262d]">
+                    {/* Recent deployments */}
+                    {stats.totalDeployments > 0 && Array(Math.min(stats.totalDeployments, 3)).fill(0).map((_, i) => (
+                      <div key={`deploy-${i}`} className="p-4 hover:bg-[#161b22] transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#3fb950]/20">
+                            <span className="material-symbols-outlined text-base text-[#3fb950]">rocket_launch</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white text-sm">
+                              <span className="font-medium">Deployed contract</span>
+                            </p>
+                            <p className="text-[#8b949e] text-xs mt-1">Recently</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Recent tutorials */}
+                    {stats.totalTutorialsCompleted > 0 && Array(Math.min(stats.totalTutorialsCompleted, 2)).fill(0).map((_, i) => (
+                      <div key={`tutorial-${i}`} className="p-4 hover:bg-[#161b22] transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#a371f7]/20">
+                            <span className="material-symbols-outlined text-base text-[#a371f7]">school</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white text-sm">
+                              <span className="font-medium">Completed tutorial</span>
+                            </p>
+                            <p className="text-[#8b949e] text-xs mt-1">Recently</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Recent projects */}
+                    {recentProjects.slice(0, 2).map((project) => (
+                      <div key={`project-${project.id}`} className="p-4 hover:bg-[#161b22] transition-colors cursor-pointer" onClick={() => router.push('/ide')}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#58a6ff]/20">
+                            <span className="material-symbols-outlined text-base text-[#58a6ff]">add_circle</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white text-sm">
+                              <span className="font-medium">Created project</span>
+                              {' '}
+                              <span className="text-[#58a6ff]">{project.name}</span>
+                            </p>
+                            <p className="text-[#8b949e] text-xs mt-1">{formatTimeAgo(project.updatedAt)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
             </div>
