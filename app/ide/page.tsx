@@ -5,6 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
+import WalletBalance from '@/components/WalletBalance';
 import { 
   Menu, Bell, Settings as SettingsIcon, FileCode, Layout, Terminal as TerminalIcon,
   Files, Search, GitBranch, PlayCircle, Package, AlertCircle, CheckCircle2,
@@ -625,6 +626,9 @@ export default function IDEPage() {
             <Bell className="h-3.5 w-3.5 text-[#858585] hover:text-[#cccccc] transition-colors" />
             <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#3fb950] rounded-full"></span>
           </button>
+          
+          {/* Wallet Balance */}
+          <WalletBalance showFull />
           
           <div className="relative" ref={dropdownRef}>
             <button 

@@ -58,7 +58,13 @@ export default function DeployPage() {
   useEffect(() => {
     if (connectedAddress) {
       getBalance(connectedAddress).then(balance => {
-        setUserBalance(parseFloat(balance).toFixed(4));
+        const balanceNum = parseFloat(balance);
+        setUserBalance(balanceNum.toFixed(4));
+        
+        // Show info banner if balance is too low
+        if (balanceNum < 0.001) {
+          console.log('💡 Demo mode will be used (insufficient testnet ETH)');
+        }
       });
     }
   }, [connectedAddress, getBalance]);
@@ -93,38 +99,72 @@ export default function DeployPage() {
     try {
       setError(null);
       setCurrentStep('compile');
-      setProgress(0);
+      setProgress(10);
 
-      // Simulate compile step
+      console.log('🚀 Starting deployment process...');
+
+      // Step 1: Compile
       setProgress(25);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       setCurrentStep('upload');
-      setProgress(50);
+      setProgress(40);
+      console.log('📤 Uploading to network...');
 
-      // Actual deployment
+      // Step 2: Deploy
       const result = await deploy({
         code: contractCode,
         network: network as 'arbitrum-sepolia' | 'arbitrum-mainnet',
       });
 
-      setProgress(75);
+      if (!result.success) {
+        throw new Error(result.error || 'Deployment failed');
+      }
+
+      setProgress(65);
       setCurrentStep('verify');
+      console.log('✅ Contract deployed:', result.contractAddress);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(85);
+      setCurrentStep('finalize');
       await new Promise(resolve => setTimeout(resolve, 500));
 
       setProgress(100);
-      setCurrentStep('finalize');
+      console.log('🎉 Deployment complete!');
 
-      if (result.success && result.contractAddress) {
-        // Redirect to success page
-        router.push(`/deploy/success?address=${result.contractAddress}&tx=${result.transactionHash}`);
-      } else {
-        setError(result.error || 'Deployment failed');
-        setCurrentStep('compile');
-        setProgress(0);
+      // Save deployment to Firestore if user is logged in
+      if (typeof window !== 'undefined') {
+        try {
+          const { auth } = await import('@/lib/firebase/config');
+          const { projectService } = await import('@/lib/services/project.service');
+          
+          if (auth.currentUser) {
+            // Update the project as deployed if it exists
+            const projectId = localStorage.getItem('currentProjectId');
+            if (projectId) {
+              await projectService.markAsDeployed(
+                projectId,
+                result.contractAddress!,
+                network
+              );
+              console.log('📝 Project marked as deployed in database');
+            }
+          }
+        } catch (dbError) {
+          console.warn('Could not save to database:', dbError);
+          // Don't fail deployment if database save fails
+        }
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Deployment failed');
+
+      // Redirect to success page
+      setTimeout(() => {
+        router.push(`/deploy/success?address=${result.contractAddress}&tx=${result.transactionHash}&network=${network}`);
+      }, 500);
+
+    } catch (err: any) {
+      console.error('❌ Deployment failed:', err);
+      setError(err?.message || 'Deployment failed');
       setCurrentStep('compile');
       setProgress(0);
     }
@@ -154,11 +194,32 @@ export default function DeployPage() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 p-6 border-b border-white/10">
           <h1 className="text-white tracking-light text-2xl font-bold leading-tight">Deploy Your Contract</h1>
-          <Link href="/ide">
-            <button className="flex items-center justify-center p-1.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/20" title="Back to IDE">
-              <span className="material-symbols-outlined text-2xl">close</span>
-            </button>
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* Wallet Info Display */}
+            {connectedAddress && (
+              <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-2 border border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="flex flex-col">
+                    <span className="text-gray-400 text-xs">
+                      {network === 'arbitrum-sepolia' ? 'Arbitrum Sepolia' : 'Arbitrum One'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-mono text-sm font-medium">{userBalance} ETH</span>
+                      <span className="text-gray-500 text-xs font-mono">
+                        {connectedAddress.slice(0, 6)}...{connectedAddress.slice(-4)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <Link href="/ide">
+              <button className="flex items-center justify-center p-1.5 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/20" title="Back to IDE">
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </Link>
+          </div>
         </div>
 
         {/* Body */}
@@ -192,6 +253,71 @@ export default function DeployPage() {
                 <div className="flex-1">
                   <p className="text-yellow-400 font-semibold text-sm mb-1">MetaMask Setup Required</p>
                   <p className="text-yellow-300 text-sm">Please unlock MetaMask and make sure you have at least one account created. Then click "Connect Wallet" below.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Low Balance Warning */}
+          {connectedAddress && parseFloat(userBalance) < 0.0001 && !error && (
+            <div className="bg-orange-500/10 border border-orange-500/50 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-orange-400 text-xl flex-shrink-0 mt-0.5">warning</span>
+                <div className="flex-1">
+                  <p className="text-orange-400 font-semibold text-sm mb-1">Insufficient Balance</p>
+                  <p className="text-orange-300 text-sm mb-3">
+                    You need at least 0.0001 ETH on Arbitrum Sepolia to deploy. Current balance: {userBalance} ETH
+                  </p>
+                  <div className="space-y-2">
+                    <p className="text-orange-200 text-xs font-semibold">Get testnet ETH:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <a 
+                        href="https://sepoliafaucet.com/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 rounded text-orange-300 text-xs font-medium transition-colors"
+                      >
+                        1. Get Sepolia ETH
+                        <span className="material-symbols-outlined text-sm">open_in_new</span>
+                      </a>
+                      <a 
+                        href="https://bridge.arbitrum.io/?destinationChain=arbitrum-sepolia&sourceChain=sepolia" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 hover:bg-orange-500/30 rounded text-orange-300 text-xs font-medium transition-colors"
+                      >
+                        2. Bridge to Arbitrum
+                        <span className="material-symbols-outlined text-sm">open_in_new</span>
+                      </a>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await (window as any).ethereum.request({
+                              method: 'wallet_addEthereumChain',
+                              params: [{
+                                chainId: '0x66eee',
+                                chainName: 'Arbitrum Sepolia',
+                                nativeCurrency: {
+                                  name: 'ETH',
+                                  symbol: 'ETH',
+                                  decimals: 18,
+                                },
+                                rpcUrls: ['https://sepolia-rollup.arbitrum.io/rpc'],
+                                blockExplorerUrls: ['https://sepolia.arbiscan.io'],
+                              }],
+                            });
+                            alert('✅ Arbitrum Sepolia network added to MetaMask!');
+                          } catch (err) {
+                            console.error('Failed to add network:', err);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 rounded text-green-300 text-xs font-medium transition-colors"
+                      >
+                        Add Network to MetaMask
+                        <span className="material-symbols-outlined text-sm">add</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

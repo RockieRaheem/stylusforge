@@ -8,7 +8,12 @@ export default function DeploySuccessPage() {
   const searchParams = useSearchParams();
   const contractAddress = searchParams?.get('address') || '0x0000000000000000000000000000000000000000';
   const txHash = searchParams?.get('tx') || '0x0000000000000000000000000000000000000000000000000000000000000000';
+  const network = searchParams?.get('network') || 'arbitrum-sepolia';
   const [addressCopied, setAddressCopied] = useState(false);
+
+  const explorerUrl = network === 'arbitrum-mainnet' 
+    ? `https://arbiscan.io/tx/${txHash}`
+    : `https://sepolia.arbiscan.io/tx/${txHash}`;
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(contractAddress);
@@ -17,12 +22,12 @@ export default function DeploySuccessPage() {
   };
 
   const handleShareTwitter = () => {
-    const text = `Just deployed my first Stylus contract on Arbitrum! 🚀\n\nContract: ${contractAddress}\n\nBuilt with @StylusStudio`;
+    const text = `Just deployed my first Stylus contract on Arbitrum! 🚀\n\nContract: ${contractAddress}\n\nBuilt with StylusForge`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleViewExplorer = () => {
-    window.open(`https://sepolia.arbiscan.io/tx/${txHash}`, '_blank');
+    window.open(explorerUrl, '_blank');
   };
 
   return (

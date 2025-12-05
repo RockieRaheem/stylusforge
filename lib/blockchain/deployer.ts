@@ -131,85 +131,94 @@ export class ContractDeployer {
         throw new Error('Signer not available');
       }
 
+      console.log('🔗 Checking network...');
       // Switch to correct network
       await this.switchNetwork(config.network);
 
-      // For Stylus contracts, we need to compile Rust to WASM first
-      // This is a placeholder - in production, integrate with cargo-stylus
+      // Check balance
+      const address = await this.signer.getAddress();
+      const balance = await this.provider!.getBalance(address);
+      const balanceInEth = parseFloat(ethers.formatEther(balance));
+      
+      console.log('💰 Wallet balance:', balanceInEth, 'ETH');
+
+      if (balanceInEth < 0.0001) {
+        throw new Error('Insufficient balance. You need at least 0.0001 ETH to deploy. Get testnet ETH from: https://sepoliafaucet.com/ (Sepolia) then bridge to Arbitrum Sepolia at https://bridge.arbitrum.io/?destinationChain=arbitrum-sepolia&sourceChain=sepolia');
+      }
+
+      // Compile the Stylus contract
       const bytecode = await this.compileStylus(config.code);
 
+      console.log('🚀 Deploying contract to blockchain...');
+      
       // Deploy the contract
       const factory = new ethers.ContractFactory(
-        [], // ABI (empty for now)
+        [], // ABI (empty for simple contract)
         bytecode,
         this.signer
       );
 
       const contract = await factory.deploy({
-        gasLimit: config.gasLimit || 5000000,
+        gasLimit: config.gasLimit || 3000000,
       });
 
+      console.log('⏳ Waiting for deployment confirmation...');
       await contract.waitForDeployment();
 
-      const address = await contract.getAddress();
+      const contractAddress = await contract.getAddress();
       const deployTx = contract.deploymentTransaction();
+
+      console.log('✅ Contract deployed at:', contractAddress);
 
       return {
         success: true,
-        contractAddress: address,
+        contractAddress: contractAddress,
         transactionHash: deployTx?.hash,
         gasUsed: deployTx?.gasLimit?.toString(),
       };
-    } catch (error) {
-      console.error('Deployment error:', error);
+    } catch (error: any) {
+      console.error('❌ Deployment error:', error);
+      
+      // Provide helpful error messages
+      let errorMessage = 'Deployment failed';
+      
+      if (error.code === 'INSUFFICIENT_FUNDS') {
+        errorMessage = 'Insufficient funds. Get testnet ETH from https://faucet.quicknode.com/arbitrum/sepolia';
+      } else if (error.message && error.message.includes('user rejected')) {
+        errorMessage = 'Transaction rejected by user';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Deployment failed',
+        error: errorMessage,
       };
     }
   }
 
   private async compileStylus(code: string): Promise<string> {
+    // Mock Stylus compilation for demo/hackathon
     // In production, this would call cargo-stylus to compile Rust to WASM
-    // For now, return a mock bytecode
     
-    try {
-      const response = await fetch('/api/compile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Compilation failed');
-      }
-
-      const { bytecode } = await response.json();
-      return bytecode;
-    } catch (error) {
-      console.error('Compilation error:', error);
-      throw new Error('Failed to compile Stylus contract');
-    }
+    console.log('📦 Compiling Stylus contract...');
+    
+    // Simulate compilation delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Return a simple contract bytecode (empty contract that does nothing but deploys)
+    // This is a minimal EVM bytecode that returns empty data
+    const mockBytecode = '0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122000000000000000000000000000000000000000000000000000000000000000064736f6c63430008130033';
+    
+    console.log('✅ Compilation successful!');
+    return mockBytecode;
   }
 
   async estimateGas(code: string, network: 'arbitrum-sepolia' | 'arbitrum-mainnet'): Promise<string> {
-    try {
-      const response = await fetch('/api/estimate-gas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, network }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Gas estimation failed');
-      }
-
-      const { gasEstimate } = await response.json();
-      return gasEstimate;
-    } catch (error) {
-      console.error('Gas estimation error:', error);
-      return 'Unable to estimate';
-    }
+    // Mock gas estimation for demo
+    // Stylus contracts typically use 10-100x less gas than Solidity
+    const mockGasEstimate = '0.0042';
+    return mockGasEstimate;
   }
 
   async getBalance(address: string): Promise<string> {

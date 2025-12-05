@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/lib/hooks/useDashboardData";
+import WalletBalance from "@/components/WalletBalance";
 
 export default function DashboardPage() {
   const { userData, loading: authLoading, signOut } = useAuth();
@@ -90,6 +91,9 @@ export default function DashboardPage() {
           <a className="text-[#8b949e] hover:text-[#58a6ff] text-sm font-medium transition-colors" href="#">Docs</a>
         </div>
           <div className="flex items-center gap-3">
+          {/* Wallet Balance */}
+          <WalletBalance showFull />
+          
           <button className="relative flex h-9 w-9 items-center justify-center rounded-md border border-[#30363d] hover:border-[#8b949e] hover:bg-[#161b22] transition-all">
             <span className="material-symbols-outlined text-lg text-[#8b949e]">notifications</span>
             <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#3fb950] rounded-full"></span>
