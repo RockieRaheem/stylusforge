@@ -6,14 +6,12 @@ import * as Toast from '@radix-ui/react-toast';
 
 interface ToolbarProps {
   onCompile: () => Promise<{ success: boolean; message: string; logs?: string[] }>;
-  onDeploy: () => Promise<{ success: boolean; address?: string; txHash?: string }>;
   onSave: () => void;
   hasUnsavedChanges: boolean;
 }
 
-export default function Toolbar({ onCompile, onDeploy, onSave, hasUnsavedChanges }: ToolbarProps) {
+export default function Toolbar({ onCompile, onSave, hasUnsavedChanges }: ToolbarProps) {
   const [isCompiling, setIsCompiling] = useState(false);
-  const [isDeploying, setIsDeploying] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
@@ -33,22 +31,6 @@ export default function Toolbar({ onCompile, onDeploy, onSave, hasUnsavedChanges
       showToast('Compilation failed', 'error');
     } finally {
       setIsCompiling(false);
-    }
-  };
-
-  const handleDeploy = async () => {
-    setIsDeploying(true);
-    try {
-      const result = await onDeploy();
-      if (result.success && result.address) {
-        showToast(`Deployed to ${result.address}`, 'success');
-      } else {
-        showToast('Deployment failed', 'error');
-      }
-    } catch (error) {
-      showToast('Deployment failed', 'error');
-    } finally {
-      setIsDeploying(false);
     }
   };
 
@@ -76,25 +58,6 @@ export default function Toolbar({ onCompile, onDeploy, onSave, hasUnsavedChanges
               <>
                 <Play className="h-3.5 w-3.5" />
                 <span>Compile</span>
-              </>
-            )}
-          </button>
-
-          {/* Deploy Button */}
-          <button
-            onClick={handleDeploy}
-            disabled={isDeploying}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#16825d] hover:bg-[#1a9b6e] text-white rounded text-[13px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDeploying ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Deploying...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="h-3.5 w-3.5" />
-                <span>Deploy</span>
               </>
             )}
           </button>

@@ -322,15 +322,6 @@ export default function IDEPage() {
     }
   };
 
-  const handleDeploy = async () => {
-    // Save current contract to localStorage
-    localStorage.setItem('currentContract', fileContent);
-    localStorage.setItem('contractName', selectedFile?.name || 'MyContract.rs');
-    
-    // Navigate to deploy page
-    window.location.href = '/deploy';
-  };
-
   const getLanguageFromFilename = (filename: string): string => {
     const ext = filename.split('.').pop()?.toLowerCase();
     const langMap: Record<string, string> = {
@@ -894,7 +885,6 @@ export default function IDEPage() {
           {/* Toolbar */}
           <Toolbar
             onCompile={handleCompile}
-            onDeploy={handleDeploy}
             onSave={handleSave}
             hasUnsavedChanges={hasUnsavedChanges}
           />
