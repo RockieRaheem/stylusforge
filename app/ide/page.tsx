@@ -322,6 +322,15 @@ export default function IDEPage() {
     }
   };
 
+  const handleDeploy = () => {
+    // Save current contract to localStorage
+    localStorage.setItem('currentContract', fileContent);
+    localStorage.setItem('contractName', selectedFile?.name || 'Contract.rs');
+    
+    // Navigate to deploy page
+    router.push('/deploy');
+  };
+
   const getLanguageFromFilename = (filename: string): string => {
     const ext = filename.split('.').pop()?.toLowerCase();
     const langMap: Record<string, string> = {
@@ -582,6 +591,16 @@ export default function IDEPage() {
                     Compile Project
                   </div>
                   <span className="text-[#858585] text-[11px]">F5</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeploy();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center gap-2"
+                >
+                  <Package className="h-4 w-4" />
+                  Deploy to Arbitrum
                 </button>
                 <button
                   onClick={() => {
@@ -885,6 +904,7 @@ export default function IDEPage() {
           {/* Toolbar */}
           <Toolbar
             onCompile={handleCompile}
+            onDeploy={handleDeploy}
             onSave={handleSave}
             hasUnsavedChanges={hasUnsavedChanges}
           />

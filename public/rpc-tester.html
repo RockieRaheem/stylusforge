@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPC Connection Tester</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        .container {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        h1 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        .success {
+            background: #10b98133;
+            border: 1px solid #10b981;
+            color: #6ee7b7;
+        }
+        .error {
+            background: #ef444433;
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+        .info {
+            background: #3b82f633;
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+        button {
+            background: #fbbf24;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #f59e0b;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .rpc-list {
+            margin-top: 20px;
+        }
+        .rpc-item {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #666;
+        }
+        .rpc-item.working {
+            border-left-color: #10b981;
+        }
+        .rpc-item.failed {
+            border-left-color: #ef4444;
+        }
+        code {
+            background: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #666;
+            border-top-color: #fbbf24;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Arbitrum Sepolia RPC Tester</h1>
+        <p>Use this tool to test which RPC endpoints are working for Arbitrum Sepolia.</p>
+        
+        <div id="metamask-status" class="status info">
+            Checking MetaMask...
+        </div>
+
+        <button id="test-current" onclick="testCurrentRPC()" disabled>Test Current MetaMask RPC</button>
+        <button id="test-all" onclick="testAllRPCs()">Test All Alternative RPCs</button>
+
+        <div id="results" class="rpc-list"></div>
+    </div>
+
+    <script>
+        const ALTERNATIVE_RPCS = [
+            'https://sepolia-rollup.arbitrum.io/rpc',
+            'https://arbitrum-sepolia.blockpi.network/v1/rpc/public',
+            'https://arbitrum-sepolia-rpc.publicnode.com',
+        ];
+
+        // Check MetaMask
+        window.addEventListener('load', async () => {
+            const statusDiv = document.getElementById('metamask-status');
+            const testCurrentBtn = document.getElementById('test-current');
+
+            if (typeof window.ethereum === 'undefined') {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ MetaMask not detected. Please install MetaMask.';
+                return;
+            }
+
+            try {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const chainIdDec = parseInt(chainId, 16);
+                
+                if (chainIdDec === 421614) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ MetaMask connected to Arbitrum Sepolia (Chain ID: 421614)';
+                    testCurrentBtn.disabled = false;
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `⚠️ MetaMask connected to wrong network (Chain ID: ${chainIdDec}). Please switch to Arbitrum Sepolia.`;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Error checking MetaMask: ' + error.message;
+            }
+        });
+
+        async function testRPC(rpcUrl) {
+            try {
+                const response = await fetch(rpcUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_blockNumber',
+                        params: [],
+                        id: 1
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.result) {
+                    const blockNumber = parseInt(data.result, 16);
+                    return { success: true, blockNumber };
+                } else if (data.error) {
+                    throw new Error(data.error.message);
+                }
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testCurrentRPC() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="status info">Testing current MetaMask RPC... <span class="spinner"></span></div>';
+
+            try {
+                const blockNumber = await window.ethereum.request({
+                    method: 'eth_blockNumber',
+                    params: []
+                });
+
+                const blockDec = parseInt(blockNumber, 16);
+                resultsDiv.innerHTML = `
+                    <div class="rpc-item working">
+                        <strong>✅ Current MetaMask RPC: WORKING</strong><br>
+                        Latest block: ${blockDec.toLocaleString()}<br>
+                        <small>Your MetaMask RPC connection is healthy!</small>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="rpc-item failed">
+                        <strong>❌ Current MetaMask RPC: FAILED</strong><br>
+                        Error: ${error.message}<br>
+                        <small>You need to change your MetaMask RPC URL. Click "Test All Alternative RPCs" to find a working one.</small>
+                    </div>
+                `;
+            }
+        }
+
+        async function testAllRPCs() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="status info">Testing all RPC endpoints... <span class="spinner"></span></div>';
+
+            const results = [];
+            for (const rpcUrl of ALTERNATIVE_RPCS) {
+                const result = await testRPC(rpcUrl);
+                results.push({ rpcUrl, ...result });
+            }
+
+            let html = '<h3>RPC Test Results:</h3>';
+            results.forEach(({ rpcUrl, success, blockNumber, error }) => {
+                if (success) {
+                    html += `
+                        <div class="rpc-item working">
+                            <strong>✅ WORKING</strong><br>
+                            <code>${rpcUrl}</code><br>
+                            Latest block: ${blockNumber.toLocaleString()}<br>
+                            <small>✨ Recommended: Copy this URL and use it in MetaMask</small>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="rpc-item failed">
+                            <strong>❌ NOT WORKING</strong><br>
+                            <code>${rpcUrl}</code><br>
+                            Error: ${error}
+                        </div>
+                    `;
+                }
+            });
+
+            const workingRPCs = results.filter(r => r.success);
+            if (workingRPCs.length > 0) {
+                html = `
+                    <div class="status success">
+                        ✅ Found ${workingRPCs.length} working RPC endpoint(s)!<br>
+                        <small>Copy one of the working URLs below and add it to MetaMask.</small>
+                    </div>
+                ` + html;
+            } else {
+                html = `
+                    <div class="status error">
+                        ❌ No working RPC endpoints found. This might be a temporary network issue.<br>
+                        <small>Try again in a few minutes.</small>
+                    </div>
+                ` + html;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

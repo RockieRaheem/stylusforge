@@ -1,16 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Play, Upload, Settings, Save, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import * as Toast from '@radix-ui/react-toast';
 
 interface ToolbarProps {
   onCompile: () => Promise<{ success: boolean; message: string; logs?: string[] }>;
   onSave: () => void;
+  onDeploy: () => void;
   hasUnsavedChanges: boolean;
 }
 
-export default function Toolbar({ onCompile, onSave, hasUnsavedChanges }: ToolbarProps) {
+export default function Toolbar({ onCompile, onSave, onDeploy, hasUnsavedChanges }: ToolbarProps) {
+  const router = useRouter();
   const [isCompiling, setIsCompiling] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -60,6 +63,16 @@ export default function Toolbar({ onCompile, onSave, hasUnsavedChanges }: Toolba
                 <span>Compile</span>
               </>
             )}
+          </button>
+
+          {/* Deploy Button */}
+          <button
+            onClick={onDeploy}
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#16825d] hover:bg-[#1a9b6e] text-white rounded text-[13px] font-medium transition-all"
+            title="Deploy to Arbitrum"
+          >
+            <Upload className="h-3.5 w-3.5" />
+            <span>Deploy</span>
           </button>
 
           <div className="w-px h-5 bg-[#1e1e1e]"></div>
