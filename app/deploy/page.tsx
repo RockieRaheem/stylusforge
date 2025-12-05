@@ -7,7 +7,7 @@ import { useDeployment } from '@/lib/hooks/useDeployment';
 import { projectService } from '@/lib/services/project.service';
 import { deploymentHistoryService } from '@/lib/services/deployment-history.service';
 import { CheckCircle, XCircle, Loader2, ExternalLink, Copy, AlertTriangle, Sparkles } from 'lucide-react';
-import RPCWarning from './components/RPCWarning';
+import { notifyDeploymentSuccess } from '@/lib/events/dashboard-events';
 
 type DeploymentStep = 'idle' | 'connecting' | 'compiling' | 'deploying' | 'confirming' | 'success' | 'error';
 
@@ -134,21 +134,36 @@ export default function DeployPage() {
             }
 
             // Record deployment in history
+            const deploymentData: any = {
+              contractName: contractName,
+              contractAddress: result.contractAddress!,
+              transactionHash: result.transactionHash!,
+              network: network,
+              gasUsed: result.gasUsed || '0',
+              blockNumber: result.blockNumber,
+              status: 'success',
+            };
+            
+            // Only include projectId if it exists (Firebase doesn't accept undefined)
+            if (projectId) {
+              deploymentData.projectId = projectId;
+            }
+            
             await deploymentHistoryService.recordDeployment(
               auth.currentUser.uid,
-              {
-                projectId: projectId || undefined,
-                contractName: contractName,
-                contractAddress: result.contractAddress!,
-                transactionHash: result.transactionHash!,
-                network: network,
-                gasUsed: result.gasUsed || '0',
-                blockNumber: result.blockNumber,
-                status: 'success',
-              }
+              deploymentData
             );
 
             console.log('✅ Saved to database');
+            
+            // Emit dashboard event to trigger refresh
+            notifyDeploymentSuccess({
+              contractAddress: result.contractAddress!,
+              transactionHash: result.transactionHash!,
+              network: network,
+            });
+            
+            console.log('📢 Dashboard refresh event emitted');
           }
         } catch (dbError) {
           console.warn('Could not save to database:', dbError);
@@ -345,9 +360,6 @@ export default function DeployPage() {
             </div>
           ) : (
             <>
-              {/* RPC Warning - Show prominently */}
-              <RPCWarning />
-
               {/* MetaMask Check */}
               {!isMetaMaskInstalled() && (
             <div className="bg-orange-500/10 border border-orange-500/50 rounded-lg p-4">

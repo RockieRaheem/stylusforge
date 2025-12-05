@@ -313,6 +313,13 @@ class DeploymentService {
           // Use MetaMask's ethereum.request directly for better reliability
           const ethereum = (window as any).ethereum;
           
+          console.log('📤 Sending transaction with params:', {
+            from: address,
+            data: bytecode.substring(0, 66) + '...', // First 66 chars
+            gas: '0x' + gasLimit.toString(16),
+            gasDecimal: gasLimit.toString()
+          });
+          
           txHash = await ethereum.request({
             method: 'eth_sendTransaction',
             params: [{
@@ -324,7 +331,19 @@ class DeploymentService {
           
           console.log('✅ Transaction sent:', txHash);
         } catch (sendError: any) {
-          console.error('❌ sendTransaction failed:', sendError);
+          console.error('❌ sendTransaction failed:', {
+            code: sendError?.code,
+            message: sendError?.message,
+            data: sendError?.data,
+            error: sendError,
+            type: typeof sendError,
+            stringified: JSON.stringify(sendError)
+          });
+          
+          // Handle empty error object (MetaMask sometimes returns {})
+          if (!sendError || Object.keys(sendError).length === 0) {
+            throw new Error('Transaction failed. Please make sure:\n• You approved the transaction in MetaMask\n• Your MetaMask is unlocked\n• You have enough ETH for gas');
+          }
           
           // Handle user rejection immediately
           if (sendError.code === 4001 || sendError.code === 'ACTION_REJECTED') {

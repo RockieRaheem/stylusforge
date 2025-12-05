@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/lib/hooks/useDashboardData";
 import WalletBalance from "@/components/WalletBalance";
+import FirebasePermissionWarning from "./components/FirebasePermissionWarning";
 
 export default function DashboardPage() {
   const { userData, loading: authLoading, signOut } = useAuth();
@@ -175,6 +176,9 @@ export default function DashboardPage() {
 
       <main className="flex flex-1 justify-center py-8 pt-20">
         <div className="flex w-full max-w-7xl flex-col gap-6 px-6 sm:px-10">
+          
+          {/* Firebase Permission Warning */}
+          <FirebasePermissionWarning />
           
           {/* Enhanced Welcome Section */}
           <div className="relative overflow-hidden rounded-xl border border-[#30363d] bg-gradient-to-br from-[#161b22] to-[#0d1117] p-8">

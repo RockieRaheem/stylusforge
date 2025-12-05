@@ -40,14 +40,31 @@ class DeploymentHistoryService {
       const deploymentRef = doc(collection(db, this.DEPLOYMENTS_COLLECTION));
       const deploymentId = deploymentRef.id;
 
-      const data = {
+      // Clean the data to remove undefined values (Firebase doesn't accept them)
+      const cleanedData: any = {
         id: deploymentId,
         userId,
-        ...deploymentData,
+        contractName: deploymentData.contractName,
+        contractAddress: deploymentData.contractAddress,
+        transactionHash: deploymentData.transactionHash,
+        network: deploymentData.network,
+        gasUsed: deploymentData.gasUsed,
+        status: deploymentData.status,
         deployedAt: Timestamp.now(),
       };
 
-      await setDoc(deploymentRef, data);
+      // Only add optional fields if they exist
+      if (deploymentData.projectId) {
+        cleanedData.projectId = deploymentData.projectId;
+      }
+      if (deploymentData.blockNumber !== undefined) {
+        cleanedData.blockNumber = deploymentData.blockNumber;
+      }
+      if (deploymentData.error) {
+        cleanedData.error = deploymentData.error;
+      }
+
+      await setDoc(deploymentRef, cleanedData);
       console.log('✅ Deployment recorded:', deploymentId);
       
       return deploymentId;

@@ -201,6 +201,10 @@ class TutorialService {
    */
   async getUserStats(userId: string): Promise<UserStats> {
     try {
+      // Get actual deployment count from deployments collection
+      const { deploymentHistoryService } = await import('./deployment-history.service');
+      const actualDeploymentCount = await deploymentHistoryService.getDeploymentCount(userId);
+      
       const userRef = doc(db, this.USERS_COLLECTION, userId);
       const userDoc = await getDoc(userRef);
 
@@ -209,7 +213,7 @@ class TutorialService {
         return {
           totalTutorialsCompleted: data.stats?.tutorialsCompleted || 0,
           totalProjectsCreated: data.stats?.projectsCreated || 0,
-          totalDeployments: data.stats?.deploymentsCount || 0,
+          totalDeployments: actualDeploymentCount, // Use actual count from deployments
           totalGasSaved: data.stats?.totalGasSaved || 0,
           currentStreak: data.stats?.currentStreak || 0,
           lastActivityDate: data.stats?.lastActivityDate?.toDate(),
@@ -219,7 +223,7 @@ class TutorialService {
       return {
         totalTutorialsCompleted: 0,
         totalProjectsCreated: 0,
-        totalDeployments: 0,
+        totalDeployments: actualDeploymentCount, // Use actual count
         totalGasSaved: 0,
         currentStreak: 0,
       };

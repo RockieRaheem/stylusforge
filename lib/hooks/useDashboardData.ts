@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { tutorialService, UserStats } from '../services/tutorial.service';
 import { projectService, Project } from '../services/project.service';
+import { DASHBOARD_EVENTS, onDashboardEvent } from '../events/dashboard-events';
 
 export interface DashboardData {
   stats: UserStats;
@@ -35,81 +36,73 @@ export function useDashboardData() {
     error: null,
   });
 
-  useEffect(() => {
-    async function fetchDashboardData() {
-      if (!user) {
-        setData(prev => ({ ...prev, loading: false }));
-        return;
-      }
-
-      try {
-        setData(prev => ({ ...prev, loading: true, error: null }));
-
-        // Fetch user stats
-        const stats = await tutorialService.getUserStats(user.uid);
-
-        // Fetch recent projects
-        const projects = await projectService.getUserProjects(user.uid, 6);
-
-        // Fetch tutorial progress
-        const completedCount = await tutorialService.getCompletedTutorialCount(user.uid);
-        const totalTutorials = 10; // Total number of tutorials available
-        const percentage = Math.round((completedCount / totalTutorials) * 100);
-
-        setData({
-          stats,
-          recentProjects: projects,
-          tutorialProgress: {
-            completed: completedCount,
-            total: totalTutorials,
-            percentage,
-          },
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setData(prev => ({
-          ...prev,
-          loading: false,
-          error: 'Failed to load dashboard data',
-        }));
-      }
+  const fetchDashboardData = useCallback(async () => {
+    if (!user) {
+      console.log('⏭️ Dashboard: No user, skipping fetch');
+      setData(prev => ({ ...prev, loading: false }));
+      return;
     }
 
-    fetchDashboardData();
+    try {
+      console.log('🔄 Dashboard: Fetching data for user:', user.uid);
+      setData(prev => ({ ...prev, loading: true, error: null }));
+      
+      const stats = await tutorialService.getUserStats(user.uid);
+      console.log('📊 Dashboard: Stats fetched:', stats);
+      
+      const projects = await projectService.getUserProjects(user.uid, 6);
+      console.log('📁 Dashboard: Projects fetched:', projects.length);
+      
+      const completedCount = await tutorialService.getCompletedTutorialCount(user.uid);
+      const totalTutorials = 10;
+      const percentage = Math.round((completedCount / totalTutorials) * 100);
+
+      setData({
+        stats,
+        recentProjects: projects,
+        tutorialProgress: {
+          completed: completedCount,
+          total: totalTutorials,
+          percentage,
+        },
+        loading: false,
+        error: null,
+      });
+      
+      console.log('✅ Dashboard: Data updated successfully');
+    } catch (error) {
+      console.error('❌ Dashboard: Error fetching data:', error);
+      setData(prev => ({
+        ...prev,
+        loading: false,
+        error: 'Failed to load dashboard data',
+      }));
+    }
   }, [user]);
 
-  const refetch = async () => {
-    if (user) {
-      setData(prev => ({ ...prev, loading: true }));
-      try {
-        const stats = await tutorialService.getUserStats(user.uid);
-        const projects = await projectService.getUserProjects(user.uid, 6);
-        const completedCount = await tutorialService.getCompletedTutorialCount(user.uid);
-        const percentage = Math.round((completedCount / 10) * 100);
+  useEffect(() => {
+    fetchDashboardData();
 
-        setData({
-          stats,
-          recentProjects: projects,
-          tutorialProgress: {
-            completed: completedCount,
-            total: 10,
-            percentage,
-          },
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        console.error('Error refetching dashboard data:', error);
-        setData(prev => ({
-          ...prev,
-          loading: false,
-          error: 'Failed to refresh data',
-        }));
-      }
-    }
-  };
+    const handleFocus = () => fetchDashboardData();
+    const unsubscribeRefresh = onDashboardEvent(DASHBOARD_EVENTS.REFRESH_NEEDED, () => fetchDashboardData());
+    const unsubscribeDeployment = onDashboardEvent(DASHBOARD_EVENTS.DEPLOYMENT_SUCCESS, () => fetchDashboardData());
+    const unsubscribeTutorial = onDashboardEvent(DASHBOARD_EVENTS.TUTORIAL_COMPLETED, () => fetchDashboardData());
+    const unsubscribeProject = onDashboardEvent(DASHBOARD_EVENTS.PROJECT_CREATED, () => fetchDashboardData());
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      unsubscribeRefresh();
+      unsubscribeDeployment();
+      unsubscribeTutorial();
+      unsubscribeProject();
+    };
+  }, [fetchDashboardData]);
+
+  const refetch = useCallback(async () => {
+    await fetchDashboardData();
+  }, [fetchDashboardData]);
 
   return { ...data, refetch };
 }
