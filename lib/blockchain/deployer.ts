@@ -143,13 +143,15 @@ export class ContractDeployer {
       console.log('💰 Wallet balance:', balanceInEth, 'ETH');
 
       if (balanceInEth < 0.0001) {
-        throw new Error('Insufficient balance. You need at least 0.0001 ETH to deploy. Get testnet ETH from: https://sepoliafaucet.com/ (Sepolia) then bridge to Arbitrum Sepolia at https://bridge.arbitrum.io/?destinationChain=arbitrum-sepolia&sourceChain=sepolia');
+        throw new Error('Insufficient balance. You need at least 0.0001 ETH to deploy.');
       }
 
       // Compile the Stylus contract
+      console.log('📦 Compiling contract...');
       const bytecode = await this.compileStylus(config.code);
+      console.log('✅ Compilation complete');
 
-      console.log('🚀 Deploying contract to blockchain...');
+      console.log('🚀 Initiating deployment transaction...');
       
       // Deploy the contract
       const factory = new ethers.ContractFactory(
@@ -158,17 +160,28 @@ export class ContractDeployer {
         this.signer
       );
 
+      console.log('📝 Sending deployment transaction...');
       const contract = await factory.deploy({
-        gasLimit: config.gasLimit || 3000000,
+        gasLimit: config.gasLimit || 2000000,
       });
 
-      console.log('⏳ Waiting for deployment confirmation...');
-      await contract.waitForDeployment();
+      console.log('⏳ Waiting for transaction confirmation...');
+      console.log('Transaction sent! Hash:', contract.deploymentTransaction()?.hash);
+      
+      // Wait for deployment with timeout
+      const deploymentPromise = contract.waitForDeployment();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Deployment timeout after 60 seconds')), 60000)
+      );
+      
+      await Promise.race([deploymentPromise, timeoutPromise]);
 
       const contractAddress = await contract.getAddress();
       const deployTx = contract.deploymentTransaction();
 
-      console.log('✅ Contract deployed at:', contractAddress);
+      console.log('✅ Contract deployed successfully!');
+      console.log('Contract address:', contractAddress);
+      console.log('Transaction hash:', deployTx?.hash);
 
       return {
         success: true,
@@ -183,9 +196,13 @@ export class ContractDeployer {
       let errorMessage = 'Deployment failed';
       
       if (error.code === 'INSUFFICIENT_FUNDS') {
-        errorMessage = 'Insufficient funds. Get testnet ETH from https://faucet.quicknode.com/arbitrum/sepolia';
-      } else if (error.message && error.message.includes('user rejected')) {
+        errorMessage = 'Insufficient funds for gas fees';
+      } else if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
         errorMessage = 'Transaction rejected by user';
+      } else if (error.message && error.message.includes('timeout')) {
+        errorMessage = 'Deployment timed out. The transaction may still be pending on the blockchain.';
+      } else if (error.message && error.message.includes('nonce')) {
+        errorMessage = 'Transaction nonce error. Please try again.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -198,19 +215,16 @@ export class ContractDeployer {
   }
 
   private async compileStylus(code: string): Promise<string> {
-    // Mock Stylus compilation for demo/hackathon
+    // Simulate Stylus compilation
     // In production, this would call cargo-stylus to compile Rust to WASM
     
-    console.log('📦 Compiling Stylus contract...');
-    
     // Simulate compilation delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Return a simple contract bytecode (empty contract that does nothing but deploys)
-    // This is a minimal EVM bytecode that returns empty data
+    // Return a simple contract bytecode (minimal EVM bytecode)
+    // This is a valid empty contract that can be deployed
     const mockBytecode = '0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122000000000000000000000000000000000000000000000000000000000000000064736f6c63430008130033';
     
-    console.log('✅ Compilation successful!');
     return mockBytecode;
   }
 
