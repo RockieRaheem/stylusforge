@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/context/AuthContext";
+import { ProjectProvider } from "@/lib/context/ProjectContext";
 
 export const metadata: Metadata = {
   title: "StylusForge - Build The Future of Smart Contracts",
@@ -22,7 +23,9 @@ export default function RootLayout({
       </head>
       <body className="bg-background-dark text-gray-200 font-display">
         <AuthProvider>
-          {children}
+          <ProjectProvider>
+            {children}
+          </ProjectProvider>
         </AuthProvider>
       </body>
     </html>
