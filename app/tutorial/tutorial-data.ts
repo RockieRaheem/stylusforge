@@ -336,6 +336,11 @@ impl Escrow {
       { input: 'create_escrow(seller, 1000)', expectedOutput: 'Event: EscrowCreated with buyer=msg.sender' },
       { input: 'deposit(0, 1000)', expectedOutput: 'Event: FundsDeposited emitted' },
       { input: 'raise_dispute(0, "Issue")', expectedOutput: 'Event: DisputeRaised with reason' }
+    ],
+    hints: [
+      'Use indexed parameters for escrowId, buyer, and seller addresses to make events easily searchable',
+      'Emit events using evm::log() after state changes to ensure accurate event ordering',
+      'Include timestamps using block::timestamp() in your events for complete audit trails'
     ]
   }
 };
@@ -751,6 +756,11 @@ impl SafeToken {
     testCases: [
       { input: 'transfer(ZERO_ADDRESS, 100)', expectedOutput: 'Error: InvalidAddress' },
       { input: 'transfer(addr, 0)', expectedOutput: 'Error: InvalidAmount' }
+    ],
+    hints: [
+      'Always use checked_add, checked_sub, and checked_mul to prevent overflow/underflow errors',
+      'Create a custom error enum with descriptive variants and implement From<YourError> for Vec<u8>',
+      'Validate inputs at the start of functions: check for zero addresses, zero amounts, and sufficient balances'
     ]
   }
 };
@@ -1052,15 +1062,15 @@ mod tests {
     
     #[test]
     fn test_full_cycle() {
-        let mut vault = Vault::default();
-        vault.deposit(U256::from(1000)).unwrap();
-        vault.withdraw(U256::from(300)).unwrap();
-        vault.deposit(U256::from(500)).unwrap();
-        assert_eq!(vault.balance.get(), U256::from(1200));
     }
 }`,
     testCases: [
       { input: 'cargo test', expectedOutput: 'All tests pass' }
+    ],
+    hints: [
+      'Test all edge cases: zero amounts, maximum U256 values, insufficient balances, and overflow scenarios',
+      'Use #[should_panic] or assert!(result.is_err()) to test error conditions properly',
+      'Write integration tests that combine multiple operations to verify state consistency'
     ]
   }
 };
@@ -1356,14 +1366,14 @@ impl OptimizedToken {
         
         Ok(())
     }
-    
-    #[inline]
-    fn is_paused(&self) -> bool {
-        (self.flags.get() & 1) != 0
-    }
 }`,
     testCases: [
       { input: 'Compare gas: before vs after', expectedOutput: '30-50% gas savings' }
+    ],
+    hints: [
+      'Pack boolean flags into a single StorageU8 using bit operations to save storage slots',
+      'Cache storage reads in local variables to avoid multiple expensive SLOAD operations',
+      'Use basis points (StorageU16) instead of StorageU256 for percentages to optimize storage'
     ]
   }
 };
@@ -1731,16 +1741,16 @@ impl MultiSigWallet {
         // Approval logic
         Ok(())
     }
-    
-    pub fn execute_transaction(&mut self, tx_id: U256) -> Result<(), Vec<u8>> {
-        // Execute if enough approvals
-        Ok(())
-    }
 }`,
     testCases: [
       { input: 'propose_transaction(addr, 1000)', expectedOutput: 'Transaction ID returned' },
       { input: 'Execute with 1 approval', expectedOutput: 'Error: Not enough approvals' },
       { input: 'Execute with 3 approvals', expectedOutput: 'Success' }
+    ],
+    hints: [
+      'Use the Checks-Effects-Interactions pattern: validate permissions, update state, then execute external calls',
+      'Implement a pull payment pattern where users withdraw funds rather than having them pushed to avoid reentrancy',
+      'Track approvals in a nested StorageMap (transaction ID -> approver address -> bool) for efficient lookup'
     ]
   }
 };
@@ -1750,7 +1760,7 @@ export const tutorial9Content = {
     {
       id: 1,
       title: "ERC-20 Token Standard",
-      content: `The ERC-20 standard defines a common interface for fungible tokens.
+      content: `ERC-20 is the most widely used token standard on Ethereum and EVM chains.
 
 **Core Functions:**
 - \`totalSupply()\` - Total tokens in existence
@@ -2187,6 +2197,11 @@ sol_storage! {
       { input: 'transfer(addr, 1000)', expectedOutput: '995 received (0.5% fee)' },
       { input: 'burn(500)', expectedOutput: 'Total supply decreased' },
       { input: 'Transfer when paused', expectedOutput: 'Error: Paused' }
+    ],
+    hints: [
+      'Implement a modifier-like pattern by creating a check_not_paused() helper function called at the start of transfers',
+      'Calculate transfer fees using basis points: (amount * fee_bps) / 10000 for precise percentage calculations',
+      'For vesting, track cliff time, vesting duration, and released amounts per beneficiary address'
     ]
   }
 };
@@ -2728,6 +2743,11 @@ impl AuctionHouse {
       { input: 'mint() -> list() -> buy()', expectedOutput: 'Full purchase flow works' },
       { input: 'create_auction() -> bid() -> finalize()', expectedOutput: 'Auction completes with royalty payment' },
       { input: 'Multiple bids on auction', expectedOutput: 'Previous bidders refunded' }
+    ],
+    hints: [
+      'Store NFT ownership in StorageMap<U256, Address> and track approvals separately for marketplace transfers',
+      'In auctions, refund the previous highest bidder before accepting a new bid to prevent locked funds',
+      'Implement ERC-2981 royalty standard: calculate royalties as (salePrice * royaltyBps) / 10000'
     ]
   }
 };
