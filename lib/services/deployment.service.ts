@@ -250,11 +250,44 @@ class DeploymentService {
         console.log('🔄 Switching to', config.network, '...');
         await this.switchNetwork(config.network);
 
-        // Test RPC connectivity before proceeding
+        // Test RPC connectivity before proceeding and get working RPC
         console.log('🔍 Testing RPC connectivity...');
-        const isRPCHealthy = await this.testRPCConnection(config.network);
-        if (!isRPCHealthy && attempt < MAX_RETRIES) {
-          throw new Error('RPC_CONNECTIVITY_ISSUE');
+        let workingRpcUrl: string | null = null;
+        try {
+          workingRpcUrl = await this.testRPCConnection(config.network);
+          if (!workingRpcUrl) {
+            console.warn('⚠️ No working RPC found, will retry...');
+            throw new Error('RPC_CONNECTIVITY_ISSUE');
+          }
+          console.log('✅ Using RPC:', workingRpcUrl);
+        } catch (rpcTestError) {
+          console.warn('⚠️ RPC test error:', rpcTestError);
+          if (attempt < MAX_RETRIES) {
+            throw new Error('RPC_CONNECTIVITY_ISSUE');
+          }
+          // On last attempt, continue anyway with default
+          console.log('⚠️ Last attempt - proceeding with default RPC');
+          workingRpcUrl = NETWORKS[config.network].rpcUrl;
+        }
+
+        // If we found a better RPC, update MetaMask to use it
+        if (workingRpcUrl && workingRpcUrl !== NETWORKS[config.network].rpcUrl) {
+          console.log('🔄 Updating MetaMask to use working RPC:', workingRpcUrl);
+          try {
+            const ethereum = (window as any).ethereum;
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: NETWORKS[config.network].chainIdHex,
+                chainName: NETWORKS[config.network].name,
+                nativeCurrency: NETWORKS[config.network].currency,
+                rpcUrls: [workingRpcUrl], // Use the working RPC
+                blockExplorerUrls: [NETWORKS[config.network].explorerUrl],
+              }],
+            });
+          } catch (addError) {
+            console.warn('⚠️ Could not update RPC in MetaMask, continuing anyway:', addError);
+          }
         }
 
         // Re-initialize provider and signer after network switch
@@ -337,25 +370,56 @@ class DeploymentService {
             data: sendError?.data,
             error: sendError,
             type: typeof sendError,
-            stringified: JSON.stringify(sendError)
+            stringified: JSON.stringify(sendError),
+            dataMessage: sendError?.data?.message, // Often the real error is here
+            dataCode: sendError?.data?.code,
           });
           
-          // Handle empty error object (MetaMask sometimes returns {})
-          if (!sendError || Object.keys(sendError).length === 0) {
-            throw new Error('Transaction failed. Please make sure:\n• You approved the transaction in MetaMask\n• Your MetaMask is unlocked\n• You have enough ETH for gas');
+          // Handle user rejection immediately (before checking empty object)
+          if (sendError?.code === 4001 || sendError?.code === 'ACTION_REJECTED') {
+            throw new Error('Transaction cancelled by user');
           }
           
-          // Handle user rejection immediately
-          if (sendError.code === 4001 || sendError.code === 'ACTION_REJECTED') {
-            throw sendError; // Don't wrap, let it propagate
+          // Handle empty error object FIRST (MetaMask sometimes returns {})
+          if (!sendError || Object.keys(sendError).length === 0 || !sendError.message) {
+            console.warn('⚠️ Empty error object received - treating as RPC issue');
+            if (attempt < MAX_RETRIES) {
+              throw new Error('RPC_CONNECTIVITY_ISSUE'); // Retry with different RPC
+            } else {
+              throw new Error('Transaction failed. Please ensure:\n• MetaMask is unlocked\n• You approved the transaction\n• Network connection is stable');
+            }
           }
           
-          // Check if it's a network error
-          if (sendError.code === -32603 || 
-              sendError.message?.includes('Failed to fetch') ||
-              sendError.message?.includes('could not coalesce error') ||
-              sendError.message?.includes('Internal JSON-RPC error')) {
+          // Check if the actual error data contains more info
+          const actualError = sendError?.data?.message || sendError?.message;
+          const actualCode = sendError?.data?.code || sendError?.code;
+          
+          console.log('🔍 Actual error:', actualError, 'Code:', actualCode);
+          
+          // Check if it's a network/RPC error that should trigger retry
+          // Only treat -32603 as retryable if we haven't verified RPC is working
+          const isRPCError = (
+            actualError?.includes('Failed to fetch') ||
+            actualError?.includes('could not coalesce error') ||
+            actualError?.includes('timeout') ||
+            actualError?.includes('ECONNREFUSED') ||
+            actualError?.includes('ETIMEDOUT') ||
+            actualCode === -32000
+          );
+          
+          // -32603 with "Internal JSON-RPC error" could be many things
+          // Only retry if we're not on the last attempt AND no specific error data
+          const isInternalError = sendError?.code === -32603 && sendError?.message?.includes('Internal JSON-RPC error');
+          
+          if (isRPCError || (isInternalError && attempt < MAX_RETRIES && !sendError?.data?.message)) {
+            console.warn('⚠️ Network/RPC error detected, will retry...');
             throw new Error('RPC_CONNECTIVITY_ISSUE');
+          }
+          
+          // If we get here with -32603 on last attempt, show the actual error
+          if (isInternalError) {
+            const errorDetails = sendError?.data?.message ? `\n\nDetails: ${sendError.data.message}` : '';
+            throw new Error(`Transaction failed: ${sendError?.message}${errorDetails}\n\nThis could be due to:\n• Insufficient gas\n• Invalid transaction format\n• Network congestion\n\nPlease check MetaMask for more details.`);
           }
           
           throw sendError;
@@ -466,7 +530,10 @@ class DeploymentService {
   /**
    * Test RPC connection health
    */
-  private async testRPCConnection(network: string): Promise<boolean> {
+  /**
+   * Test RPC connection and return the working RPC URL
+   */
+  private async testRPCConnection(network: string): Promise<string | null> {
     const rpcEndpoints = ALTERNATIVE_RPCS[network] || [NETWORKS[network].rpcUrl];
     
     for (const rpcUrl of rpcEndpoints) {
@@ -482,7 +549,7 @@ class DeploymentService {
         
         const blockNumber = await Promise.race([blockPromise, timeoutPromise]);
         console.log(`✅ RPC healthy (${rpcUrl}). Current block:`, blockNumber);
-        return true;
+        return rpcUrl; // Return the working RPC URL
       } catch (error) {
         console.error(`❌ RPC failed (${rpcUrl}):`, error);
         continue; // Try next RPC
@@ -490,7 +557,7 @@ class DeploymentService {
     }
     
     console.error('❌ All RPC endpoints failed');
-    return false;
+    return null;
   }
 
   /**

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
+import { projectService } from '@/lib/services/project.service';
+import { notifyProjectCreated } from '@/lib/events/dashboard-events';
 import WalletBalance from '@/components/WalletBalance';
 import { 
   Menu, Bell, Settings as SettingsIcon, FileCode, Layout, Terminal as TerminalIcon,
@@ -64,6 +66,8 @@ export default function IDEPage() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [creatingNew, setCreatingNew] = useState<{ type: 'file' | 'folder'; parentId: string | null } | null>(null);
   const [newItemName, setNewItemName] = useState('');
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [isSavingProject, setIsSavingProject] = useState(false);
   
   // User profile dropdown
   const { userData, signOut } = useAuth();
@@ -131,10 +135,42 @@ export default function IDEPage() {
     setFiles(updateFiles(files));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedFile) {
       updateFileContent(selectedFile.id, fileContent);
       setHasUnsavedChanges(false);
+      
+      // Auto-save project to Firebase
+      if (userData?.uid && selectedFile.name.endsWith('.rs')) {
+        try {
+          setIsSavingProject(true);
+          
+          if (currentProjectId) {
+            // Update existing project
+            await projectService.updateProject(currentProjectId, {
+              code: fileContent,
+              name: selectedFile.name.replace('.rs', ''),
+            });
+            console.log('✅ Project updated in Firebase');
+          } else {
+            // Create new project
+            const projectId = await projectService.createProject(
+              userData.uid,
+              selectedFile.name.replace('.rs', ''),
+              fileContent,
+              'rust',
+              'Created in IDE'
+            );
+            setCurrentProjectId(projectId);
+            notifyProjectCreated({ projectId, name: selectedFile.name.replace('.rs', '') });
+            console.log('✅ Project created in Firebase:', projectId);
+          }
+        } catch (error) {
+          console.error('❌ Failed to save project to Firebase:', error);
+        } finally {
+          setIsSavingProject(false);
+        }
+      }
     }
   };
 
@@ -486,9 +522,10 @@ export default function IDEPage() {
                     handleSave();
                     setOpenMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between"
+                  disabled={isSavingProject}
+                  className="w-full px-4 py-2 text-left text-[13px] text-[#cccccc] hover:bg-[#2a2d2e] flex items-center justify-between disabled:opacity-50"
                 >
-                  Save
+                  {isSavingProject ? 'Saving...' : 'Save'}
                   <span className="text-[#858585] text-[11px]">Ctrl+S</span>
                 </button>
                 <div className="h-[1px] bg-[#454545] my-1"></div>
