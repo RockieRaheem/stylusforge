@@ -116,7 +116,7 @@ export default function CodeExecutor({
             <span>{copied ? 'Copied!' : 'Copy'}</span>
           </button>
 
-          {showRunButton && !readOnly && (
+          {showRunButton && (
             <button
               onClick={executeCode}
               disabled={isExecuting}
