@@ -126,7 +126,8 @@ impl Counter {
         title: 'Understanding Storage',
         content: `Stylus provides efficient storage types that map directly to EVM storage slots.
 
-**Common Storage Types:**
+## Common Storage Types
+
 - \`StorageU256\`: 256-bit unsigned integers
 - \`StorageBool\`: Boolean values
 - \`StorageAddress\`: Ethereum addresses

@@ -12,6 +12,7 @@ import {
   tutorial9Content, 
   tutorial10Content 
 } from './tutorial-data';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -77,10 +78,10 @@ export default function TutorialPage() {
           
 Unlike traditional EVM contracts written in Solidity, Stylus contracts are compiled to WebAssembly (WASM), which offers:
 
-• **10-100x lower gas costs** for compute-intensive operations
-• **Memory-safe execution** with Rust's ownership system
-• **Access to existing Rust libraries** and tooling
-• **Full EVM compatibility** - can call and be called by Solidity contracts
+- **10-100x lower gas costs** for compute-intensive operations
+- **Memory-safe execution** with Rust's ownership system
+- **Access to existing Rust libraries** and tooling
+- **Full EVM compatibility** - can call and be called by Solidity contracts
 
 Stylus opens up blockchain development to millions of developers already familiar with these languages.`,
           tip: 'Stylus contracts can be up to 100x cheaper to execute than equivalent Solidity contracts!'
@@ -134,9 +135,9 @@ my_counter/
           content: `Now let's write a simple contract. Every Stylus contract needs to import the SDK and define storage.
 
 **Key Concepts:**
-• **#[storage]** - Marks a struct as contract storage
-• **#[external]** - Marks functions callable from outside
-• **StorageType** - Trait for types that can be stored on-chain`,
+- **\`#[storage]\`** - Marks a struct as contract storage
+- **\`#[external]\`** - Marks functions callable from outside
+- **\`StorageType\`** - Trait for types that can be stored on-chain`,
           codeExample: `use stylus_sdk::{prelude::*, alloy_primitives::U256};
 
 // Define contract storage
@@ -172,11 +173,11 @@ impl Counter {
           content: `Storage in Stylus works differently from memory. Understanding this is crucial:
 
 **Storage Types:**
-• **StorageU256** - Unsigned 256-bit integers
-• **StorageBool** - Boolean values
-• **StorageAddress** - Ethereum addresses
-• **StorageVec<T>** - Dynamic arrays
-• **StorageMap<K, V>** - Key-value mappings
+- **\`StorageU256\`** - Unsigned 256-bit integers
+- **\`StorageBool\`** - Boolean values
+- **\`StorageAddress\`** - Ethereum addresses
+- **\`StorageVec<T>\`** - Dynamic arrays
+- **\`StorageMap<K, V>\`** - Key-value mappings
 
 **Important Notes:**
 - Storage is persistent across transactions
@@ -272,10 +273,10 @@ impl Counter {
 - Reading: ~200 gas
 
 **Best Practices:**
-• Pack multiple values into single storage slots when possible
-• Use events to store data that doesn't need to be read on-chain
-• Cache frequently-read values in memory
-• Use storage pointers to avoid unnecessary copies`,
+- Pack multiple values into single storage slots when possible
+- Use events to store data that doesn't need to be read on-chain
+- Cache frequently-read values in memory
+- Use storage pointers to avoid unnecessary copies`,
           tip: 'Optimizing storage access can reduce your gas costs by 50-90%!'
         },
         {
@@ -455,7 +456,7 @@ impl UserRegistry {
 - Don't change blockchain state
 - Example: balanceOf, totalSupply, owner
 
-The #[external] attribute makes functions callable from outside the contract.`,
+The \`#[external]\` attribute makes functions callable from outside the contract.`,
           tip: 'Use view functions whenever possible - they\'re free for users to call!'
         },
         {
@@ -485,7 +486,7 @@ impl MyContract {
     }
 }`,
           language: 'rust',
-          tip: 'Functions outside the #[external] block are automatically internal!'
+          tip: 'Functions outside the \`#[external]\` block are automatically internal!'
         },
         {
           id: 3,
@@ -908,9 +909,7 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   <div className="prose prose-invert max-w-none">
-                    <div className="text-[#8b949e] text-base leading-relaxed whitespace-pre-line">
-                      {lessonContent.sections[activeSection].content}
-                    </div>
+                    <MarkdownRenderer content={lessonContent.sections[activeSection].content} />
                   </div>
 
                   {lessonContent.sections[activeSection].codeExample && (
@@ -1000,9 +999,9 @@ fn require(condition: bool, message: &str) {
                     <h2 className="text-3xl font-bold text-white">
                       {lessonContent.assignment.title}
                     </h2>
-                    <p className="text-[#8b949e] text-base leading-relaxed">
-                      {lessonContent.assignment.description}
-                    </p>
+                    <div className="prose prose-invert max-w-none">
+                      <MarkdownRenderer content={lessonContent.assignment.description} />
+                    </div>
                   </div>
 
                   {/* Code Editor */}
