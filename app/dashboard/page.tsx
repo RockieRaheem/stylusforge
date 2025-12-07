@@ -149,6 +149,10 @@ export default function DashboardPage() {
                     <span className="material-symbols-outlined text-lg">school</span>
                     Tutorials
                   </Link>
+                  <Link href="/badges" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors">
+                    <span className="material-symbols-outlined text-lg">emoji_events</span>
+                    Badges
+                  </Link>
                   <Link href="/marketplace" onClick={() => setIsDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-white/5 transition-colors">
                     <span className="material-symbols-outlined text-lg">storefront</span>
                     Marketplace
@@ -231,7 +235,7 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <div className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#a371f7] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#a371f7]/10">
+            <Link href="/tutorial" className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#a371f7] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#a371f7]/10 cursor-pointer">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#a371f7]/5 rounded-full blur-2xl group-hover:bg-[#a371f7]/10 transition-all"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
@@ -252,7 +256,7 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-[#8b949e] text-xs">{tutorialProgress.percentage}% complete</p>
               </div>
-            </div>
+            </Link>
 
             <Link href="/deployments" className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#3fb950] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#3fb950]/10 cursor-pointer">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#3fb950]/5 rounded-full blur-2xl group-hover:bg-[#3fb950]/10 transition-all"></div>

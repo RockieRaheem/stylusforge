@@ -81,7 +81,7 @@ export default function TutorialPage() {
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
   const [earnedBadge, setEarnedBadge] = useState<Badge | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<{success: boolean; message: string; score?: number} | null>(null);
+  const [validationResult, setValidationResult] = useState<{success: boolean; message: string; score?: number; maxScore?: number} | null>(null);
   const [tutorialStartTime, setTutorialStartTime] = useState<number>(Date.now());
 
   // Load all completed tutorials on mount
@@ -146,23 +146,30 @@ export default function TutorialPage() {
     setCompletedTutorials(prev => new Set([...prev, tutorialId]));
     
     try {
+      console.log('🎯 Marking tutorial complete:', tutorialId);
+      
       // Get badge info from tutorial data
       const tutorialData = tutorials.find(t => t.id === tutorialId);
+      console.log('📦 Tutorial data found:', tutorialData?.title, 'Badge:', tutorialData?.badge);
+      
       if (!tutorialData?.badge) {
-        console.error('No badge found for tutorial', tutorialId);
+        console.error('❌ No badge found for tutorial', tutorialId);
         return;
       }
 
       // Complete tutorial and pass badge info (without earnedAt)
       await tutorialProgressService.completeTutorial(user.uid, tutorialId, tutorialData.badge);
+      console.log('✅ Tutorial marked complete in Firebase');
       
       // Set earned badge with earnedAt added
-      setEarnedBadge({
+      const newBadge = {
         ...tutorialData.badge,
         earnedAt: new Date()
-      });
+      };
+      console.log('🏆 Setting earned badge:', newBadge);
+      setEarnedBadge(newBadge);
     } catch (error) {
-      console.error('Error completing tutorial:', error);
+      console.error('❌ Error completing tutorial:', error);
     }
   };
 
@@ -204,11 +211,14 @@ export default function TutorialPage() {
 
       setValidationResult({
         success: result.passed,
-        message: result.feedback,
-        score: result.score
+        message: result.feedback.join('\n'),
+        score: result.score,
+        maxScore: result.maxScore
       });
 
       if (result.passed) {
+        console.log('✅ All tests passed! Completing tutorial...');
+        
         // Submit challenge with correct parameters
         await tutorialProgressService.submitChallenge(
           user.uid,
@@ -218,9 +228,11 @@ export default function TutorialPage() {
           true, // isCorrect
           result.score // points
         );
+        console.log('✅ Challenge submitted to Firebase');
 
         // Mark tutorial as complete
         await markTutorialComplete(selectedTutorial);
+        console.log('✅ markTutorialComplete called');
       }
     } catch (error) {
       console.error('Error validating code:', error);
@@ -1378,7 +1390,7 @@ fn require(condition: bool, message: &str) {
                           </h4>
                           <p className="text-[#c9d1d9] text-sm whitespace-pre-wrap">{validationResult.message}</p>
                           {validationResult.score !== undefined && (
-                            <p className="text-[#8b949e] text-sm mt-2">Score: {validationResult.score}/100</p>
+                            <p className="text-[#8b949e] text-sm mt-2">Score: {validationResult.score}/{validationResult.maxScore || 100}</p>
                           )}
                         </div>
                       </div>

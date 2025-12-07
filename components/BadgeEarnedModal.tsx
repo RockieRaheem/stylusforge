@@ -56,6 +56,11 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
     router.push('/dashboard');
   };
 
+  const handleGoToBadges = () => {
+    onClose();
+    router.push('/badges');
+  };
+
   return (
     <>
       {showConfetti && (
@@ -128,24 +133,32 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
               )}
 
               {/* Action buttons */}
-              <div className="flex gap-3">
+              <div className="space-y-3">
                 <button
-                  onClick={handleGoToDashboard}
-                  className="flex-1 px-6 py-3 rounded-lg font-semibold text-white bg-[#21262d] hover:bg-[#30363d] transition-all flex items-center justify-center gap-2"
-                >
-                  <Award className="h-4 w-4" />
-                  Dashboard
-                </button>
-                <button
-                  onClick={handleGoToTutorials}
-                  className="flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  onClick={handleGoToBadges}
+                  className="w-full px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105 flex items-center justify-center gap-2"
                   style={{
                     background: `linear-gradient(135deg, ${badge.color} 0%, ${badge.color}dd 100%)`
                   }}
                 >
-                  Next Tutorial
-                  <ArrowRight className="h-4 w-4" />
+                  <Award className="h-4 w-4" />
+                  View All Badges
                 </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleGoToDashboard}
+                    className="flex-1 px-6 py-2.5 rounded-lg font-medium text-white bg-[#21262d] hover:bg-[#30363d] transition-all flex items-center justify-center gap-2 text-sm"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={handleGoToTutorials}
+                    className="flex-1 px-6 py-2.5 rounded-lg font-medium text-white bg-[#21262d] hover:bg-[#30363d] transition-all flex items-center justify-center gap-2 text-sm"
+                  >
+                    Next Tutorial
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -71,18 +71,18 @@ function runTestCase(
   solutionCode: string,
   testCase: TestCase
 ): { passed: boolean; message: string } {
-  const checks = extractChecksFromDescription(testCase.description, testCase.expectedOutput);
-  
-  for (const check of checks) {
-    if (!performCheck(userCode, check)) {
-      return {
-        passed: false,
-        message: `Missing or incorrect: ${check.description}`
-      };
-    }
+  // Simple check: does the user code contain the expected output?
+  if (!testCase.expectedOutput) {
+    return { passed: true, message: 'No validation required' };
   }
   
-  return { passed: true, message: 'Test passed' };
+  const normalizedExpected = normalizeCode(testCase.expectedOutput);
+  const passed = userCode.includes(normalizedExpected);
+  
+  return {
+    passed,
+    message: passed ? 'Pattern found' : 'Expected pattern not found in code'
+  };
 }
 
 interface CodeCheck {
@@ -93,6 +93,12 @@ interface CodeCheck {
 
 function extractChecksFromDescription(description: string, expectedOutput: string): CodeCheck[] {
   const checks: CodeCheck[] = [];
+  
+  // Add null/undefined checks
+  if (!description || !expectedOutput) {
+    return checks;
+  }
+  
   const lower = description.toLowerCase();
   const output = expectedOutput.toLowerCase();
   

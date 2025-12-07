@@ -30,25 +30,14 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             <h4 className="text-lg font-semibold text-[#e6edf3] mb-2 mt-3" {...props} />
           ),
 
-          // Paragraphs - check if contains block-level elements
+          // Paragraphs - always use p tag for paragraphs, code blocks won't be inside them
           p: ({ node, children, ...props }) => {
-            // If paragraph contains code blocks (not inline code), render as div to avoid nesting issues
-            const hasCodeBlock = node?.children?.some((child: any) => {
-              // Check if it's a code element with a language class (block code)
-              if (child.tagName === 'code' && child.properties?.className) {
-                const hasLanguageClass = child.properties.className.some((cls: string) => 
-                  cls.startsWith('language-')
-                );
-                return hasLanguageClass;
-              }
-              return false;
-            });
-            
-            if (hasCodeBlock) {
-              return <div className="text-[#c9d1d9] leading-relaxed mb-4" {...props}>{children}</div>;
-            }
-            
             return <p className="text-[#c9d1d9] leading-relaxed mb-4" {...props}>{children}</p>;
+          },
+
+          // Pre blocks (code blocks are wrapped in pre tags by markdown)
+          pre: ({ node, children, ...props }) => {
+            return <div className="my-4" {...props}>{children}</div>;
           },
 
           // Strong/Bold
@@ -92,7 +81,8 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : 'text';
 
-            if (inline) {
+            // Inline code - simple span, no div
+            if (inline || !className) {
               return (
                 <code
                   className="px-1.5 py-0.5 rounded bg-[#30363d] text-[#79c0ff] font-mono text-sm border border-[#444c56]"
@@ -103,13 +93,13 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
               );
             }
 
-            // For code blocks, don't wrap in div - let the pre tag handle it
+            // Block code - will be inside a pre tag
             return (
               <SyntaxHighlighter
                 style={vscDarkPlus}
                 language={language}
                 PreTag="div"
-                className="!bg-[#0d1117] !m-0 my-4 rounded-lg overflow-hidden border border-[#30363d] shadow-lg"
+                className="!bg-[#0d1117] !m-0 rounded-lg overflow-hidden"
                 customStyle={{
                   padding: '1rem',
                   margin: 0,
@@ -126,25 +116,11 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             );
           },
 
-          // Pre tag - wrap code blocks properly
+          // Pre tag - wraps code blocks, already a block element
           pre: ({ node, children, ...props }: any) => {
             return (
-              <div className="my-4 rounded-lg overflow-hidden border border-[#30363d] shadow-lg">
-                <div className="bg-[#161b22] px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
-                  <span className="text-[#8b949e] text-xs font-mono">Code</span>
-                  <button
-                    onClick={() => {
-                      const codeContent = node?.children?.[0]?.children?.[0]?.value || '';
-                      navigator.clipboard.writeText(String(codeContent));
-                    }}
-                    className="text-[#8b949e] hover:text-white text-xs px-2 py-1 rounded hover:bg-[#30363d] transition-colors"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <pre className="!bg-[#0d1117] !m-0 overflow-x-auto" {...props}>
-                  {children}
-                </pre>
+              <div className="my-4 rounded-lg overflow-hidden border border-[#30363d] shadow-lg" {...props}>
+                {children}
               </div>
             );
           },
