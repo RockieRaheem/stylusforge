@@ -30,10 +30,19 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             <h4 className="text-lg font-semibold text-[#e6edf3] mb-2 mt-3" {...props} />
           ),
 
-          // Paragraphs
-          p: ({ node, ...props }) => (
-            <p className="text-[#c9d1d9] leading-relaxed mb-4" {...props} />
-          ),
+          // Paragraphs - check if contains block-level elements
+          p: ({ node, children, ...props }) => {
+            // If paragraph contains pre/code blocks, render as div to avoid nesting issues
+            const hasCodeBlock = node?.children?.some((child: any) => 
+              child.tagName === 'code' && child.properties?.className
+            );
+            
+            if (hasCodeBlock) {
+              return <div className="text-[#c9d1d9] leading-relaxed mb-4" {...props}>{children}</div>;
+            }
+            
+            return <p className="text-[#c9d1d9] leading-relaxed mb-4" {...props}>{children}</p>;
+          },
 
           // Strong/Bold
           strong: ({ node, ...props }) => (
@@ -71,7 +80,7 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             );
           },
 
-          // Code blocks
+          // Code blocks and inline code
           code: ({ node, inline, className, children, ...props }: any) => {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : 'text';
@@ -87,35 +96,48 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
               );
             }
 
+            // For code blocks, don't wrap in div - let the pre tag handle it
+            return (
+              <SyntaxHighlighter
+                style={vscDarkPlus}
+                language={language}
+                PreTag="div"
+                className="!bg-[#0d1117] !m-0 my-4 rounded-lg overflow-hidden border border-[#30363d] shadow-lg"
+                customStyle={{
+                  padding: '1rem',
+                  margin: 0,
+                  background: '#0d1117',
+                  fontSize: '0.875rem',
+                  lineHeight: '1.5'
+                }}
+                showLineNumbers={false}
+                wrapLines={false}
+                {...props}
+              >
+                {String(children).replace(/\n$/, '')}
+              </SyntaxHighlighter>
+            );
+          },
+
+          // Pre tag - wrap code blocks properly
+          pre: ({ node, children, ...props }: any) => {
             return (
               <div className="my-4 rounded-lg overflow-hidden border border-[#30363d] shadow-lg">
                 <div className="bg-[#161b22] px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
-                  <span className="text-[#8b949e] text-xs font-mono uppercase">{language}</span>
+                  <span className="text-[#8b949e] text-xs font-mono">Code</span>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(String(children));
+                      const codeContent = node?.children?.[0]?.children?.[0]?.value || '';
+                      navigator.clipboard.writeText(String(codeContent));
                     }}
                     className="text-[#8b949e] hover:text-white text-xs px-2 py-1 rounded hover:bg-[#30363d] transition-colors"
                   >
                     Copy
                   </button>
                 </div>
-                <SyntaxHighlighter
-                  style={vscDarkPlus}
-                  language={language}
-                  PreTag="div"
-                  className="!bg-[#0d1117] !m-0"
-                  customStyle={{
-                    padding: '1rem',
-                    margin: 0,
-                    background: '#0d1117',
-                    fontSize: '0.875rem',
-                    lineHeight: '1.5'
-                  }}
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
+                <pre className="!bg-[#0d1117] !m-0 overflow-x-auto" {...props}>
+                  {children}
+                </pre>
               </div>
             );
           },
