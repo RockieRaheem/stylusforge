@@ -127,6 +127,72 @@ export default function TutorialPage() {
     }
   };
 
+  const handleSectionComplete = async (sectionId: number) => {
+    if (!user || !selectedTutorial) return;
+
+    try {
+      await tutorialProgressService.completeSection(user.uid, selectedTutorial, sectionId);
+      setCompletedSections(prev => new Set([...prev, sectionId]));
+    } catch (error) {
+      console.error('Error completing section:', error);
+    }
+  };
+
+  const validateAndSubmitCode = async () => {
+    if (!user || !selectedTutorial || !userCode) {
+      alert('Please write some code first');
+      return;
+    }
+
+    setIsValidating(true);
+    setValidationResult(null);
+
+    try {
+      // Get assignment data
+      const lessonContent = tutorialContent[selectedTutorial];
+      if (!lessonContent) {
+        throw new Error('Tutorial content not found');
+      }
+
+      const assignment = lessonContent.assignment;
+      
+      // Validate code
+      const result = validateStylusCode(
+        userCode,
+        assignment.solution,
+        assignment.testCases || []
+      );
+
+      setValidationResult({
+        success: result.passed,
+        message: result.feedback,
+        score: result.score
+      });
+
+      if (result.passed) {
+        // Submit challenge
+        await tutorialProgressService.submitChallenge(
+          user.uid,
+          selectedTutorial,
+          'assignment',
+          userCode,
+          result.score
+        );
+
+        // Mark tutorial as complete
+        await markTutorialComplete(selectedTutorial);
+      }
+    } catch (error) {
+      console.error('Error validating code:', error);
+      setValidationResult({
+        success: false,
+        message: 'An error occurred while validating your code. Please try again.'
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(id);
