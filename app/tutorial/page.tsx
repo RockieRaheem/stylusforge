@@ -84,6 +84,15 @@ export default function TutorialPage() {
   const [validationResult, setValidationResult] = useState<{success: boolean; message: string; score?: number; maxScore?: number} | null>(null);
   const [tutorialStartTime, setTutorialStartTime] = useState<number>(Date.now());
 
+  // Monitor badge state changes
+  useEffect(() => {
+    if (earnedBadge) {
+      console.log('🎊 BADGE MODAL SHOULD BE VISIBLE NOW:', earnedBadge);
+      // Scroll to top to ensure modal is visible
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [earnedBadge]);
+
   // Load all completed tutorials on mount
   useEffect(() => {
     if (user) {
@@ -167,7 +176,14 @@ export default function TutorialPage() {
         earnedAt: new Date()
       };
       console.log('🏆 Setting earned badge:', newBadge);
+      
+      // Force immediate state update
       setEarnedBadge(newBadge);
+      
+      // Force a rerender by updating a dummy state
+      setValidationResult(null);
+      
+      console.log('🎊 Badge state should be set now. Current earnedBadge:', newBadge);
       
       // Scroll to top to ensure modal is visible
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -234,14 +250,15 @@ export default function TutorialPage() {
         );
         console.log('✅ Challenge submitted to Firebase');
 
-        // Mark tutorial as complete and show badge
+        // Mark tutorial as complete and show badge IMMEDIATELY
         console.log('🎯 About to call markTutorialComplete...');
         await markTutorialComplete(selectedTutorial);
         console.log('✅ markTutorialComplete completed');
         
-        // Small delay to ensure state updates before showing modal
-        await new Promise(resolve => setTimeout(resolve, 300));
-        console.log('🏆 Badge should now be visible');
+        // Clear validation result to show only the badge modal
+        setTimeout(() => {
+          setValidationResult(null);
+        }, 1000);
       }
     } catch (error) {
       console.error('Error validating code:', error);
@@ -1721,20 +1738,24 @@ fn require(condition: bool, message: &str) {
 
       {/* Badge Earned Modal */}
       {earnedBadge && (
-        <BadgeEarnedModal
-          badge={earnedBadge}
-          onClose={() => {
-            setEarnedBadge(null);
-            // Reload tutorial list to show updated progress
-            if (user) {
-              tutorialProgressService.getAllUserProgress(user.uid).then(progressList => {
-                const completed = new Set(progressList.filter(p => p.completedAt).map(p => p.tutorialId));
-                setCompletedTutorials(completed);
-              }).catch(console.error);
-            }
-          }}
-          points={100}
-        />
+        <>
+          {console.log('🎨 RENDERING BADGE MODAL:', earnedBadge)}
+          <BadgeEarnedModal
+            badge={earnedBadge}
+            onClose={() => {
+              console.log('👋 Modal closed');
+              setEarnedBadge(null);
+              // Reload tutorial list to show updated progress
+              if (user) {
+                tutorialProgressService.getAllUserProgress(user.uid).then(progressList => {
+                  const completed = new Set(progressList.filter(p => p.completedAt).map(p => p.tutorialId));
+                  setCompletedTutorials(completed);
+                }).catch(console.error);
+              }
+            }}
+            points={100}
+          />
+        </>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { X, Sparkles, Award, ArrowRight } from 'lucide-react';
 import BadgeDisplay from './BadgeDisplay';
@@ -22,8 +23,10 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
   const router = useRouter();
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setShowConfetti(true);
     setWindowSize({
       width: window.innerWidth,
@@ -61,7 +64,9 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
     router.push('/badges');
   };
 
-  return (
+  if (!mounted) return null;
+
+  const modalContent = (
     <>
       {showConfetti && (
         <Confetti
@@ -73,7 +78,10 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
         />
       )}
       
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div 
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+      >
         <div className="relative w-full max-w-md mx-4">
           {/* Close button */}
           <button
@@ -166,4 +174,6 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
       </div>
     </>
   );
+
+  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
