@@ -12,7 +12,7 @@ interface Deployment {
   contractAddress: string;
   contractName: string;
   network: string;
-  timestamp: any;
+  deployedAt: Date;
   gasUsed: string;
   transactionHash: string;
   userId: string;
@@ -73,17 +73,17 @@ export default function DeploymentsPage() {
     })
     .sort((a, b) => {
       if (sortBy === 'oldest') {
-        return a.timestamp?.toMillis() - b.timestamp?.toMillis();
+        return a.deployedAt.getTime() - b.deployedAt.getTime();
       } else if (sortBy === 'gas') {
         return parseFloat(b.gasUsed) - parseFloat(a.gasUsed);
       } else {
-        return b.timestamp?.toMillis() - a.timestamp?.toMillis();
+        return b.deployedAt.getTime() - a.deployedAt.getTime();
       }
     });
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: Date | any) => {
     if (!timestamp) return 'N/A';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const date = timestamp instanceof Date ? timestamp : (timestamp.toDate ? timestamp.toDate() : new Date(timestamp));
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
@@ -179,7 +179,7 @@ export default function DeploymentsPage() {
                   <span>Last Deployed</span>
                 </div>
                 <div className="text-sm font-medium text-white">
-                  {formatDate(deployments[0]?.timestamp)}
+                  {formatDate(deployments[0]?.deployedAt)}
                 </div>
               </div>
             </div>
@@ -305,7 +305,7 @@ export default function DeploymentsPage() {
                         {/* Date */}
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3.5 w-3.5 text-[#8b949e]" />
-                          <span className="text-[#8b949e]">{formatDate(deployment.timestamp)}</span>
+                          <span className="text-[#8b949e]">{formatDate(deployment.deployedAt)}</span>
                         </div>
                       </div>
                     </div>

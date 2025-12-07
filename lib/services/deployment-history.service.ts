@@ -82,10 +82,10 @@ class DeploymentHistoryService {
     limit: number = 50
   ): Promise<Deployment[]> {
     try {
+      // Query without orderBy to avoid index requirement
       const q = query(
         collection(db, this.DEPLOYMENTS_COLLECTION),
         where('userId', '==', userId),
-        orderBy('deployedAt', 'desc'),
         firestoreLimit(limit)
       );
 
@@ -100,6 +100,9 @@ class DeploymentHistoryService {
         } as Deployment);
       });
 
+      // Sort in memory instead of in the query
+      deployments.sort((a, b) => b.deployedAt.getTime() - a.deployedAt.getTime());
+
       return deployments;
     } catch (error) {
       console.error('Error getting deployments:', error);
@@ -112,10 +115,10 @@ class DeploymentHistoryService {
    */
   async getProjectDeployments(projectId: string): Promise<Deployment[]> {
     try {
+      // Query without orderBy to avoid index requirement
       const q = query(
         collection(db, this.DEPLOYMENTS_COLLECTION),
-        where('projectId', '==', projectId),
-        orderBy('deployedAt', 'desc')
+        where('projectId', '==', projectId)
       );
 
       const snapshot = await getDocs(q);
@@ -128,6 +131,9 @@ class DeploymentHistoryService {
           deployedAt: data.deployedAt?.toDate() || new Date(),
         } as Deployment);
       });
+
+      // Sort in memory instead of in the query
+      deployments.sort((a, b) => b.deployedAt.getTime() - a.deployedAt.getTime());
 
       return deployments;
     } catch (error) {
