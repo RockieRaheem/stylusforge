@@ -32,10 +32,17 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
 
           // Paragraphs - check if contains block-level elements
           p: ({ node, children, ...props }) => {
-            // If paragraph contains pre/code blocks, render as div to avoid nesting issues
-            const hasCodeBlock = node?.children?.some((child: any) => 
-              child.tagName === 'code' && child.properties?.className
-            );
+            // If paragraph contains code blocks (not inline code), render as div to avoid nesting issues
+            const hasCodeBlock = node?.children?.some((child: any) => {
+              // Check if it's a code element with a language class (block code)
+              if (child.tagName === 'code' && child.properties?.className) {
+                const hasLanguageClass = child.properties.className.some((cls: string) => 
+                  cls.startsWith('language-')
+                );
+                return hasLanguageClass;
+              }
+              return false;
+            });
             
             if (hasCodeBlock) {
               return <div className="text-[#c9d1d9] leading-relaxed mb-4" {...props}>{children}</div>;

@@ -33,6 +33,14 @@ interface Tutorial {
   icon: string;
   color: string;
   sections: LessonSection[];
+  maxScore: number;
+  badge: {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+  };
 }
 
 interface LessonSection {
@@ -51,6 +59,13 @@ interface Assignment {
   starterCode: string;
   solution: string;
   hints: string[];
+  testCases?: Array<{
+    id: string;
+    description: string;
+    input?: string;
+    expectedOutput: string;
+    hidden?: boolean;
+  }>;
 }
 
 export default function TutorialPage() {
@@ -100,8 +115,10 @@ export default function TutorialPage() {
           setCompletedTutorials(prev => new Set([...prev, selectedTutorial]));
         }
       } else {
-        // Start new tutorial
-        await tutorialProgressService.startTutorial(user.uid, selectedTutorial);
+        // Start new tutorial - get maxScore from tutorial data
+        const tutorialData = tutorials.find(t => t.id === selectedTutorial);
+        const maxScore = tutorialData?.maxScore || 100;
+        await tutorialProgressService.startTutorial(user.uid, selectedTutorial, maxScore);
         setTutorialStartTime(Date.now());
       }
     } catch (error) {
@@ -118,10 +135,21 @@ export default function TutorialPage() {
     setCompletedTutorials(prev => new Set([...prev, tutorialId]));
     
     try {
-      const badge = await tutorialProgressService.completeTutorial(user.uid, tutorialId);
-      if (badge) {
-        setEarnedBadge(badge);
+      // Get badge info from tutorial data
+      const tutorialData = tutorials.find(t => t.id === tutorialId);
+      if (!tutorialData?.badge) {
+        console.error('No badge found for tutorial', tutorialId);
+        return;
       }
+
+      // Complete tutorial and pass badge info (without earnedAt)
+      await tutorialProgressService.completeTutorial(user.uid, tutorialId, tutorialData.badge);
+      
+      // Set earned badge with earnedAt added
+      setEarnedBadge({
+        ...tutorialData.badge,
+        earnedAt: new Date()
+      });
     } catch (error) {
       console.error('Error completing tutorial:', error);
     }
@@ -170,13 +198,14 @@ export default function TutorialPage() {
       });
 
       if (result.passed) {
-        // Submit challenge
+        // Submit challenge with correct parameters
         await tutorialProgressService.submitChallenge(
           user.uid,
           selectedTutorial,
           'assignment',
           userCode,
-          result.score
+          true, // isCorrect
+          result.score // points
         );
 
         // Mark tutorial as complete
@@ -389,6 +418,32 @@ impl Counter {
           'Remember to check for underflow in decrement',
           'The get function should be a view function (use &self, not &mut self)',
           'Initialize sets the count to zero using U256::ZERO'
+        ],
+        testCases: [
+          {
+            id: 'test1',
+            description: 'Counter struct has count field',
+            input: 'struct definition',
+            expectedOutput: 'pub struct Counter { count: StorageU256'
+          },
+          {
+            id: 'test2',
+            description: 'Increment function exists and modifies state',
+            input: 'increment signature',
+            expectedOutput: 'pub fn increment(&mut self)'
+          },
+          {
+            id: 'test3',
+            description: 'Decrement function exists with underflow protection',
+            input: 'decrement logic',
+            expectedOutput: 'if current > U256::ZERO'
+          },
+          {
+            id: 'test4',
+            description: 'Get function is view-only',
+            input: 'get signature',
+            expectedOutput: 'pub fn get(&self)'
+          }
         ]
       }
     },
@@ -804,7 +859,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'rocket_launch',
       color: '#58a6ff',
-      sections: []
+      sections: [],
+      maxScore: 100,
+      badge: {
+        id: 'stylus_beginner',
+        name: 'Stylus Beginner',
+        description: 'Completed the Getting Started tutorial',
+        icon: 'rocket_launch',
+        color: '#58a6ff'
+      }
     },
     {
       id: 2,
@@ -816,7 +879,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'storage',
       color: '#3fb950',
-      sections: []
+      sections: [],
+      maxScore: 100,
+      badge: {
+        id: 'storage_master',
+        name: 'Storage Master',
+        description: 'Mastered storage and state management',
+        icon: 'storage',
+        color: '#3fb950'
+      }
     },
     {
       id: 3,
@@ -828,7 +899,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'code',
       color: '#a371f7',
-      sections: []
+      sections: [],
+      maxScore: 100,
+      badge: {
+        id: 'function_expert',
+        name: 'Function Expert',
+        description: 'Mastered contract functions and methods',
+        icon: 'code',
+        color: '#a371f7'
+      }
     },
     {
       id: 4,
@@ -840,7 +919,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'notifications',
       color: '#f85149',
-      sections: []
+      sections: [],
+      maxScore: 100,
+      badge: {
+        id: 'event_master',
+        name: 'Event Master',
+        description: 'Mastered event emission and logging',
+        icon: 'notifications',
+        color: '#f85149'
+      }
     },
     {
       id: 5,
@@ -852,7 +939,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'error',
       color: '#f85149',
-      sections: []
+      sections: [],
+      maxScore: 100,
+      badge: {
+        id: 'error_handler',
+        name: 'Error Handler',
+        description: 'Mastered error handling patterns',
+        icon: 'error',
+        color: '#f85149'
+      }
     },
     {
       id: 6,
@@ -864,7 +959,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'science',
       color: '#58a6ff',
-      sections: []
+      sections: [],
+      maxScore: 100,
+      badge: {
+        id: 'test_master',
+        name: 'Test Master',
+        description: 'Mastered smart contract testing',
+        icon: 'science',
+        color: '#58a6ff'
+      }
     },
     {
       id: 7,
@@ -876,7 +979,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'speed',
       color: '#3fb950',
-      sections: []
+      sections: [],
+      maxScore: 150,
+      badge: {
+        id: 'gas_optimizer',
+        name: 'Gas Optimizer',
+        description: 'Mastered gas optimization techniques',
+        icon: 'speed',
+        color: '#3fb950'
+      }
     },
     {
       id: 8,
@@ -888,7 +999,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'architecture',
       color: '#a371f7',
-      sections: []
+      sections: [],
+      maxScore: 150,
+      badge: {
+        id: 'pattern_architect',
+        name: 'Pattern Architect',
+        description: 'Mastered advanced design patterns',
+        icon: 'architecture',
+        color: '#a371f7'
+      }
     },
     {
       id: 9,
@@ -900,7 +1019,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'currency_exchange',
       color: '#f85149',
-      sections: []
+      sections: [],
+      maxScore: 200,
+      badge: {
+        id: 'defi_builder',
+        name: 'DeFi Builder',
+        description: 'Built a complete DeFi token',
+        icon: 'currency_exchange',
+        color: '#f85149'
+      }
     },
     {
       id: 10,
@@ -912,7 +1039,15 @@ fn require(condition: bool, message: &str) {
       locked: false,
       icon: 'storefront',
       color: '#58a6ff',
-      sections: []
+      sections: [],
+      maxScore: 200,
+      badge: {
+        id: 'nft_master',
+        name: 'NFT Master',
+        description: 'Built a complete NFT marketplace',
+        icon: 'storefront',
+        color: '#58a6ff'
+      }
     },
   ];
 
@@ -1046,6 +1181,7 @@ fn require(condition: bool, message: &str) {
 
                   {lessonContent.sections[activeSection].codeExample && (
                     <CodeExecutor
+                      key={`section-${selectedTutorial}-${activeSection}-example`}
                       initialCode={lessonContent.sections[activeSection].codeExample || ''}
                       language={lessonContent.sections[activeSection].language || 'rust'}
                       readOnly={true}
@@ -1116,6 +1252,7 @@ fn require(condition: bool, message: &str) {
 
                   {/* Code Editor */}
                   <CodeExecutor
+                    key={`assignment-${selectedTutorial}-editor`}
                     initialCode={lessonContent.assignment.starterCode}
                     language="rust"
                     readOnly={false}
@@ -1168,6 +1305,7 @@ fn require(condition: bool, message: &str) {
                     {showSolution && (
                       <div className="border-t border-[#30363d] p-4">
                         <CodeExecutor
+                          key={`assignment-${selectedTutorial}-solution`}
                           initialCode={lessonContent.assignment.solution}
                           language="rust"
                           readOnly={true}

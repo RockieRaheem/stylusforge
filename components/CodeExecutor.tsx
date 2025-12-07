@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import dynamic from 'next/dynamic';
 import { Play, RotateCcw, Copy, Check, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
@@ -33,6 +33,7 @@ export default function CodeExecutor({
   onCodeChange,
   showRunButton = true
 }: CodeExecutorProps) {
+  const instanceId = useId();
   const [code, setCode] = useState(initialCode);
   const [copied, setCopied] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -63,16 +64,21 @@ export default function CodeExecutor({
   };
 
   const executeCode = async () => {
+    // Prevent execution if already running
+    if (isExecuting) return;
+    
     setIsExecuting(true);
     setShowOutput(true);
+    setExecutionResult(null);
     
-    // Simulate compilation and execution
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate compilation and execution with unique timeout per instance
+    const delay = 1500 + Math.floor(Math.random() * 200); // Add slight randomization
+    await new Promise(resolve => setTimeout(resolve, delay));
 
     try {
       // Mock execution results - In production, this would call a backend API
       // that compiles and runs the Rust code in a sandboxed environment
-      const result = await mockExecuteRustCode(code);
+      const result = await mockExecuteRustCode(code, instanceId);
       setExecutionResult(result);
     } catch (error) {
       setExecutionResult({
@@ -85,7 +91,7 @@ export default function CodeExecutor({
   };
 
   return (
-    <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
+    <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]" data-executor-id={instanceId}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#161b22] border-b border-[#30363d]">
         <div className="flex items-center gap-3">
@@ -94,7 +100,7 @@ export default function CodeExecutor({
             {language}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {!readOnly && (
             <button
@@ -141,6 +147,7 @@ export default function CodeExecutor({
 
       {/* Monaco Editor */}
       <MonacoEditor
+        key={`${instanceId}-${initialCode.substring(0, 50)}`}
         height={height}
         language={language}
         value={code}
@@ -243,34 +250,47 @@ export default function CodeExecutor({
 
 // Mock function to simulate Rust code execution
 // In production, this would call a backend API
-async function mockExecuteRustCode(code: string): Promise<ExecutionResult> {
-  // Simulate compilation time
+async function mockExecuteRustCode(code: string, instanceId: string): Promise<ExecutionResult> {
+  // Simulate compilation time with slight variation per instance
   const compilationTime = Math.floor(Math.random() * 500) + 300;
   
-  // Basic syntax checks
-  if (!code.includes('#[storage]') && !code.includes('fn ')) {
+  // Check if code is empty or too short
+  if (!code || code.trim().length < 10) {
     return {
       success: false,
-      error: `error: expected item, found \`}\`
+      error: `error: no input files
  --> src/lib.rs:1:1
-  |
-1 | ${code.split('\n')[0]}
-  | ^ expected item
 
 error: could not compile due to previous error`,
       compilationTime
     };
   }
 
-  // Check for common errors
-  if (code.includes('self.') && !code.includes('&mut self') && !code.includes('&self')) {
+  // Basic syntax checks - be lenient for bash/shell scripts and other languages
+  const isRustCode = code.includes('fn ') || code.includes('struct ') || code.includes('use ') || code.includes('#[');
+  const isBashScript = code.includes('curl') || code.includes('cargo') || code.includes('#!/bin/bash') || code.includes('rustup');
+  
+  // If it's a bash script, simulate successful execution
+  if (isBashScript) {
+    const executionTime = Math.floor(Math.random() * 200) + 100;
+    return {
+      success: true,
+      output: '✓ Installation completed successfully\n✓ All dependencies installed\n✓ Environment ready for development',
+      compilationTime: 0,
+      executionTime
+    };
+  }
+
+  // For Rust code, do minimal validation
+  if (isRustCode && code.includes('error') && !code.includes('Result') && !code.includes('Error')) {
+    // Only fail if the word "error" appears in a suspicious context
     return {
       success: false,
-      error: `error[E0425]: cannot find value \`self\` in this scope
- --> src/lib.rs:5:9
+      error: `error[E0425]: syntax error detected
+ --> src/lib.rs:1:1
   |
-5 |         self.count.get()
-  |         ^^^^ help: you might have meant to use \`self\`: \`&self\`
+1 | ${code.split('\n')[0]}
+  | ^^^^
 
 For more information about this error, try \`rustc --explain E0425\``,
       compilationTime
@@ -280,17 +300,22 @@ For more information about this error, try \`rustc --explain E0425\``,
   // Simulate execution time
   const executionTime = Math.floor(Math.random() * 200) + 100;
 
-  // Mock successful output
-  const outputs = [
-    'Counter initialized with value: 0\nCounter incremented to: 1\nCounter incremented to: 2\nFinal value: 2',
-    'Contract deployed successfully!\nStorage initialized\nAll functions accessible',
-    'Test passed: ✓\nStorage operations verified\nContract ready for deployment',
-    'Compilation successful!\nContract size: 2.4kb\nEstimated gas: 150,000',
-  ];
+  // Mock successful output based on code content
+  let output = '';
+  
+  if (code.includes('Counter') || code.includes('count')) {
+    output = '✓ Counter contract compiled successfully\n✓ Storage initialized\n✓ Functions: increment(), decrement(), get()\n✓ Ready for deployment';
+  } else if (code.includes('ERC20') || code.includes('Token')) {
+    output = '✓ Token contract compiled successfully\n✓ Total supply: 1,000,000\n✓ All ERC20 functions available\n✓ Ready for deployment';
+  } else if (code.includes('storage') || code.includes('#[storage]')) {
+    output = '✓ Contract compiled successfully\n✓ Storage layout validated\n✓ All state variables accessible\n✓ Ready for deployment';
+  } else {
+    output = '✓ Compilation successful\n✓ Contract size: 2.4kb\n✓ Estimated gas: 150,000\n✓ Ready for deployment';
+  }
 
   return {
     success: true,
-    output: outputs[Math.floor(Math.random() * outputs.length)],
+    output,
     compilationTime,
     executionTime
   };
