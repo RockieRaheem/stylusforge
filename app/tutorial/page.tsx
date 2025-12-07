@@ -13,6 +13,7 @@ import {
   tutorial10Content 
 } from './tutorial-data';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import CodeExecutor from '@/components/CodeExecutor';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -913,41 +914,14 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   {lessonContent.sections[activeSection].codeExample && (
-                    <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
-                      <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
-                        <span className="text-[#8b949e] text-sm font-medium">
-                          {lessonContent.sections[activeSection].language || 'rust'}
-                        </span>
-                        <button 
-                          onClick={() => handleCopy(lessonContent.sections[activeSection].codeExample || '', 'example')}
-                          className="flex items-center gap-1 px-2 py-1 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
-                        >
-                          <span className="material-symbols-outlined text-sm">
-                            {copied === 'example' ? 'check' : 'content_copy'}
-                          </span>
-                          <span className="text-xs">{copied === 'example' ? 'Copied!' : 'Copy'}</span>
-                        </button>
-                      </div>
-                      <MonacoEditor
-                        height="400px"
-                        language={lessonContent.sections[activeSection].language || 'rust'}
-                        value={lessonContent.sections[activeSection].codeExample}
-                        theme="vs-dark"
-                        options={{
-                          readOnly: true,
-                          minimap: { enabled: false },
-                          scrollBeyondLastLine: false,
-                          fontSize: 14,
-                          lineNumbers: 'on',
-                          renderLineHighlight: 'none',
-                          scrollbar: {
-                            vertical: 'auto',
-                            horizontal: 'auto',
-                          },
-                          padding: { top: 16, bottom: 16 },
-                        }}
-                      />
-                    </div>
+                    <CodeExecutor
+                      initialCode={lessonContent.sections[activeSection].codeExample || ''}
+                      language={lessonContent.sections[activeSection].language || 'rust'}
+                      readOnly={true}
+                      title={`Example Code - ${lessonContent.sections[activeSection].title}`}
+                      height="400px"
+                      showRunButton={true}
+                    />
                   )}
 
                   {lessonContent.sections[activeSection].tip && (
@@ -1005,55 +979,15 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   {/* Code Editor */}
-                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
-                    <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
-                      <span className="text-[#8b949e] text-sm font-medium">Your Solution - src/lib.rs</span>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => {
-                            setUserCode('');
-                          }}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
-                        >
-                          <span className="material-symbols-outlined text-sm">refresh</span>
-                          <span className="text-xs font-medium">Clear</span>
-                        </button>
-                        <button 
-                          onClick={() => handleCopy(userCode || '', 'usercode')}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
-                        >
-                          <span className="material-symbols-outlined text-sm">
-                            {copied === 'usercode' ? 'check' : 'content_copy'}
-                          </span>
-                          <span className="text-xs font-medium">{copied === 'usercode' ? 'Copied!' : 'Copy'}</span>
-                        </button>
-                      </div>
-                    </div>
-                    <MonacoEditor
-                      height="500px"
-                      language="rust"
-                      value={userCode}
-                      onChange={(value) => setUserCode(value || '')}
-                      theme="vs-dark"
-                      options={{
-                        minimap: { enabled: true },
-                        scrollBeyondLastLine: false,
-                        fontSize: 14,
-                        lineNumbers: 'on',
-                        renderLineHighlight: 'all',
-                        scrollbar: {
-                          vertical: 'auto',
-                          horizontal: 'auto',
-                        },
-                        padding: { top: 16, bottom: 16 },
-                        bracketPairColorization: { enabled: true },
-                        automaticLayout: true,
-                        tabSize: 4,
-                        insertSpaces: true,
-                        wordWrap: 'on',
-                      }}
-                    />
-                  </div>
+                  <CodeExecutor
+                    initialCode={lessonContent.assignment.starterCode}
+                    language="rust"
+                    readOnly={false}
+                    title="Your Solution - src/lib.rs"
+                    height="500px"
+                    onCodeChange={(code) => setUserCode(code)}
+                    showRunButton={true}
+                  />
 
                   {/* Hints Section */}
                   <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
@@ -1082,7 +1016,7 @@ fn require(condition: bool, message: &str) {
                   </div>
 
                   {/* Solution Section */}
-                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#1e1e1e]">
+                  <div className="border border-[#30363d] rounded-lg overflow-hidden bg-[#0d1117]">
                     <button
                       onClick={() => setShowSolution(!showSolution)}
                       className="w-full flex items-center justify-between px-4 py-3 bg-[#161b22] hover:bg-[#21262d] transition-all"
@@ -1096,37 +1030,14 @@ fn require(condition: bool, message: &str) {
                       </span>
                     </button>
                     {showSolution && (
-                      <div className="border-t border-[#30363d]">
-                        <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
-                          <span className="text-[#3fb950] text-sm font-medium">Complete Solution</span>
-                          <button 
-                            onClick={() => handleCopy(lessonContent.assignment.solution, 'solution')}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded text-[#8b949e] hover:text-white hover:bg-[#21262d] transition-all"
-                          >
-                            <span className="material-symbols-outlined text-sm">
-                              {copied === 'solution' ? 'check' : 'content_copy'}
-                            </span>
-                            <span className="text-xs font-medium">{copied === 'solution' ? 'Copied!' : 'Copy'}</span>
-                          </button>
-                        </div>
-                        <MonacoEditor
-                          height="500px"
+                      <div className="border-t border-[#30363d] p-4">
+                        <CodeExecutor
+                          initialCode={lessonContent.assignment.solution}
                           language="rust"
-                          value={lessonContent.assignment.solution}
-                          theme="vs-dark"
-                          options={{
-                            readOnly: true,
-                            minimap: { enabled: true },
-                            scrollBeyondLastLine: false,
-                            fontSize: 14,
-                            lineNumbers: 'on',
-                            renderLineHighlight: 'none',
-                            scrollbar: {
-                              vertical: 'auto',
-                              horizontal: 'auto',
-                            },
-                            padding: { top: 16, bottom: 16 },
-                          }}
+                          readOnly={true}
+                          title="Complete Solution"
+                          height="500px"
+                          showRunButton={true}
                         />
                       </div>
                     )}
