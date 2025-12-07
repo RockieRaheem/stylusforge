@@ -333,9 +333,24 @@ impl Escrow {
     }
 }`,
     testCases: [
-      { input: 'create_escrow(seller, 1000)', expectedOutput: 'Event: EscrowCreated with buyer=msg.sender' },
-      { input: 'deposit(0, 1000)', expectedOutput: 'Event: FundsDeposited emitted' },
-      { input: 'raise_dispute(0, "Issue")', expectedOutput: 'Event: DisputeRaised with reason' }
+      { 
+        id: 'test-1',
+        description: 'Check EscrowCreated event',
+        input: 'create_escrow(seller, 1000)', 
+        expectedOutput: 'Event: EscrowCreated with buyer=msg.sender' 
+      },
+      { 
+        id: 'test-2',
+        description: 'Check FundsDeposited event',
+        input: 'deposit(0, 1000)', 
+        expectedOutput: 'Event: FundsDeposited emitted' 
+      },
+      { 
+        id: 'test-3',
+        description: 'Check DisputeRaised event',
+        input: 'raise_dispute(0, "Issue")', 
+        expectedOutput: 'Event: DisputeRaised with reason' 
+      }
     ],
     hints: [
       'Use indexed parameters for escrowId, buyer, and seller addresses to make events easily searchable',
@@ -754,8 +769,18 @@ impl SafeToken {
     }
 }`,
     testCases: [
-      { input: 'transfer(ZERO_ADDRESS, 100)', expectedOutput: 'Error: InvalidAddress' },
-      { input: 'transfer(addr, 0)', expectedOutput: 'Error: InvalidAmount' }
+      { 
+        id: 'test-1',
+        description: 'Check InvalidAddress error',
+        input: 'transfer(ZERO_ADDRESS, 100)', 
+        expectedOutput: 'Error: InvalidAddress' 
+      },
+      { 
+        id: 'test-2',
+        description: 'Check InvalidAmount error',
+        input: 'transfer(addr, 0)', 
+        expectedOutput: 'Error: InvalidAmount' 
+      }
     ],
     hints: [
       'Always use checked_add, checked_sub, and checked_mul to prevent overflow/underflow errors',
@@ -1065,7 +1090,12 @@ mod tests {
     }
 }`,
     testCases: [
-      { input: 'cargo test', expectedOutput: 'All tests pass' }
+      { 
+        id: 'test-1',
+        description: 'Check all tests pass',
+        input: 'cargo test', 
+        expectedOutput: 'All tests pass' 
+      }
     ],
     hints: [
       'Test all edge cases: zero amounts, maximum U256 values, insufficient balances, and overflow scenarios',
@@ -1368,7 +1398,12 @@ impl OptimizedToken {
     }
 }`,
     testCases: [
-      { input: 'Compare gas: before vs after', expectedOutput: '30-50% gas savings' }
+      { 
+        id: 'test-1',
+        description: 'Check gas optimization',
+        input: 'Compare gas: before vs after', 
+        expectedOutput: '30-50% gas savings' 
+      }
     ],
     hints: [
       'Pack boolean flags into a single StorageU8 using bit operations to save storage slots',
@@ -1743,9 +1778,24 @@ impl MultiSigWallet {
     }
 }`,
     testCases: [
-      { input: 'propose_transaction(addr, 1000)', expectedOutput: 'Transaction ID returned' },
-      { input: 'Execute with 1 approval', expectedOutput: 'Error: Not enough approvals' },
-      { input: 'Execute with 3 approvals', expectedOutput: 'Success' }
+      { 
+        id: 'test-1',
+        description: 'Check transaction proposal',
+        input: 'propose_transaction(addr, 1000)', 
+        expectedOutput: 'Transaction ID returned' 
+      },
+      { 
+        id: 'test-2',
+        description: 'Check insufficient approvals',
+        input: 'Execute with 1 approval', 
+        expectedOutput: 'Error: Not enough approvals' 
+      },
+      { 
+        id: 'test-3',
+        description: 'Check successful execution',
+        input: 'Execute with 3 approvals', 
+        expectedOutput: 'Success' 
+      }
     ],
     hints: [
       'Use the Checks-Effects-Interactions pattern: validate permissions, update state, then execute external calls',
@@ -2194,9 +2244,24 @@ sol_storage! {
 
 // Implement all functions from sections 1-4`,
     testCases: [
-      { input: 'transfer(addr, 1000)', expectedOutput: '995 received (0.5% fee)' },
-      { input: 'burn(500)', expectedOutput: 'Total supply decreased' },
-      { input: 'Transfer when paused', expectedOutput: 'Error: Paused' }
+      { 
+        id: 'test-1',
+        description: 'Check transfer fee',
+        input: 'transfer(addr, 1000)', 
+        expectedOutput: '995 received (0.5% fee)' 
+      },
+      { 
+        id: 'test-2',
+        description: 'Check burn functionality',
+        input: 'burn(500)', 
+        expectedOutput: 'Total supply decreased' 
+      },
+      { 
+        id: 'test-3',
+        description: 'Check pause functionality',
+        input: 'Transfer when paused', 
+        expectedOutput: 'Error: Paused' 
+      }
     ],
     hints: [
       'Implement a modifier-like pattern by creating a check_not_paused() helper function called at the start of transfers',
@@ -2740,9 +2805,24 @@ impl AuctionHouse {
     solution: `// Combine all code from sections 1-4
 // Full implementation of NFT + Marketplace + Auctions + Royalties`,
     testCases: [
-      { input: 'mint() -> list() -> buy()', expectedOutput: 'Full purchase flow works' },
-      { input: 'create_auction() -> bid() -> finalize()', expectedOutput: 'Auction completes with royalty payment' },
-      { input: 'Multiple bids on auction', expectedOutput: 'Previous bidders refunded' }
+      { 
+        id: 'test-1',
+        description: 'Check purchase flow',
+        input: 'mint() -> list() -> buy()', 
+        expectedOutput: 'Full purchase flow works' 
+      },
+      { 
+        id: 'test-2',
+        description: 'Check auction with royalty',
+        input: 'create_auction() -> bid() -> finalize()', 
+        expectedOutput: 'Auction completes with royalty payment' 
+      },
+      { 
+        id: 'test-3',
+        description: 'Check bid refunds',
+        input: 'Multiple bids on auction', 
+        expectedOutput: 'Previous bidders refunded' 
+      }
     ],
     hints: [
       'Store NFT ownership in StorageMap<U256, Address> and track approvals separately for marketplace transfers',

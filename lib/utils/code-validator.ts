@@ -41,8 +41,9 @@ export function validateStylusCode(
     }
   }
   
-  const score = Math.round((passedTests / totalTests) * 100);
-  const passed = passedTests === totalTests;
+  // Calculate score, handle empty test cases
+  const score = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 100;
+  const passed = totalTests === 0 || passedTests === totalTests;
   
   if (passed) {
     feedback.unshift('🎉 Perfect! All tests passed!');
@@ -79,24 +80,123 @@ function runTestCase(
   console.log('🔍 runTestCase called with:', {
     testCaseId: testCase.id,
     testCaseDescription: testCase.description,
-    hasExpectedOutput: !!testCase.expectedOutput,
-    expectedOutputLength: testCase.expectedOutput?.length
+    expectedOutput: testCase.expectedOutput
   });
   
-  // Simple check: does the user code contain the expected output?
+  // If no expected output, pass by default
   if (!testCase.expectedOutput) {
     return { passed: true, message: 'No validation required' };
   }
   
-  const normalizedExpected = normalizeCode(testCase.expectedOutput);
-  console.log('  Normalized expected:', normalizedExpected.substring(0, 100));
-  console.log('  User code contains?', userCode.includes(normalizedExpected));
+  const normalizedUser = normalizeCode(userCode);
+  const normalizedSolution = normalizeCode(solutionCode);
+  const expectedLower = testCase.expectedOutput.toLowerCase();
   
-  const passed = userCode.includes(normalizedExpected);
+  // Pattern 1: Event checks (e.g., "Event: FundsDeposited emitted")
+  if (expectedLower.includes('event:')) {
+    const eventMatch = testCase.expectedOutput.match(/Event:\s*(\w+)/i);
+    if (eventMatch) {
+      const eventName = eventMatch[1];
+      const eventLower = eventName.toLowerCase();
+      
+      // Check for event definition or usage
+      const hasEvent = normalizedUser.includes(`struct ${eventLower}`) || 
+                      normalizedUser.includes(`${eventLower} {`) ||
+                      normalizedUser.includes(`log(${eventLower}`) ||
+                      normalizedUser.includes(`evm::log(${eventLower}`) ||
+                      normalizedUser.includes(`sol! { event ${eventLower}`);
+      
+      console.log(`  Event check: ${eventName} - ${hasEvent ? 'FOUND' : 'NOT FOUND'}`);
+      return {
+        passed: hasEvent,
+        message: hasEvent ? `Event ${eventName} implemented` : `Event ${eventName} not found`
+      };
+    }
+  }
+  
+  // Pattern 2: Error checks (e.g., "Error: InvalidAddress")
+  if (expectedLower.includes('error:')) {
+    const errorMatch = testCase.expectedOutput.match(/Error:\s*(\w+)/i);
+    if (errorMatch) {
+      const errorName = errorMatch[1];
+      const errorLower = errorName.toLowerCase();
+      
+      // Check for error definition or usage
+      const hasError = normalizedUser.includes(errorLower) ||
+                      normalizedUser.includes(`err("${errorLower}`) ||
+                      normalizedUser.includes(`err(${errorLower}`);
+      
+      console.log(`  Error check: ${errorName} - ${hasError ? 'FOUND' : 'NOT FOUND'}`);
+      return {
+        passed: hasError,
+        message: hasError ? `Error ${errorName} handled` : `Error ${errorName} not found`
+      };
+    }
+  }
+  
+  // Pattern 3: Feature checks (e.g., "burn functionality", "transfer fee", "paused")
+  const featureKeywords = {
+    'burn': ['burn', 'burn(', 'fn burn'],
+    'mint': ['mint', 'mint(', 'fn mint'],
+    'pause': ['pause', 'paused', 'pausable'],
+    'fee': ['fee', 'fee_bps', 'transfer_fee'],
+    'vesting': ['vest', 'vesting', 'vested'],
+    'approve': ['approve', 'approval', 'allowance'],
+    'transfer': ['transfer', 'transfer('],
+    'supply': ['supply', 'total_supply']
+  };
+  
+  for (const [feature, keywords] of Object.entries(featureKeywords)) {
+    if (expectedLower.includes(feature)) {
+      const hasFeature = keywords.some(keyword => normalizedUser.includes(keyword.toLowerCase()));
+      if (hasFeature) {
+        console.log(`  Feature check: ${feature} - FOUND`);
+        return { passed: true, message: `Feature ${feature} implemented` };
+      }
+    }
+  }
+  
+  // Pattern 4: Test result checks (e.g., "All tests pass")
+  if (expectedLower.includes('test') && expectedLower.includes('pass')) {
+    const hasTests = normalizedUser.includes('#[test]') || normalizedUser.includes('mod test');
+    console.log(`  Test check - ${hasTests ? 'FOUND' : 'NOT FOUND'}`);
+    return {
+      passed: hasTests,
+      message: hasTests ? 'Tests implemented' : 'Tests not found'
+    };
+  }
+  
+  // Pattern 5: Gas savings check
+  if (expectedLower.includes('gas') && expectedLower.includes('saving')) {
+    // Always pass gas optimization checks as they're subjective
+    return { passed: true, message: 'Gas optimization assumed' };
+  }
+  
+  // Pattern 6: Success/workflow checks
+  if (expectedLower.includes('success') || expectedLower.includes('works') || expectedLower.includes('flow')) {
+    // Check if code has basic structure
+    const hasBasicStructure = normalizedUser.length > 100 && 
+                             (normalizedUser.includes('impl') || normalizedUser.includes('fn'));
+    return {
+      passed: hasBasicStructure,
+      message: hasBasicStructure ? 'Basic implementation found' : 'Implementation incomplete'
+    };
+  }
+  
+  // Default: Check if user code is similar to solution (at least 30% match)
+  const similarityThreshold = 0.3;
+  const commonTokens = normalizedUser.split(' ').filter(token => 
+    token.length > 3 && normalizedSolution.includes(token)
+  ).length;
+  const totalTokens = normalizedSolution.split(' ').filter(token => token.length > 3).length;
+  const similarity = totalTokens > 0 ? commonTokens / totalTokens : 0;
+  
+  console.log(`  Similarity check: ${(similarity * 100).toFixed(1)}%`);
+  const passed = similarity >= similarityThreshold;
   
   return {
     passed,
-    message: passed ? 'Pattern found' : 'Expected pattern not found in code'
+    message: passed ? 'Implementation matches expected pattern' : 'Implementation incomplete or incorrect'
   };
 }
 

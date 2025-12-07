@@ -168,6 +168,9 @@ export default function TutorialPage() {
       };
       console.log('🏆 Setting earned badge:', newBadge);
       setEarnedBadge(newBadge);
+      
+      // Scroll to top to ensure modal is visible
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error('❌ Error completing tutorial:', error);
     }
@@ -218,6 +221,7 @@ export default function TutorialPage() {
 
       if (result.passed) {
         console.log('✅ All tests passed! Completing tutorial...');
+        console.log('📊 Result score:', result.score, 'Max:', result.maxScore);
         
         // Submit challenge with correct parameters
         await tutorialProgressService.submitChallenge(
@@ -230,9 +234,14 @@ export default function TutorialPage() {
         );
         console.log('✅ Challenge submitted to Firebase');
 
-        // Mark tutorial as complete
+        // Mark tutorial as complete and show badge
+        console.log('🎯 About to call markTutorialComplete...');
         await markTutorialComplete(selectedTutorial);
-        console.log('✅ markTutorialComplete called');
+        console.log('✅ markTutorialComplete completed');
+        
+        // Small delay to ensure state updates before showing modal
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log('🏆 Badge should now be visible');
       }
     } catch (error) {
       console.error('Error validating code:', error);
@@ -1389,8 +1398,10 @@ fn require(condition: bool, message: &str) {
                             {validationResult.success ? 'All Tests Passed!' : 'Tests Failed'}
                           </h4>
                           <p className="text-[#c9d1d9] text-sm whitespace-pre-wrap">{validationResult.message}</p>
-                          {validationResult.score !== undefined && (
-                            <p className="text-[#8b949e] text-sm mt-2">Score: {validationResult.score}/{validationResult.maxScore || 100}</p>
+                          {validationResult.score !== undefined && !isNaN(validationResult.score) && (
+                            <p className="text-[#8b949e] text-sm mt-2">
+                              Score: {validationResult.score}/{validationResult.maxScore || 100}
+                            </p>
                           )}
                         </div>
                       </div>
