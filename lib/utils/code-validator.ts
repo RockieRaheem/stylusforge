@@ -27,7 +27,12 @@ export function validateStylusCode(
   
   // Run each test case
   for (const testCase of testCases) {
+    console.log('🧪 Running test case:', testCase.id, testCase.description);
+    console.log('  Expected:', testCase.expectedOutput?.substring(0, 50));
+    
     const result = runTestCase(normalizedUser, normalizedSolution, testCase);
+    console.log('  Result:', result.passed ? '✅ PASS' : '❌ FAIL', result.message);
+    
     if (result.passed) {
       passedTests++;
       feedback.push(`✅ ${testCase.description}`);
@@ -71,12 +76,22 @@ function runTestCase(
   solutionCode: string,
   testCase: TestCase
 ): { passed: boolean; message: string } {
+  console.log('🔍 runTestCase called with:', {
+    testCaseId: testCase.id,
+    testCaseDescription: testCase.description,
+    hasExpectedOutput: !!testCase.expectedOutput,
+    expectedOutputLength: testCase.expectedOutput?.length
+  });
+  
   // Simple check: does the user code contain the expected output?
   if (!testCase.expectedOutput) {
     return { passed: true, message: 'No validation required' };
   }
   
   const normalizedExpected = normalizeCode(testCase.expectedOutput);
+  console.log('  Normalized expected:', normalizedExpected.substring(0, 100));
+  console.log('  User code contains?', userCode.includes(normalizedExpected));
+  
   const passed = userCode.includes(normalizedExpected);
   
   return {

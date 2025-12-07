@@ -278,13 +278,13 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <div className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#f85149] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#f85149]/10">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#f85149]/5 rounded-full blur-2xl group-hover:bg-[#f85149]/10 transition-all"></div>
+            <Link href="/badges" className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#f9826c] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#f9826c]/10 cursor-pointer">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#f9826c]/5 rounded-full blur-2xl group-hover:bg-[#f9826c]/10 transition-all"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[#8b949e] text-sm font-medium">Streak</span>
-                  <div className="w-10 h-10 rounded-lg bg-[#f85149]/10 flex items-center justify-center group-hover:bg-[#f85149]/20 transition-all">
-                    <span className="material-symbols-outlined text-xl text-[#f85149]">local_fire_department</span>
+                  <span className="text-[#8b949e] text-sm font-medium">Badges</span>
+                  <div className="w-10 h-10 rounded-lg bg-[#f9826c]/10 flex items-center justify-center group-hover:bg-[#f9826c]/20 transition-all">
+                    <span className="material-symbols-outlined text-xl text-[#f9826c]">emoji_events</span>
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2 mb-1">
@@ -292,14 +292,14 @@ export default function DashboardPage() {
                     <div className="h-9 w-12 bg-[#21262d] animate-pulse rounded"></div>
                   ) : (
                     <>
-                      <span className="text-white text-3xl font-bold">{stats.currentStreak}</span>
-                      <span className="text-[#8b949e] text-sm font-medium">day{stats.currentStreak !== 1 ? 's' : ''}</span>
+                      <span className="text-white text-3xl font-bold">{stats.totalBadgesEarned || tutorialProgress.completed}</span>
+                      <span className="text-[#8b949e] text-sm font-medium">/10</span>
                     </>
                   )}
                 </div>
-                <p className="text-[#8b949e] text-xs">{stats.currentStreak > 0 ? 'Keep it up!' : 'Start today!'}</p>
+                <p className="text-[#8b949e] text-xs">achievements unlocked</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Tab Navigation - Simple */}
