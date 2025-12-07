@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { tutorialService, UserStats } from '../services/tutorial.service';
+import { tutorialProgressService } from '../services/tutorial-progress.service';
 import { projectService, Project } from '../services/project.service';
 import { deploymentHistoryService, Deployment } from '../services/deployment-history.service';
 import { DASHBOARD_EVENTS, onDashboardEvent } from '../events/dashboard-events';
@@ -59,9 +60,12 @@ export function useDashboardData() {
       const deployments = await deploymentHistoryService.getUserDeployments(user.uid, 5);
       console.log('🚀 Dashboard: Deployments fetched:', deployments.length);
       
-      const completedCount = await tutorialService.getCompletedTutorialCount(user.uid);
+      // Get tutorial progress from new tutorial progress service
+      const allProgress = await tutorialProgressService.getAllUserProgress(user.uid);
+      const completedCount = allProgress.filter(p => p.completedAt).length;
       const totalTutorials = 10;
       const percentage = Math.round((completedCount / totalTutorials) * 100);
+      console.log('📚 Dashboard: Tutorial progress:', completedCount, '/', totalTutorials);
 
       setData({
         stats,

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Sparkles, Award, ArrowRight } from 'lucide-react';
 import BadgeDisplay from './BadgeDisplay';
 import Confetti from 'react-confetti';
 
@@ -13,27 +14,25 @@ interface BadgeEarnedModalProps {
     icon: string;
     color: string;
   };
-  isOpen: boolean;
   onClose: () => void;
   points?: number;
 }
 
-export default function BadgeEarnedModal({ badge, isOpen, onClose, points }: BadgeEarnedModalProps) {
+export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarnedModalProps) {
+  const router = useRouter();
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    if (isOpen) {
-      setShowConfetti(true);
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-      
-      const timer = setTimeout(() => setShowConfetti(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
+    setShowConfetti(true);
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight
+    });
+    
+    const timer = setTimeout(() => setShowConfetti(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -47,7 +46,15 @@ export default function BadgeEarnedModal({ badge, isOpen, onClose, points }: Bad
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  if (!isOpen) return null;
+  const handleGoToTutorials = () => {
+    onClose();
+    router.push('/tutorial');
+  };
+
+  const handleGoToDashboard = () => {
+    onClose();
+    router.push('/dashboard');
+  };
 
   return (
     <>
@@ -120,16 +127,26 @@ export default function BadgeEarnedModal({ badge, isOpen, onClose, points }: Bad
                 </div>
               )}
 
-              {/* Continue button */}
-              <button
-                onClick={onClose}
-                className="w-full px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105"
-                style={{
-                  background: `linear-gradient(135deg, ${badge.color} 0%, ${badge.color}dd 100%)`
-                }}
-              >
-                Continue Learning
-              </button>
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGoToDashboard}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold text-white bg-[#21262d] hover:bg-[#30363d] transition-all flex items-center justify-center gap-2"
+                >
+                  <Award className="h-4 w-4" />
+                  Dashboard
+                </button>
+                <button
+                  onClick={handleGoToTutorials}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105 flex items-center justify-center gap-2"
+                  style={{
+                    background: `linear-gradient(135deg, ${badge.color} 0%, ${badge.color}dd 100%)`
+                  }}
+                >
+                  Next Tutorial
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

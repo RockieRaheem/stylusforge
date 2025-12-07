@@ -84,6 +84,17 @@ export default function TutorialPage() {
   const [validationResult, setValidationResult] = useState<{success: boolean; message: string; score?: number} | null>(null);
   const [tutorialStartTime, setTutorialStartTime] = useState<number>(Date.now());
 
+  // Load all completed tutorials on mount
+  useEffect(() => {
+    if (user) {
+      tutorialProgressService.getAllUserProgress(user.uid).then(progressList => {
+        const completed = new Set(progressList.filter(p => p.completedAt).map(p => p.tutorialId));
+        setCompletedTutorials(completed);
+        console.log('📚 Loaded completed tutorials:', completed.size);
+      }).catch(console.error);
+    }
+  }, [user]);
+
   // Load user's tutorial progress
   useEffect(() => {
     if (user && selectedTutorial) {
@@ -1689,7 +1700,17 @@ fn require(condition: bool, message: &str) {
       {earnedBadge && (
         <BadgeEarnedModal
           badge={earnedBadge}
-          onClose={() => setEarnedBadge(null)}
+          onClose={() => {
+            setEarnedBadge(null);
+            // Reload tutorial list to show updated progress
+            if (user) {
+              tutorialProgressService.getAllUserProgress(user.uid).then(progressList => {
+                const completed = new Set(progressList.filter(p => p.completedAt).map(p => p.tutorialId));
+                setCompletedTutorials(completed);
+              }).catch(console.error);
+            }
+          }}
+          points={100}
         />
       )}
     </div>
