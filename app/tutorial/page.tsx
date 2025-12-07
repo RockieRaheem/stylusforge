@@ -1082,7 +1082,12 @@ fn require(condition: bool, message: &str) {
                     </button>
                     
                     <button
-                      onClick={() => setActiveSection(activeSection + 1)}
+                      onClick={() => {
+                        // Mark current section as complete
+                        handleSectionComplete(lessonContent.sections[activeSection].id);
+                        // Move to next section or assignment
+                        setActiveSection(activeSection + 1);
+                      }}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#58a6ff] hover:bg-[#1f6feb] text-white transition-all"
                     >
                       <span>
@@ -1185,20 +1190,51 @@ fn require(condition: bool, message: &str) {
                     </button>
                     
                     <button 
-                      onClick={() => {
-                        markTutorialComplete(selectedTutorial);
-                        setSelectedTutorial(null);
-                        setActiveSection(0);
-                        setUserCode('');
-                        setShowHint(false);
-                        setShowSolution(false);
-                      }}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#3fb950] hover:bg-[#2ea043] text-white font-medium transition-all"
+                      onClick={validateAndSubmitCode}
+                      disabled={isValidating || !userCode}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#3fb950] hover:bg-[#2ea043] text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined">check</span>
-                      <span>Mark as Complete</span>
+                      {isValidating ? (
+                        <>
+                          <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                          <span>Validating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined">check</span>
+                          <span>Submit & Complete</span>
+                        </>
+                      )}
                     </button>
                   </div>
+
+                  {/* Validation Result */}
+                  {validationResult && (
+                    <div className={`mt-4 p-4 rounded-lg border ${
+                      validationResult.success 
+                        ? 'bg-[#3fb950]/10 border-[#3fb950]/30' 
+                        : 'bg-[#f85149]/10 border-[#f85149]/30'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        <span className={`material-symbols-outlined text-2xl ${
+                          validationResult.success ? 'text-[#3fb950]' : 'text-[#f85149]'
+                        }`}>
+                          {validationResult.success ? 'check_circle' : 'error'}
+                        </span>
+                        <div className="flex-1">
+                          <h4 className={`font-semibold mb-1 ${
+                            validationResult.success ? 'text-[#3fb950]' : 'text-[#f85149]'
+                          }`}>
+                            {validationResult.success ? 'All Tests Passed!' : 'Tests Failed'}
+                          </h4>
+                          <p className="text-[#c9d1d9] text-sm whitespace-pre-wrap">{validationResult.message}</p>
+                          {validationResult.score !== undefined && (
+                            <p className="text-[#8b949e] text-sm mt-2">Score: {validationResult.score}/100</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
