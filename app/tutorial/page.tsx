@@ -1546,6 +1546,14 @@ fn require(condition: bool, message: &str) {
           </div>
         </main>
       </div>
+
+      {/* Badge Earned Modal */}
+      {earnedBadge && (
+        <BadgeEarnedModal
+          badge={earnedBadge}
+          onClose={() => setEarnedBadge(null)}
+        />
+      )}
     </div>
   );
 }
