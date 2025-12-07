@@ -211,7 +211,7 @@ export default function DashboardPage() {
 
           {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#58a6ff] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#58a6ff]/10">
+            <Link href="/projects" className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#58a6ff] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#58a6ff]/10 cursor-pointer">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#58a6ff]/5 rounded-full blur-2xl group-hover:bg-[#58a6ff]/10 transition-all"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-[#8b949e] text-xs">total created</p>
               </div>
-            </div>
+            </Link>
 
             <div className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#a371f7] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#a371f7]/10">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#a371f7]/5 rounded-full blur-2xl group-hover:bg-[#a371f7]/10 transition-all"></div>
@@ -254,7 +254,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#3fb950] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#3fb950]/10">
+            <Link href="/deployments" className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#3fb950] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#3fb950]/10 cursor-pointer">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#3fb950]/5 rounded-full blur-2xl group-hover:bg-[#3fb950]/10 transition-all"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
@@ -272,7 +272,7 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-[#8b949e] text-xs">contracts deployed</p>
               </div>
-            </div>
+            </Link>
 
             <div className="group relative overflow-hidden border border-[#30363d] rounded-lg p-5 hover:border-[#f85149] transition-all bg-gradient-to-br from-[#161b22] to-[#0d1117] hover:shadow-lg hover:shadow-[#f85149]/10">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#f85149]/5 rounded-full blur-2xl group-hover:bg-[#f85149]/10 transition-all"></div>
