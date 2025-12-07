@@ -237,16 +237,35 @@ class TutorialProgressService {
 
       // Update user data with badge and completion
       const userDataRef = doc(db, this.USER_DATA_COLLECTION, userId);
+      const userDataSnap = await getDoc(userDataRef);
       
-      await updateDoc(userDataRef, {
-        completedTutorials: arrayUnion(tutorialId),
-        badges: arrayUnion({
-          ...badge,
-          earnedAt: Timestamp.now()
-        }),
-        totalPoints: increment(points),
-        lastActivityDate: Timestamp.now()
-      });
+      if (userDataSnap.exists()) {
+        const userData = userDataSnap.data();
+        const existingBadges = userData.badges || [];
+        
+        // Check if badge already exists
+        const badgeExists = existingBadges.some((b: any) => b.id === badge.id);
+        
+        if (!badgeExists) {
+          await updateDoc(userDataRef, {
+            completedTutorials: arrayUnion(tutorialId),
+            badges: arrayUnion({
+              ...badge,
+              earnedAt: Timestamp.now()
+            }),
+            totalPoints: increment(points),
+            lastActivityDate: Timestamp.now()
+          });
+          console.log(`🏆 Badge "${badge.name}" awarded to ${userId}`);
+        } else {
+          // Just update completion status without adding badge again
+          await updateDoc(userDataRef, {
+            completedTutorials: arrayUnion(tutorialId),
+            lastActivityDate: Timestamp.now()
+          });
+          console.log(`✅ Tutorial ${tutorialId} completed (badge already earned)`);
+        }
+      }
 
       // Update streak
       await this.updateStreak(userId);

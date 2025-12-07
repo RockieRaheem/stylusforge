@@ -125,17 +125,27 @@ export default function BadgesPage() {
       setLoading(true);
       const userData = await tutorialProgressService.getUserData(user.uid);
       
-      const earnedIds = new Set(userData.badges.map(b => b.id));
+      console.log('🔍 Raw badges data:', userData.badges);
+      console.log('📊 Total badges in data:', userData.badges.length);
+      
+      // Remove duplicates by badge ID
+      const uniqueBadges = userData.badges.filter((badge, index, self) =>
+        index === self.findIndex((b) => b.id === badge.id)
+      );
+      
+      console.log('✅ Unique badges:', uniqueBadges.length);
+      
+      const earnedIds = new Set(uniqueBadges.map(b => b.id));
       setEarnedBadges(earnedIds);
 
-      const recentBadges = userData.badges
+      const recentBadges = uniqueBadges
         .sort((a, b) => b.earnedAt.getTime() - a.earnedAt.getTime())
         .slice(0, 3);
 
       setStats({
-        totalEarned: userData.badges.length,
+        totalEarned: uniqueBadges.length,
         totalAvailable: ALL_BADGES.length,
-        percentage: Math.round((userData.badges.length / ALL_BADGES.length) * 100),
+        percentage: Math.round((uniqueBadges.length / ALL_BADGES.length) * 100),
         totalPoints: userData.totalPoints,
         recentBadges
       });
