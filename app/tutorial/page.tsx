@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { 
@@ -14,6 +14,11 @@ import {
 } from './tutorial-data';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import CodeExecutor from '@/components/CodeExecutor';
+import BadgeEarnedModal from '@/components/BadgeEarnedModal';
+import { useAuth } from '@/lib/context/AuthContext';
+import { tutorialProgressService } from '@/lib/services/tutorial-progress.service';
+import { validateStylusCode } from '@/lib/utils/code-validator';
+import type { Badge } from '@/lib/services/tutorial-progress.service';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -49,6 +54,7 @@ interface Assignment {
 }
 
 export default function TutorialPage() {
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'basics' | 'advanced' | 'defi'>('all');
   const [selectedTutorial, setSelectedTutorial] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState<number>(0);
@@ -57,9 +63,68 @@ export default function TutorialPage() {
   const [showSolution, setShowSolution] = useState<boolean>(false);
   const [copied, setCopied] = useState<string>('');
   const [completedTutorials, setCompletedTutorials] = useState<Set<number>>(new Set());
+  const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
+  const [earnedBadge, setEarnedBadge] = useState<Badge | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState<{success: boolean; message: string; score?: number} | null>(null);
+  const [tutorialStartTime, setTutorialStartTime] = useState<number>(Date.now());
 
-  const markTutorialComplete = (tutorialId: number) => {
+  // Load user's tutorial progress
+  useEffect(() => {
+    if (user && selectedTutorial) {
+      loadTutorialProgress();
+    }
+  }, [user, selectedTutorial]);
+
+  // Track time spent
+  useEffect(() => {
+    if (!user || !selectedTutorial) return;
+
+    const interval = setInterval(() => {
+      const timeSpent = Math.floor((Date.now() - tutorialStartTime) / 1000);
+      tutorialProgressService.updateTimeSpent(user.uid, selectedTutorial, timeSpent).catch(console.error);
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [user, selectedTutorial, tutorialStartTime]);
+
+  const loadTutorialProgress = async () => {
+    if (!user || !selectedTutorial) return;
+
+    try {
+      const progress = await tutorialProgressService.getTutorialProgress(user.uid, selectedTutorial);
+      if (progress) {
+        setCompletedSections(new Set(progress.completedSections));
+        setActiveSection(progress.completedSections.length || 0);
+        if (progress.completedAt) {
+          setCompletedTutorials(prev => new Set([...prev, selectedTutorial]));
+        }
+      } else {
+        // Start new tutorial
+        await tutorialProgressService.startTutorial(user.uid, selectedTutorial);
+        setTutorialStartTime(Date.now());
+      }
+    } catch (error) {
+      console.error('Error loading tutorial progress:', error);
+    }
+  };
+
+  const markTutorialComplete = async (tutorialId: number) => {
+    if (!user) {
+      alert('Please sign in to track your progress');
+      return;
+    }
+
     setCompletedTutorials(prev => new Set([...prev, tutorialId]));
+    
+    try {
+      const badge = await tutorialProgressService.completeTutorial(user.uid, tutorialId);
+      if (badge) {
+        setEarnedBadge(badge);
+      }
+    } catch (error) {
+      console.error('Error completing tutorial:', error);
+    }
   };
 
   const handleCopy = (text: string, id: string) => {
