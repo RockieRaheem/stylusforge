@@ -10,7 +10,7 @@ import FirebasePermissionWarning from "./components/FirebasePermissionWarning";
 
 export default function DashboardPage() {
   const { userData, loading: authLoading, signOut } = useAuth();
-  const { stats, recentProjects, tutorialProgress, loading: dataLoading, refetch } = useDashboardData();
+  const { stats, recentProjects, recentDeployments, tutorialProgress, loading: dataLoading, refetch } = useDashboardData();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'projects' | 'activity'>('overview');
   const [imageError, setImageError] = useState(false);
@@ -570,8 +570,12 @@ export default function DashboardPage() {
                 ) : (
                   <div className="divide-y divide-[#21262d]">
                     {/* Recent deployments */}
-                    {stats.totalDeployments > 0 && Array(Math.min(stats.totalDeployments, 3)).fill(0).map((_, i) => (
-                      <div key={`deploy-${i}`} className="p-4 hover:bg-[#161b22] transition-colors">
+                    {recentDeployments.length > 0 && recentDeployments.slice(0, 3).map((deployment) => (
+                      <Link 
+                        key={`deploy-${deployment.id}`} 
+                        href="/deployments"
+                        className="p-4 hover:bg-[#161b22] transition-colors block"
+                      >
                         <div className="flex items-start gap-3">
                           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#3fb950]/20">
                             <span className="material-symbols-outlined text-base text-[#3fb950]">rocket_launch</span>
@@ -579,11 +583,13 @@ export default function DashboardPage() {
                           <div className="flex-1">
                             <p className="text-white text-sm">
                               <span className="font-medium">Deployed contract</span>
+                              {' '}
+                              <span className="text-[#3fb950]">{deployment.contractName}</span>
                             </p>
-                            <p className="text-[#8b949e] text-xs mt-1">Recently</p>
+                            <p className="text-[#8b949e] text-xs mt-1">{formatTimeAgo(deployment.deployedAt)}</p>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                     
                     {/* Recent tutorials */}

@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { tutorialService, UserStats } from '../services/tutorial.service';
 import { projectService, Project } from '../services/project.service';
+import { deploymentHistoryService, Deployment } from '../services/deployment-history.service';
 import { DASHBOARD_EVENTS, onDashboardEvent } from '../events/dashboard-events';
 
 export interface DashboardData {
   stats: UserStats;
   recentProjects: Project[];
+  recentDeployments: Deployment[];
   tutorialProgress: {
     completed: number;
     total: number;
@@ -27,6 +29,7 @@ export function useDashboardData() {
       currentStreak: 0,
     },
     recentProjects: [],
+    recentDeployments: [],
     tutorialProgress: {
       completed: 0,
       total: 10,
@@ -53,6 +56,9 @@ export function useDashboardData() {
       const projects = await projectService.getUserProjects(user.uid, 6);
       console.log('📁 Dashboard: Projects fetched:', projects.length);
       
+      const deployments = await deploymentHistoryService.getUserDeployments(user.uid, 5);
+      console.log('🚀 Dashboard: Deployments fetched:', deployments.length);
+      
       const completedCount = await tutorialService.getCompletedTutorialCount(user.uid);
       const totalTutorials = 10;
       const percentage = Math.round((completedCount / totalTutorials) * 100);
@@ -60,6 +66,7 @@ export function useDashboardData() {
       setData({
         stats,
         recentProjects: projects,
+        recentDeployments: deployments,
         tutorialProgress: {
           completed: completedCount,
           total: totalTutorials,
