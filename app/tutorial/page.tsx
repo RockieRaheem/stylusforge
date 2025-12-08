@@ -1426,17 +1426,7 @@ fn require(condition: bool, message: &str) {
                         <div className="mt-4 pt-4 border-t border-[#3fb950]/20">
                           <button
                             onClick={() => {
-                              // Trigger badge modal manually
-                              if (selectedTutorial) {
-                                const tutorialData = tutorials.find(t => t.id === selectedTutorial);
-                                if (tutorialData?.badge) {
-                                  setEarnedBadge({
-                                    ...tutorialData.badge,
-                                    earnedAt: new Date()
-                                  });
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                              }
+                              window.location.href = '/badges';
                             }}
                             className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-[#3fb950] to-[#2ea043] hover:from-[#2ea043] hover:to-[#238636] text-white font-semibold transition-all hover:scale-[1.02] shadow-lg"
                           >
