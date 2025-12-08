@@ -175,18 +175,14 @@ export default function TutorialPage() {
         ...tutorialData.badge,
         earnedAt: new Date()
       };
-      console.log('🏆 Setting earned badge:', newBadge);
+      console.log('🏆 Setting earned badge NOW');
       
-      // Force immediate state update
       setEarnedBadge(newBadge);
       
-      // Force a rerender by updating a dummy state
-      setValidationResult(null);
-      
-      console.log('🎊 Badge state should be set now. Current earnedBadge:', newBadge);
-      
-      // Scroll to top to ensure modal is visible
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Immediate scroll
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     } catch (error) {
       console.error('❌ Error completing tutorial:', error);
     }
@@ -210,7 +206,6 @@ export default function TutorialPage() {
     }
 
     setIsValidating(true);
-    setValidationResult(null);
 
     try {
       // Get assignment data
@@ -228,37 +223,35 @@ export default function TutorialPage() {
         assignment.testCases || []
       );
 
-      setValidationResult({
+      console.log('🔍 Validation result:', result);
+
+      const validationData = {
         success: result.passed,
         message: result.feedback.join('\n'),
         score: result.score,
         maxScore: result.maxScore
-      });
+      };
+
+      setValidationResult(validationData);
+      setIsValidating(false);
+
+      console.log('📝 Validation result state set:', validationData);
 
       if (result.passed) {
         console.log('✅ All tests passed! Completing tutorial...');
-        console.log('📊 Result score:', result.score, 'Max:', result.maxScore);
         
-        // Submit challenge with correct parameters
+        // Submit challenge
         await tutorialProgressService.submitChallenge(
           user.uid,
           selectedTutorial,
           'assignment',
           userCode,
-          true, // isCorrect
-          result.score // points
+          true,
+          result.score
         );
-        console.log('✅ Challenge submitted to Firebase');
 
-        // Mark tutorial as complete and show badge IMMEDIATELY
-        console.log('🎯 About to call markTutorialComplete...');
+        // Mark complete and show badge
         await markTutorialComplete(selectedTutorial);
-        console.log('✅ markTutorialComplete completed');
-        
-        // Clear validation result to show only the badge modal
-        setTimeout(() => {
-          setValidationResult(null);
-        }, 1000);
       }
     } catch (error) {
       console.error('Error validating code:', error);
@@ -266,7 +259,6 @@ export default function TutorialPage() {
         success: false,
         message: 'An error occurred while validating your code. Please try again.'
       });
-    } finally {
       setIsValidating(false);
     }
   };
@@ -1395,6 +1387,12 @@ fn require(condition: bool, message: &str) {
                     </button>
                   </div>
 
+                  {/* Debug: Show validation state */}
+                  <div className="mt-2 text-xs text-[#8b949e]">
+                    Validation Result: {validationResult ? 'Present' : 'None'} | 
+                    Validating: {isValidating ? 'Yes' : 'No'}
+                  </div>
+
                   {/* Validation Result */}
                   {validationResult && (
                     <div className={`mt-4 p-4 rounded-lg border ${
@@ -1422,6 +1420,31 @@ fn require(condition: bool, message: &str) {
                           )}
                         </div>
                       </div>
+                      
+                      {/* Show "View Achievement" button on success */}
+                      {validationResult.success && (
+                        <div className="mt-4 pt-4 border-t border-[#3fb950]/20">
+                          <button
+                            onClick={() => {
+                              // Trigger badge modal manually
+                              if (selectedTutorial) {
+                                const tutorialData = tutorials.find(t => t.id === selectedTutorial);
+                                if (tutorialData?.badge) {
+                                  setEarnedBadge({
+                                    ...tutorialData.badge,
+                                    earnedAt: new Date()
+                                  });
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                              }
+                            }}
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-[#3fb950] to-[#2ea043] hover:from-[#2ea043] hover:to-[#238636] text-white font-semibold transition-all hover:scale-[1.02] shadow-lg"
+                          >
+                            <span className="material-symbols-outlined">emoji_events</span>
+                            View Your Achievement
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
@@ -1736,27 +1759,74 @@ fn require(condition: bool, message: &str) {
         </main>
       </div>
 
-      {/* Badge Earned Modal */}
-      {earnedBadge && (
-        <>
-          {console.log('🎨 RENDERING BADGE MODAL:', earnedBadge)}
-          <BadgeEarnedModal
-            badge={earnedBadge}
-            onClose={() => {
-              console.log('👋 Modal closed');
-              setEarnedBadge(null);
-              // Reload tutorial list to show updated progress
-              if (user) {
-                tutorialProgressService.getAllUserProgress(user.uid).then(progressList => {
-                  const completed = new Set(progressList.filter(p => p.completedAt).map(p => p.tutorialId));
-                  setCompletedTutorials(completed);
-                }).catch(console.error);
-              }
-            }}
-            points={100}
-          />
-        </>
-      )}
+      {/* Badge Modal - OUTSIDE ALL CONTAINERS */}
+      {earnedBadge ? (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.95)',
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'auto'
+        }}>
+          <div style={{
+            backgroundColor: '#161b22',
+            padding: '2rem',
+            borderRadius: '1rem',
+            border: '2px solid #3fb950',
+            maxWidth: '500px',
+            width: '90%',
+            boxShadow: '0 0 50px rgba(63, 185, 80, 0.5)'
+          }}>
+            <h2 style={{ color: 'white', fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
+              🎉 Achievement Unlocked!
+            </h2>
+            <div style={{ color: '#c9d1d9', marginBottom: '1.5rem', textAlign: 'center' }}>
+              <h3 style={{ color: earnedBadge.color, fontSize: '1.25rem', marginBottom: '0.5rem' }}>{earnedBadge.name}</h3>
+              <p style={{ fontSize: '0.9rem' }}>{earnedBadge.description}</p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setEarnedBadge(null)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  backgroundColor: '#3fb950',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Close
+              </button>
+              <button
+                onClick={() => { setEarnedBadge(null); window.location.href = '/badges'; }}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  backgroundColor: '#58a6ff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                View All Badges
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

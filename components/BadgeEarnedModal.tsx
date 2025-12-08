@@ -68,6 +68,7 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
 
   const modalContent = (
     <>
+      {console.log('🎨 BadgeEarnedModal RENDERING')}
       {showConfetti && (
         <Confetti
           width={windowSize.width}
@@ -81,6 +82,9 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
       <div 
         className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
         <div className="relative w-full max-w-md mx-4">
           {/* Close button */}
@@ -175,5 +179,6 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
     </>
   );
 
-  return typeof window !== 'undefined' ? createPortal(modalContent, document.body) : null;
+  // Render directly without portal for now
+  return modalContent;
 }
