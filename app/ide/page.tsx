@@ -18,6 +18,8 @@ import {
 import FileTree, { FileNode } from './components/FileTree';
 import Toolbar from './components/Toolbar';
 import { DEFAULT_CONTRACT, CARGO_TOML, README_MD } from './templates';
+import TemplateModal from '@/components/TemplateModal';
+import { CodeTemplate } from '@/lib/data/code-templates';
 
 // Dynamically import components that need client-side only rendering
 const CodeEditor = dynamic(() => import('./components/Editor'), { ssr: false });
@@ -70,6 +72,7 @@ export default function IDEPage() {
   const [newItemName, setNewItemName] = useState('');
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [isSavingProject, setIsSavingProject] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   
   // User profile dropdown
   const { userData, signOut } = useAuth();
@@ -136,6 +139,38 @@ export default function IDEPage() {
       });
     };
     setFiles(updateFiles(files));
+  };
+
+  const handleTemplateSelect = (template: CodeTemplate) => {
+    // Create new file with template code
+    const newFile: FileNode = {
+      id: `${Date.now()}-${template.name}.rs`,
+      name: `${template.name.toLowerCase().replace(/\s+/g, '_')}.rs`,
+      type: 'file',
+      content: template.code,
+    };
+
+    // Add to src folder or root
+    const srcFolder = files.find(f => f.name === 'src' && f.type === 'folder');
+    if (srcFolder && srcFolder.children) {
+      const updatedFiles = files.map(f => {
+        if (f.id === 'src') {
+          return {
+            ...f,
+            children: [...(f.children || []), newFile]
+          };
+        }
+        return f;
+      });
+      setFiles(updatedFiles);
+    } else {
+      setFiles([...files, newFile]);
+    }
+
+    // Select the new file
+    setSelectedFile(newFile);
+    setFileContent(template.code);
+    setHasUnsavedChanges(true);
   };
 
   const handleSave = async () => {
@@ -680,6 +715,16 @@ export default function IDEPage() {
                 Terminal
               </button>
             </div>
+
+            <div className="relative">
+              <button
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="px-3 py-1 text-[13px] text-white bg-blue-600 hover:bg-blue-700 rounded-sm transition-colors flex items-center gap-1.5 font-medium"
+              >
+                <Code2 className="h-3.5 w-3.5" />
+                Templates
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -984,12 +1029,26 @@ export default function IDEPage() {
             {/* Editor */}
             <div className="flex-1 overflow-hidden" style={{ height: showTerminal ? `calc(100% - ${panelHeight}px)` : '100%' }}>
               {selectedFile ? (
-                <CodeEditor
-                  value={fileContent}
-                  onChange={handleEditorChange}
-                  language={getLanguageFromFilename(selectedFile.name)}
-                  path={selectedFile.id}
-                />
+                <>
+                  {/* Info Banner for Stylus SDK templates */}
+                  {fileContent.includes('stylus_sdk') && fileContent.includes('NOTE:') && (
+                    <div className="bg-blue-500/10 border-b border-blue-500/30 px-4 py-2 flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                        <span className="text-sm text-blue-300">
+                          <strong>Template Info:</strong> This contract uses Stylus SDK and requires deployment to compile. 
+                          Browser errors are expected - click <strong>"Deploy"</strong> to build and deploy to Arbitrum.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <CodeEditor
+                    value={fileContent}
+                    onChange={handleEditorChange}
+                    language={getLanguageFromFilename(selectedFile.name)}
+                    path={selectedFile.id}
+                  />
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full bg-[#1e1e1e]">
                   <div className="text-center">
@@ -1148,6 +1207,13 @@ export default function IDEPage() {
             </div>
           </div>
         </div>
+
+        {/* Template Modal */}
+        <TemplateModal
+          isOpen={isTemplateModalOpen}
+          onClose={() => setIsTemplateModalOpen(false)}
+          onSelect={handleTemplateSelect}
+        />
       </div>
     </IDEProjectWrapper>
   );

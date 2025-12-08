@@ -119,18 +119,26 @@ impl ERC20Token {
 }`;
 
 export const CARGO_TOML = `[package]
-name = "stylus-project"
+name = "stylus-contract"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-stylus-sdk = "0.6.0"
-alloy-primitives = "0.7.7"
-alloy-sol-types = "0.7.7"
-mini-alloc = "0.4.2"
+stylus-sdk = "0.5.1"
+alloy-primitives = "0.7.6"
+alloy-sol-types = "0.7.6"
+hex = "0.4.3"
+
+[dev-dependencies]
+tokio = { version = "1.12.0", features = ["full"] }
+ethers = "2.0.0"
 
 [features]
 export-abi = ["stylus-sdk/export-abi"]
+
+[[bin]]
+name = "stylus-contract"
+path = "src/main.rs"
 
 [profile.release]
 codegen-units = 1

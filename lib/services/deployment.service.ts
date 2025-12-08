@@ -346,20 +346,32 @@ class DeploymentService {
           // Use MetaMask's ethereum.request directly for better reliability
           const ethereum = (window as any).ethereum;
           
+          // Get current gas price for the transaction
+          const gasPriceHex = await ethereum.request({
+            method: 'eth_gasPrice',
+            params: [],
+          });
+          
           console.log('📤 Sending transaction with params:', {
             from: address,
             data: bytecode.substring(0, 66) + '...', // First 66 chars
             gas: '0x' + gasLimit.toString(16),
+            gasPrice: gasPriceHex,
             gasDecimal: gasLimit.toString()
           });
           
+          // For contract creation, don't include 'to' field
+          const txParams: any = {
+            from: address,
+            data: bytecode,
+            gas: '0x' + gasLimit.toString(16),
+            gasPrice: gasPriceHex,
+            value: '0x0', // No ETH value for contract deployment
+          };
+          
           txHash = await ethereum.request({
             method: 'eth_sendTransaction',
-            params: [{
-              from: address,
-              data: bytecode,
-              gas: '0x' + gasLimit.toString(16), // Convert to hex
-            }],
+            params: [txParams],
           });
           
           console.log('✅ Transaction sent:', txHash);
