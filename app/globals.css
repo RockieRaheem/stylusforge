@@ -129,6 +129,20 @@ body {
   animation: shimmer 2s infinite;
 }
 
+.shimmer {
+  animation: shimmer 2s infinite;
+}
+
+@keyframes slideIn {
+  0% {
+    width: 0%;
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes gradient {
   0% {
     background-position: 0% 50%;

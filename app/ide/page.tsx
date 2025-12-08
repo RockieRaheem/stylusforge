@@ -20,6 +20,9 @@ import Toolbar from './components/Toolbar';
 import { DEFAULT_CONTRACT, CARGO_TOML, README_MD } from './templates';
 import TemplateModal from '@/components/TemplateModal';
 import { CodeTemplate } from '@/lib/data/code-templates';
+import GasProfiler from '@/components/GasProfiler';
+import { GasProfile } from '@/components/GasProfiler';
+import { analyzeContract, getMockGasProfile } from '@/lib/utils/gas-analyzer';
 
 // Dynamically import components that need client-side only rendering
 const CodeEditor = dynamic(() => import('./components/Editor'), { ssr: false });
@@ -65,9 +68,11 @@ export default function IDEPage() {
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(200);
   const [problems, setProblems] = useState<Array<{ type: 'error' | 'warning'; message: string; line: number }>>([]);
-  const [activePanel, setActivePanel] = useState<'terminal' | 'problems' | 'output'>('terminal');
+  const [activePanel, setActivePanel] = useState<'terminal' | 'problems' | 'output' | 'gas'>('terminal');
   const [buildOutput, setBuildOutput] = useState<string[]>([]);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [gasProfile, setGasProfile] = useState<GasProfile | null>(null);
+  const [isAnalyzingGas, setIsAnalyzingGas] = useState(false);
   const [creatingNew, setCreatingNew] = useState<{ type: 'file' | 'folder'; parentId: string | null } | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -331,6 +336,36 @@ export default function IDEPage() {
 
         // Clear problems on success
         setProblems([]);
+
+        // Analyze gas usage
+        if (result.bytecode) {
+          setIsAnalyzingGas(true);
+          try {
+            // Convert hex bytecode to Uint8Array
+            const hexString = result.bytecode.replace(/^0x/, '');
+            const wasmBytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+            const profile = analyzeContract(wasmBytes);
+            setGasProfile(profile);
+            
+            // Add gas analysis to build output
+            if (profile) {
+              setBuildOutput(prev => [
+                ...prev,
+                '',
+                '⚡ Gas Analysis:',
+                `  Total gas: ${profile.totalGas.toLocaleString()}`,
+                `  Estimated cost: $${profile.estimatedCost.toFixed(4)}`,
+                `  Operations analyzed: ${profile.operations.length}`,
+                '',
+                '💡 View detailed breakdown in Gas Profiler tab',
+              ]);
+            }
+          } catch (error) {
+            console.error('Gas analysis error:', error);
+          } finally {
+            setIsAnalyzingGas(false);
+          }
+        }
 
         return {
           success: true,
@@ -1109,6 +1144,22 @@ export default function IDEPage() {
                   >
                     Output
                   </button>
+                  <button
+                    onClick={() => setActivePanel('gas')}
+                    className={`px-3 py-1.5 text-[13px] font-normal rounded-sm flex items-center gap-1.5 ${
+                      activePanel === 'gas'
+                        ? 'bg-[#1e1e1e] text-[#cccccc]'
+                        : 'text-[#858585] hover:text-[#cccccc]'
+                    } transition-all duration-150`}
+                  >
+                    <span>⚡</span>
+                    Gas Profiler
+                    {gasProfile && (
+                      <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                        {gasProfile.totalGas.toLocaleString()}
+                      </span>
+                    )}
+                  </button>
                   <div className="flex-1"></div>
                   <button
                     onClick={() => setPanelHeight(panelHeight === 250 ? 400 : 250)}
@@ -1170,6 +1221,11 @@ export default function IDEPage() {
                           </div>
                         ))
                       )}
+                    </div>
+                  )}
+                  {activePanel === 'gas' && (
+                    <div className="h-full overflow-y-auto p-3">
+                      <GasProfiler profile={gasProfile} isLoading={isAnalyzingGas} />
                     </div>
                   )}
                 </div>
