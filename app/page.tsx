@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import UserMenu from '@/components/UserMenu';
+import GasComparison from '@/components/GasComparison';
 
 export default function HomePage() {
   return (
@@ -152,6 +153,9 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          {/* Gas Comparison Section */}
+          <GasComparison />
 
           {/* CTA Section */}
           <section className="flex flex-col gap-8 items-center text-center py-16">
