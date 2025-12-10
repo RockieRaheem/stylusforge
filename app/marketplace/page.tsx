@@ -31,6 +31,7 @@ export default function ProjectsGallery() {
   const [sortBy, setSortBy] = useState('latest');
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [likedProjects, setLikedProjects] = useState<Set<number>>(new Set());
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const MOCK_PROJECTS: Project[] = [
     {
@@ -131,8 +132,10 @@ export default function ProjectsGallery() {
         <div className="flex flex-wrap gap-6">
           {filteredProjects.map(project => (
             <div key={project.id} className="w-full sm:w-[calc((100%-3rem)/3)]">
-              <Link href={`/marketplace/${project.id}`}>
-                <div className="rounded-2xl border border-gray-200 bg-white transition-colors duration-300 hover:bg-gray-50 relative h-full p-6">
+              <div
+                onClick={() => setSelectedProject(project)}
+                className="cursor-pointer rounded-2xl border border-gray-200 bg-white transition-colors duration-300 hover:bg-gray-50 relative h-full p-6"
+              >
                   <div className="flex justify-between">
                     <span className="relative flex shrink-0 overflow-hidden size-20 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 items-center justify-center text-4xl">
                       {project.thumbnail}
@@ -171,11 +174,118 @@ export default function ProjectsGallery() {
                     ))}
                   </div>
                 </div>
-              </Link>
+              </div>
+            ))}
+          </div>
+        </main>
+
+        {/* Project Details Modal */}
+        {selectedProject && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSelectedProject(null)}>
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl">{selectedProject.thumbnail}</span>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl">{selectedProject.author.avatar}</span>
+                      <span className="text-sm text-gray-600">by {selectedProject.author.name}</span>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedProject(null)} className="text-gray-400 hover:text-gray-900">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Gas Optimization</div>
+                    <div className="text-2xl font-bold text-gray-900">{selectedProject.gasOptimization}%</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Stars</div>
+                    <div className="text-2xl font-bold text-gray-900">{selectedProject.stats.stars}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Forks</div>
+                    <div className="text-2xl font-bold text-gray-900">{selectedProject.stats.forks}</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Deployments</div>
+                    <div className="text-2xl font-bold text-gray-900">{selectedProject.deployments}</div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">About This Project</h3>
+                  <p className="text-gray-600 leading-relaxed">{selectedProject.description}</p>
+                </div>
+
+                {/* Tags */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">Technologies</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProject.tags.map(tag => (
+                      <span key={tag} className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-900 border border-gray-200">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  {selectedProject.githubUrl && (
+                    <a href={selectedProject.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <button className="w-full px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-bold">
+                        View on GitHub
+                      </button>
+                    </a>
+                  )}
+                  {selectedProject.liveUrl && (
+                    <a href={selectedProject.liveUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <button className="w-full px-6 py-3 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-500 transition-colors font-bold">
+                        Live Demo
+                      </button>
+                    </a>
+                  )}
+                </div>
+
+                {/* Videos */}
+                {(selectedProject.pitchVideo || selectedProject.demoVideo) && (
+                  <div className="space-y-4">
+                    {selectedProject.pitchVideo && (
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Pitch Video</h3>
+                        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                          <p className="text-gray-500">Video: {selectedProject.pitchVideo}</p>
+                        </div>
+                      </div>
+                    )}
+                    {selectedProject.demoVideo && (
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Demo Video</h3>
+                        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                          <p className="text-gray-500">Video: {selectedProject.demoVideo}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
-      </main>
-    </div>
-  );
-}
+          </div>
+        )}
+      </div>
+    );
+  }
+
