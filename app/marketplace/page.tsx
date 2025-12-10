@@ -1,186 +1,202 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { 
+  Play, Code2, Star, TrendingUp, Search, LayoutGrid, List,
+  Github, ExternalLink, Share, CheckCircle, X, Zap, GitFork, Sparkles
+} from 'lucide-react';
 
+// Project interface
 interface Project {
   id: number;
   title: string;
-  author: string;
-  authorAvatar: string;
   description: string;
-  category: 'DeFi' | 'NFT' | 'Gaming' | 'DAO' | 'Infrastructure' | 'Social';
+  author: {
+    name: string;
+    avatar: string;
+    verified: boolean;
+  };
+  thumbnail: string; // emoji
   tags: string[];
-  fundingGoal: number;
-  fundingRaised: number;
-  backers: number;
-  image: string;
-  status: 'Active' | 'Funded' | 'Building';
-  daysLeft?: number;
-  githubUrl?: string;
-  demoUrl?: string;
-  contractAddress?: string;
+  category: 'defi' | 'nft' | 'gaming' | 'dao' | 'infrastructure' | 'other';
+  stats: {
+    views: number;
+    stars: number;
+    forks: number;
+    downloads: number;
+  };
+  gasOptimization: number; // percentage
+  deployments: number;
+  lastUpdated: string;
+  featured: boolean;
+  verified: boolean;
+  pricing: {
+    type: 'free' | 'paid' | 'freemium';
+    price?: number;
+  };
+  pitchVideo?: string;
+  demoVideo?: string;
 }
 
 export default function MarketplacePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedProject, setSelectedProject] = useState<number | null>(null);
-  const [fundAmount, setFundAmount] = useState<string>('');
-  const [showFundModal, setShowFundModal] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'gas'>('popular');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'pitch' | 'demo'>('overview');
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
 
-  const projects: Project[] = [
+  // Load projects on mount
+  useEffect(() => {
+    // Get user-submitted projects from localStorage
+    const userProjects = JSON.parse(localStorage.getItem('userProjects') || '[]');
+    
+    // Combine with mock projects
+    setAllProjects([...userProjects, ...MOCK_PROJECTS]);
+  }, []);
+
+  // Mock projects data
+  const MOCK_PROJECTS: Project[] = [
     {
       id: 1,
-      title: 'DexSwap Protocol',
-      author: 'Sarah Chen',
-      authorAvatar: 'SC',
-      description: 'A next-generation DEX built with Stylus for ultra-low gas costs. Features automated market making, concentrated liquidity, and cross-chain swaps.',
-      category: 'DeFi',
-      tags: ['DEX', 'AMM', 'Liquidity'],
-      fundingGoal: 50000,
-      fundingRaised: 34500,
-      backers: 127,
-      image: 'defi',
-      status: 'Active',
-      daysLeft: 15,
-      githubUrl: '#',
-      demoUrl: '#',
-      contractAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+      title: 'Ultra-Efficient DEX Router',
+      description: 'Next-generation decentralized exchange router with 95% gas savings. Features automated market making, concentrated liquidity pools, and cross-chain swaps powered by Arbitrum Stylus.',
+      author: { name: 'Alex Chen', avatar: '👨‍💻', verified: true },
+      thumbnail: '🔄',
+      tags: ['DeFi', 'DEX', 'AMM', 'Liquidity'],
+      category: 'defi',
+      stats: { views: 12500, stars: 342, forks: 89, downloads: 1205 },
+      gasOptimization: 95,
+      deployments: 47,
+      lastUpdated: '2025-02-10',
+      featured: true,
+      verified: true,
+      pricing: { type: 'free' },
+      pitchVideo: 'https://example.com/dex-pitch',
+      demoVideo: 'https://example.com/dex-demo'
     },
     {
       id: 2,
-      title: 'ArtChain NFT Marketplace',
-      author: 'Marcus Rodriguez',
-      authorAvatar: 'MR',
-      description: 'Decentralized NFT marketplace with artist royalties, fractional ownership, and gasless minting powered by Stylus efficiency.',
-      category: 'NFT',
-      tags: ['NFT', 'Marketplace', 'Creator Economy'],
-      fundingGoal: 30000,
-      fundingRaised: 30000,
-      backers: 89,
-      image: 'nft',
-      status: 'Funded',
-      githubUrl: '#',
-      demoUrl: '#',
-      contractAddress: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063'
+      title: 'Zero-Knowledge NFT Marketplace',
+      description: 'Privacy-first NFT marketplace using ZK proofs. Trade, mint, and collect digital assets with complete anonymity while enjoying 92% lower gas costs compared to traditional solutions.',
+      author: { name: 'Sarah Martinez', avatar: '👩‍🎨', verified: true },
+      thumbnail: '🎨',
+      tags: ['NFT', 'ZK-Proofs', 'Privacy', 'Marketplace'],
+      category: 'nft',
+      stats: { views: 9800, stars: 278, forks: 65, downloads: 892 },
+      gasOptimization: 92,
+      deployments: 34,
+      lastUpdated: '2025-02-08',
+      featured: true,
+      verified: true,
+      pricing: { type: 'free' },
+      pitchVideo: 'https://example.com/nft-pitch',
+      demoVideo: 'https://example.com/nft-demo'
     },
     {
       id: 3,
-      title: 'GameVerse On-Chain',
-      author: 'Alex Kim',
-      authorAvatar: 'AK',
-      description: 'Fully on-chain gaming engine with real-time multiplayer, item ownership, and tournament rewards. Built for speed with Stylus.',
-      category: 'Gaming',
-      tags: ['Gaming', 'Web3', 'Metaverse'],
-      fundingGoal: 75000,
-      fundingRaised: 42300,
-      backers: 203,
-      image: 'gaming',
-      status: 'Active',
-      daysLeft: 22,
-      githubUrl: '#',
-      demoUrl: '#'
+      title: 'Gaming State Channels',
+      description: 'Lightning-fast gaming infrastructure with real-time state updates. Perfect for on-chain games requiring instant player interactions with 97% gas optimization.',
+      author: { name: 'Kevin Park', avatar: '🎮', verified: false },
+      thumbnail: '🎮',
+      tags: ['Gaming', 'State Channels', 'Real-time'],
+      category: 'gaming',
+      stats: { views: 15200, stars: 425, forks: 112, downloads: 1450 },
+      gasOptimization: 97,
+      deployments: 28,
+      lastUpdated: '2025-02-12',
+      featured: false,
+      verified: false,
+      pricing: { type: 'free' }
     },
     {
       id: 4,
-      title: 'GovHub DAO Platform',
-      author: 'Emma Thompson',
-      authorAvatar: 'ET',
-      description: 'Complete DAO governance platform with proposal systems, voting mechanisms, treasury management, and delegation features.',
-      category: 'DAO',
-      tags: ['Governance', 'DAO', 'Voting'],
-      fundingGoal: 40000,
-      fundingRaised: 28900,
-      backers: 156,
-      image: 'dao',
-      status: 'Active',
-      daysLeft: 10,
-      githubUrl: '#',
-      contractAddress: '0x1a3B2C4d5E6f7A8B9C0D1E2F3A4B5C6D7E8F9A0B'
+      title: 'DAO Governance Suite',
+      description: 'Complete governance platform for DAOs. Includes proposal systems, voting mechanisms, treasury management, delegation, and multi-sig support with massive gas savings.',
+      author: { name: 'Emma Thompson', avatar: '⚖️', verified: true },
+      thumbnail: '🗳️',
+      tags: ['DAO', 'Governance', 'Voting', 'Treasury'],
+      category: 'dao',
+      stats: { views: 7600, stars: 198, forks: 45, downloads: 623 },
+      gasOptimization: 88,
+      deployments: 19,
+      lastUpdated: '2025-02-05',
+      featured: false,
+      verified: true,
+      pricing: { type: 'freemium', price: 99 },
+      pitchVideo: 'https://example.com/dao-pitch'
     },
     {
       id: 5,
-      title: 'ZK-Bridge Infrastructure',
-      author: 'David Park',
-      authorAvatar: 'DP',
-      description: 'Zero-knowledge proof bridge for private cross-chain transactions with maximum security and minimal gas costs.',
-      category: 'Infrastructure',
-      tags: ['ZK-Proofs', 'Bridge', 'Privacy'],
-      fundingGoal: 100000,
-      fundingRaised: 67800,
-      backers: 234,
-      image: 'infra',
-      status: 'Active',
-      daysLeft: 18,
-      githubUrl: '#',
-      demoUrl: '#'
+      title: 'Cross-Chain Bridge Protocol',
+      description: 'Secure and efficient cross-chain bridge for seamless asset transfers. Supports multiple chains with robust security guarantees and 94% lower gas costs.',
+      author: { name: 'David Kim', avatar: '🌉', verified: true },
+      thumbnail: '🌉',
+      tags: ['Bridge', 'Cross-Chain', 'Infrastructure'],
+      category: 'infrastructure',
+      stats: { views: 18900, stars: 567, forks: 134, downloads: 2340 },
+      gasOptimization: 94,
+      deployments: 52,
+      lastUpdated: '2025-02-11',
+      featured: true,
+      verified: true,
+      pricing: { type: 'free' },
+      demoVideo: 'https://example.com/bridge-demo'
     },
     {
       id: 6,
-      title: 'SocialFi Network',
-      author: 'Priya Sharma',
-      authorAvatar: 'PS',
-      description: 'Decentralized social network with content monetization, creator tokens, and community-driven moderation.',
-      category: 'Social',
-      tags: ['SocialFi', 'Content', 'Creator Economy'],
-      fundingGoal: 45000,
-      fundingRaised: 19200,
-      backers: 78,
-      image: 'social',
-      status: 'Building',
-      daysLeft: 25,
-      githubUrl: '#'
+      title: 'Automated Market Maker',
+      description: 'Advanced AMM with dynamic fee structures and impermanent loss protection. Built for professional traders requiring maximum capital efficiency with minimal gas overhead.',
+      author: { name: 'Lisa Wong', avatar: '💰', verified: true },
+      thumbnail: '💎',
+      tags: ['DeFi', 'AMM', 'Trading', 'Liquidity'],
+      category: 'defi',
+      stats: { views: 14300, stars: 389, forks: 98, downloads: 1567 },
+      gasOptimization: 96,
+      deployments: 41,
+      lastUpdated: '2025-02-09',
+      featured: true,
+      verified: true,
+      pricing: { type: 'free' },
+      pitchVideo: 'https://example.com/amm-pitch',
+      demoVideo: 'https://example.com/amm-demo'
     }
   ];
 
-  const categories = ['all', 'DeFi', 'NFT', 'Gaming', 'DAO', 'Infrastructure', 'Social'];
+  const CATEGORIES = [
+    { id: 'all', label: 'All Projects', icon: '📦' },
+    { id: 'defi', label: 'DeFi', icon: '💰' },
+    { id: 'nft', label: 'NFT', icon: '🎨' },
+    { id: 'gaming', label: 'Gaming', icon: '🎮' },
+    { id: 'dao', label: 'DAO', icon: '🗳️' },
+    { id: 'infrastructure', label: 'Infrastructure', icon: '🏗️' },
+    { id: 'other', label: 'Other', icon: '🔧' }
+  ];
 
-  const filteredProjects = projects.filter(project => 
-    selectedCategory === 'all' || project.category === selectedCategory
-  );
+  // Filter and sort projects
+  const filteredProjects = allProjects
+    .filter(p => {
+      const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+      const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'popular') return b.stats.stars - a.stats.stars;
+      if (sortBy === 'recent') return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+      if (sortBy === 'gas') return b.gasOptimization - a.gasOptimization;
+      return 0;
+    });
 
-  const getProjectImage = (type: string) => {
-    const gradients = {
-      defi: 'from-blue-500 via-cyan-500 to-teal-500',
-      nft: 'from-purple-500 via-pink-500 to-rose-500',
-      gaming: 'from-orange-500 via-red-500 to-pink-500',
-      dao: 'from-green-500 via-emerald-500 to-teal-500',
-      infra: 'from-indigo-500 via-purple-500 to-blue-500',
-      social: 'from-yellow-500 via-orange-500 to-red-500'
-    };
-    return gradients[type as keyof typeof gradients] || gradients.defi;
-  };
-
-  const handleFund = (projectId: number) => {
-    setSelectedProject(projectId);
-    setShowFundModal(true);
-  };
-
-  const connectWallet = async () => {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      try {
-        await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-        // Add funding logic here
-        alert('Wallet connected! Funding feature coming soon.');
-        setShowFundModal(false);
-      } catch (error) {
-        console.error('Error connecting wallet:', error);
-      }
-    } else {
-      alert('Please install MetaMask to fund projects!');
-    }
-  };
-
-  const selectedProjectData = selectedProject ? projects.find(p => p.id === selectedProject) : null;
+  const featuredProjects = allProjects.filter(p => p.featured);
 
   return (
-    <div className="relative w-full min-h-screen bg-[#0d1117] text-white">
-      {/* Background Effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-20"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl opacity-20"></div>
-
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[#21262d] bg-[#0d1117]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-slate-800/50 bg-slate-950/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
@@ -200,8 +216,8 @@ export default function MarketplacePage() {
               </nav>
             </div>
             <Link href="/marketplace/submit">
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-secondary hover:shadow-glow-cta transition-all">
-                <span className="material-symbols-outlined !text-xl">add</span>
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/20 transition-all">
+                <span className="text-xl">+</span>
                 <span className="font-semibold">Submit Project</span>
               </button>
             </Link>
@@ -213,240 +229,421 @@ export default function MarketplacePage() {
         {/* Hero Section */}
         <section className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6">
-            <span className="material-symbols-outlined text-primary !text-xl">rocket_launch</span>
-            <span className="text-primary text-sm font-semibold">Community Marketplace</span>
+            <Code2 className="w-5 h-5 text-primary" />
+            <span className="text-primary text-sm font-semibold">Stylus Project Marketplace</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
-            Fund the Future of Web3
+            Discover Web3 Innovation
           </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-            Discover innovative projects built with Stylus. Support developers, collaborate on ideas, and be part of the next generation of blockchain applications.
+            Explore cutting-edge projects built with Arbitrum Stylus. Featuring pitch videos, demos, and ultra-efficient smart contracts.
           </p>
         </section>
 
-        {/* Stats Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="p-6 rounded-xl bg-white/5 border border-white/10 hover:border-primary/30 transition-all">
-            <div className="text-3xl font-bold text-primary mb-1">24</div>
-            <div className="text-sm text-gray-400">Active Projects</div>
+        {/* Search & Filters */}
+        <div className="mb-8 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search projects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-900/50 border border-slate-800 text-white focus:border-primary focus:outline-none"
+            />
           </div>
-          <div className="p-6 rounded-xl bg-white/5 border border-white/10 hover:border-green-500/30 transition-all">
-            <div className="text-3xl font-bold text-green-400 mb-1">$487K</div>
-            <div className="text-sm text-gray-400">Total Funded</div>
-          </div>
-          <div className="p-6 rounded-xl bg-white/5 border border-white/10 hover:border-secondary/30 transition-all">
-            <div className="text-3xl font-bold text-secondary mb-1">1,247</div>
-            <div className="text-sm text-gray-400">Community Backers</div>
-          </div>
-          <div className="p-6 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-500/30 transition-all">
-            <div className="text-3xl font-bold text-yellow-400 mb-1">18</div>
-            <div className="text-sm text-gray-400">Successfully Launched</div>
-          </div>
-        </div>
 
-        {/* Category Filter */}
-        <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-2 scrollbar-thin">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-5 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${
-                selectedCategory === category
-                  ? 'bg-primary text-white shadow-lg'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {category === 'all' ? 'All Projects' : category}
-            </button>
-          ))}
-        </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 overflow-x-auto">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+                    selectedCategory === cat.id
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'bg-slate-900/50 text-gray-400 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                </button>
+              ))}
+            </div>
 
-        {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map(project => {
-            const fundingPercent = Math.round((project.fundingRaised / project.fundingGoal) * 100);
-            
-            return (
-              <div
-                key={project.id}
-                className="group relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-primary/30 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+            <div className="ml-auto flex items-center gap-3">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-4 py-2 rounded-lg bg-slate-900/50 border border-slate-800 text-white focus:border-primary focus:outline-none"
               >
-                {/* Project Image */}
-                <div className={`h-48 bg-gradient-to-br ${getProjectImage(project.image)} relative overflow-hidden`}>
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm group-hover:bg-black/20 transition-all"></div>
-                  <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20">
-                    <span className="text-xs font-bold text-white">{project.category}</span>
-                  </div>
-                  {project.status === 'Funded' && (
-                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-green-500/90 backdrop-blur-md">
-                      <span className="text-xs font-bold text-white flex items-center gap-1">
-                        <span className="material-symbols-outlined !text-sm">check_circle</span>
-                        Funded
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <option value="popular">Most Popular</option>
+                <option value="recent">Recently Updated</option>
+                <option value="gas">Gas Efficiency</option>
+              </select>
 
-                {/* Project Info */}
-                <div className="p-6">
-                  {/* Author */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-sm font-bold">
-                      {project.authorAvatar}
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold">{project.author}</div>
-                      <div className="text-xs text-gray-500">Project Creator</div>
-                    </div>
-                  </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'grid' ? 'bg-primary text-white' : 'bg-slate-900/50 text-gray-400 hover:bg-slate-800'
+                  }`}
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-all ${
+                    viewMode === 'list' ? 'bg-primary text-white' : 'bg-slate-900/50 text-gray-400 hover:bg-slate-800'
+                  }`}
+                >
+                  <List className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                  {/* Title & Description */}
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-                    {project.description}
-                  </p>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 rounded text-xs bg-white/5 text-gray-400 border border-white/10"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Funding Progress */}
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400">Funding Progress</span>
-                      <span className="text-sm font-bold text-primary">{fundingPercent}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
-                        style={{ width: `${fundingPercent}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-lg font-bold">${project.fundingRaised.toLocaleString()}</span>
-                      <span className="text-sm text-gray-500">of ${project.fundingGoal.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <span className="material-symbols-outlined !text-lg">group</span>
-                      <span>{project.backers} backers</span>
-                    </div>
-                    {project.daysLeft && (
-                      <div className="flex items-center gap-1 text-sm text-gray-400">
-                        <span className="material-symbols-outlined !text-lg">schedule</span>
-                        <span>{project.daysLeft} days left</span>
+        {/* Featured Projects */}
+        {selectedCategory === 'all' && featuredProjects.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-yellow-400" />
+              Featured Projects
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {featuredProjects.slice(0, 2).map(project => (
+                <div
+                  key={project.id}
+                  onClick={() => setSelectedProject(project)}
+                  className="group relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-slate-700 overflow-hidden hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                >
+                  <div className="absolute top-4 right-4 z-10 flex gap-2">
+                    {project.verified && (
+                      <div className="px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/50 backdrop-blur-sm">
+                        <span className="text-xs font-bold text-blue-400 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Verified
+                        </span>
+                      </div>
+                    )}
+                    {project.featured && (
+                      <div className="px-3 py-1.5 rounded-full bg-yellow-500/20 border border-yellow-500/50 backdrop-blur-sm">
+                        <span className="text-xs font-bold text-yellow-400 flex items-center gap-1">
+                          <Star className="w-3 h-3" />
+                          Featured
+                        </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleFund(project.id)}
-                      disabled={project.status === 'Funded'}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all ${
-                        project.status === 'Funded'
-                          ? 'bg-white/5 text-gray-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:scale-105'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined !text-xl">
-                        {project.status === 'Funded' ? 'check' : 'payments'}
+                  <div className="relative h-64 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                    <div className="text-8xl">{project.thumbnail}</div>
+                    {(project.pitchVideo || project.demoVideo) && (
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/50">
+                          <Play className="w-8 h-8 text-white ml-1" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-sm font-bold">
+                        {project.author.avatar}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{project.author.name}</span>
+                          {project.author.verified && <CheckCircle className="w-4 h-4 text-blue-400" />}
+                        </div>
+                        <div className="text-xs text-gray-500">Project Creator</div>
+                      </div>
+                    </div>
+
+                    <h3 className="text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                      {project.description}
+                    </p>
+
+                    <div className="grid grid-cols-4 gap-4 mb-4">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-primary">{project.gasOptimization}%</div>
+                        <div className="text-xs text-gray-500">Gas Saved</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold">{project.stats.stars}</div>
+                        <div className="text-xs text-gray-500">Stars</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold">{project.stats.forks}</div>
+                        <div className="text-xs text-gray-500">Forks</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold">{project.deployments}</div>
+                        <div className="text-xs text-gray-500">Deploys</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        {project.tags.slice(0, 2).map(tag => (
+                          <span key={tag} className="px-2 py-1 rounded text-xs bg-slate-800 text-gray-400">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      {project.pricing.type === 'free' ? (
+                        <span className="text-sm font-bold text-green-400">Free</span>
+                      ) : (
+                        <span className="text-sm font-bold">${project.pricing.price}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* All Projects */}
+        <section>
+          <h2 className="text-2xl font-bold mb-6">
+            {selectedCategory === 'all' ? 'All Projects' : CATEGORIES.find(c => c.id === selectedCategory)?.label}
+          </h2>
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+            {filteredProjects.map(project => (
+              <div
+                key={project.id}
+                onClick={() => setSelectedProject(project)}
+                className="group relative bg-slate-900/50 rounded-xl border border-slate-800 overflow-hidden hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+              >
+                <div className="relative h-48 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+                  <div className="text-6xl">{project.thumbnail}</div>
+                  {(project.pitchVideo || project.demoVideo) && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/50">
+                        <Play className="w-6 h-6 text-white ml-1" />
+                      </div>
+                    </div>
+                  )}
+                  {project.verified && (
+                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold">
+                      {project.author.avatar}
+                    </div>
+                    <span className="text-sm font-medium text-gray-300">{project.author.name}</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                    {project.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                    {project.description}
+                  </p>
+
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3" /> {project.stats.stars}
                       </span>
-                      <span>{project.status === 'Funded' ? 'Funded' : 'Fund Now'}</span>
-                    </button>
-                    <button className="px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
-                      <span className="material-symbols-outlined">share</span>
-                    </button>
+                      <span className="flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3" /> {project.gasOptimization}%
+                      </span>
+                    </div>
+                    {project.pricing.type === 'free' ? (
+                      <span className="text-xs font-bold text-green-400">Free</span>
+                    ) : (
+                      <span className="text-xs font-bold">${project.pricing.price}</span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-1">
+                    {project.tags.slice(0, 3).map(tag => (
+                      <span key={tag} className="px-2 py-0.5 rounded text-xs bg-slate-800 text-gray-400">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Call to Action */}
-        <section className="mt-20 text-center p-12 rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-primary/10 border border-primary/20">
-          <span className="material-symbols-outlined !text-5xl text-primary mb-4">lightbulb</span>
-          <h2 className="text-3xl font-bold mb-4">Have a Project Idea?</h2>
-          <p className="text-lg text-gray-400 mb-6 max-w-2xl mx-auto">
-            Share your Stylus project with the community. Get funding, find collaborators, and bring your vision to life.
-          </p>
-          <Link href="/marketplace/submit">
-            <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-secondary hover:shadow-glow-cta hover:scale-105 transition-all font-bold text-lg">
-              Submit Your Project
-            </button>
-          </Link>
+            ))}
+          </div>
         </section>
       </main>
 
-      {/* Fund Modal */}
-      {showFundModal && selectedProjectData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in">
-          <div className="bg-[#161b22] rounded-2xl border border-[#30363d] max-w-md w-full p-8 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">Fund Project</h3>
+      {/* Project Detail Modal */}
+      {selectedProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProject(null)}>
+          <div className="bg-slate-900 rounded-2xl border border-slate-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-6 flex items-center justify-between z-10">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">{selectedProject.thumbnail}</div>
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedProject.title}</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-gray-400">by {selectedProject.author.name}</span>
+                    {selectedProject.author.verified && <CheckCircle className="w-4 h-4 text-blue-400" />}
+                  </div>
+                </div>
+              </div>
               <button
-                onClick={() => setShowFundModal(false)}
+                onClick={() => setSelectedProject(null)}
                 className="text-gray-400 hover:text-white transition-colors"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold mb-2">{selectedProjectData.title}</h4>
-              <p className="text-sm text-gray-400">by {selectedProjectData.author}</p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Funding Amount (ETH)</label>
-              <input
-                type="number"
-                value={fundAmount}
-                onChange={(e) => setFundAmount(e.target.value)}
-                placeholder="0.1"
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none"
-              />
-              <p className="text-xs text-gray-500 mt-2">Minimum: 0.01 ETH</p>
-            </div>
-
-            {selectedProjectData.contractAddress && (
-              <div className="mb-6 p-4 rounded-lg bg-white/5 border border-white/10">
-                <div className="text-xs text-gray-500 mb-1">Contract Address</div>
-                <div className="text-sm font-mono break-all">{selectedProjectData.contractAddress}</div>
-              </div>
-            )}
-
-            <div className="space-y-3">
+            {/* Modal Tabs */}
+            <div className="flex gap-1 px-6 pt-4 border-b border-slate-800">
               <button
-                onClick={connectWallet}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-secondary hover:shadow-glow-cta transition-all font-semibold"
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-all ${
+                  activeTab === 'overview' ? 'bg-slate-800 text-white' : 'text-gray-400 hover:text-white'
+                }`}
               >
-                <span className="material-symbols-outlined">account_balance_wallet</span>
-                <span>Connect Wallet & Fund</span>
+                Overview
               </button>
-              <button
-                onClick={() => setShowFundModal(false)}
-                className="w-full px-6 py-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
-              >
-                Cancel
-              </button>
+              {selectedProject.pitchVideo && (
+                <button
+                  onClick={() => setActiveTab('pitch')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-all ${
+                    activeTab === 'pitch' ? 'bg-slate-800 text-white' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Play className="w-4 h-4" />
+                  Pitch Video
+                </button>
+              )}
+              {selectedProject.demoVideo && (
+                <button
+                  onClick={() => setActiveTab('demo')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium transition-all ${
+                    activeTab === 'demo' ? 'bg-slate-800 text-white' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Code2 className="w-4 h-4" />
+                  Demo Video
+                </button>
+              )}
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                      <div className="flex items-center gap-2 text-primary mb-2">
+                        <Zap className="w-5 h-5" />
+                        <span className="text-sm text-gray-400">Gas Optimization</span>
+                      </div>
+                      <div className="text-2xl font-bold">{selectedProject.gasOptimization}%</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Star className="w-5 h-5 text-yellow-400" />
+                        <span className="text-sm text-gray-400">Stars</span>
+                      </div>
+                      <div className="text-2xl font-bold">{selectedProject.stats.stars}</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                      <div className="flex items-center gap-2 mb-2">
+                        <GitFork className="w-5 h-5 text-gray-400" />
+                        <span className="text-sm text-gray-400">Forks</span>
+                      </div>
+                      <div className="text-2xl font-bold">{selectedProject.stats.forks}</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="w-5 h-5 text-green-400" />
+                        <span className="text-sm text-gray-400">Deployments</span>
+                      </div>
+                      <div className="text-2xl font-bold">{selectedProject.deployments}</div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <h3 className="text-lg font-bold mb-3">About This Project</h3>
+                    <p className="text-gray-400 leading-relaxed">{selectedProject.description}</p>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <h3 className="text-lg font-bold mb-3">Technologies</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.tags.map(tag => (
+                        <span key={tag} className="px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-gray-300 border border-slate-700">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4">
+                    <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/20 transition-all font-semibold">
+                      <Github className="w-5 h-5" />
+                      View on GitHub
+                    </button>
+                    <button className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-all">
+                      <ExternalLink className="w-5 h-5" />
+                      Live Demo
+                    </button>
+                    <button className="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 transition-all">
+                      <Share className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'pitch' && selectedProject.pitchVideo && (
+                <div className="space-y-4">
+                  <div className="aspect-video bg-slate-800 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <Play className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-400">Pitch video player (URL: {selectedProject.pitchVideo})</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2">About the Pitch</h3>
+                    <p className="text-gray-400">
+                      Learn about the vision, problem statement, and solution approach for {selectedProject.title}.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'demo' && selectedProject.demoVideo && (
+                <div className="space-y-4">
+                  <div className="aspect-video bg-slate-800 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <Code2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-400">Demo video player (URL: {selectedProject.demoVideo})</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-2">Technical Walkthrough</h3>
+                    <p className="text-gray-400">
+                      See {selectedProject.title} in action with a complete technical demonstration and code walkthrough.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

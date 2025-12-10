@@ -3,63 +3,109 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Code2, Github, ExternalLink, Video, Upload, Sparkles } from 'lucide-react';
 
 export default function SubmitProjectPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: '',
-    tagline: '',
     description: '',
-    category: 'DeFi',
+    authorName: '',
+    authorAvatar: '',
+    thumbnail: '',
+    category: 'defi' as 'defi' | 'nft' | 'gaming' | 'dao' | 'infrastructure' | 'other',
     tags: '',
-    fundingGoal: '',
-    duration: '30',
     githubUrl: '',
     demoUrl: '',
-    contractAddress: '',
-    teamSize: '1',
-    lookingFor: [] as string[],
+    pitchVideo: '',
+    demoVideo: '',
+    gasOptimization: '',
+    pricingType: 'free' as 'free' | 'paid' | 'freemium',
+    price: '',
   });
 
-  const categories = ['DeFi', 'NFT', 'Gaming', 'DAO', 'Infrastructure', 'Social'];
-  const collaborationTypes = [
-    'Funding',
-    'Developers',
-    'Designers',
-    'Marketing',
-    'Advisors',
-    'Beta Testers'
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const categories = [
+    { value: 'defi', label: 'DeFi', icon: '💰' },
+    { value: 'nft', label: 'NFT', icon: '🎨' },
+    { value: 'gaming', label: 'Gaming', icon: '🎮' },
+    { value: 'dao', label: 'DAO', icon: '🗳️' },
+    { value: 'infrastructure', label: 'Infrastructure', icon: '🏗️' },
+    { value: 'other', label: 'Other', icon: '🔧' }
   ];
+
+  const emojiSuggestions = ['🚀', '💎', '⚡', '🔥', '🌟', '🎯', '💰', '🎨', '🎮', '🔄', '🌉', '⚖️', '🗳️', '🏗️'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would integrate with your backend/blockchain
-    console.log('Project submitted:', formData);
-    alert('Project submitted successfully! (Demo - would integrate with blockchain)');
-    router.push('/marketplace');
-  };
+    setIsSubmitting(true);
 
-  const handleCheckboxChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      lookingFor: prev.lookingFor.includes(value)
-        ? prev.lookingFor.filter(item => item !== value)
-        : [...prev.lookingFor, value]
-    }));
+    try {
+      // Create new project object matching the marketplace interface
+      const newProject = {
+        id: Date.now(),
+        title: formData.title,
+        description: formData.description,
+        author: {
+          name: formData.authorName || 'Anonymous',
+          avatar: formData.authorAvatar || '👤',
+          verified: false
+        },
+        thumbnail: formData.thumbnail || '📦',
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        category: formData.category,
+        stats: {
+          views: 0,
+          stars: 0,
+          forks: 0,
+          downloads: 0
+        },
+        gasOptimization: parseInt(formData.gasOptimization) || 0,
+        deployments: 0,
+        lastUpdated: new Date().toISOString().split('T')[0],
+        featured: false,
+        verified: false,
+        pricing: {
+          type: formData.pricingType,
+          price: formData.pricingType === 'free' ? undefined : parseFloat(formData.price) || undefined
+        },
+        pitchVideo: formData.pitchVideo || undefined,
+        demoVideo: formData.demoVideo || undefined,
+        githubUrl: formData.githubUrl || undefined,
+        liveUrl: formData.demoUrl || undefined
+      };
+
+      // Get existing projects from localStorage
+      const existingProjects = JSON.parse(localStorage.getItem('userProjects') || '[]');
+      
+      // Add new project
+      existingProjects.push(newProject);
+      
+      // Save back to localStorage
+      localStorage.setItem('userProjects', JSON.stringify(existingProjects));
+
+      // Show success message
+      alert('🎉 Project submitted successfully! Your project is now live on the marketplace.');
+      
+      // Redirect to marketplace
+      router.push('/marketplace');
+    } catch (error) {
+      console.error('Error submitting project:', error);
+      alert('❌ Error submitting project. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-[#0d1117] text-white">
-      {/* Background Effects */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl opacity-20"></div>
-      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl opacity-20"></div>
-
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header className="border-b border-[#21262d] bg-[#0d1117]/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-slate-800/50 bg-slate-950/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/marketplace" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-              <span className="material-symbols-outlined">arrow_back</span>
+              <span>←</span>
               <span>Back to Marketplace</span>
             </Link>
             <div className="flex items-center gap-3">
@@ -78,23 +124,23 @@ export default function SubmitProjectPage() {
         {/* Header Section */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6">
-            <span className="material-symbols-outlined text-primary !text-xl">campaign</span>
+            <Sparkles className="w-5 h-5 text-primary" />
             <span className="text-primary text-sm font-semibold">Submit Your Project</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
-            Share Your Vision
+            Share Your Innovation
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Get your Stylus project in front of the community. Find backers, collaborators, and supporters.
+            Showcase your Arbitrum Stylus project to the community. Get visibility, stars, and collaborators.
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <section className="p-8 rounded-2xl bg-white/5 border border-white/10">
+          <section className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary">info</span>
+              <Code2 className="w-6 h-6 text-primary" />
               Basic Information
             </h2>
 
@@ -106,33 +152,22 @@ export default function SubmitProjectPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  placeholder="e.g., DexSwap Protocol"
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
+                  placeholder="e.g., Ultra-Efficient DEX Router"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Tagline *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.tagline}
-                  onChange={(e) => setFormData({...formData, tagline: e.target.value})}
-                  placeholder="A one-sentence description of your project"
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Detailed Description *</label>
+                <label className="block text-sm font-medium mb-2">Description *</label>
                 <textarea
                   required
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Explain your project in detail. What problem does it solve? What makes it unique?"
+                  placeholder="Describe your project, its features, and what makes it unique. Explain the problem it solves and the benefits of using Stylus."
                   rows={6}
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors resize-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">Write a compelling description that showcases your project's value proposition.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -141,75 +176,188 @@ export default function SubmitProjectPage() {
                   <select
                     required
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
+                    onChange={(e) => setFormData({...formData, category: e.target.value as any})}
+                    className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
                   >
                     {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat.value} value={cat.value}>
+                        {cat.icon} {cat.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Tags</label>
+                  <label className="block text-sm font-medium mb-2">Tags *</label>
                   <input
                     type="text"
+                    required
                     value={formData.tags}
                     onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                    placeholder="e.g., DEX, AMM, Liquidity"
-                    className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
+                    placeholder="DeFi, DEX, AMM, Liquidity"
+                    className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
+                  <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Gas Optimization (%) *</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  max="99"
+                  value={formData.gasOptimization}
+                  onChange={(e) => setFormData({...formData, gasOptimization: e.target.value})}
+                  placeholder="e.g., 95"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-1">How much gas does your Stylus implementation save compared to Solidity?</p>
               </div>
             </div>
           </section>
 
-          {/* Funding Details */}
-          <section className="p-8 rounded-2xl bg-white/5 border border-white/10">
+          {/* Author & Visual */}
+          <section className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-              <span className="material-symbols-outlined text-green-400">payments</span>
-              Funding Details
+              <Upload className="w-6 h-6 text-secondary" />
+              Author & Visual Identity
             </h2>
 
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Funding Goal (USD) *</label>
+                  <label className="block text-sm font-medium mb-2">Your Name *</label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    min="100"
-                    value={formData.fundingGoal}
-                    onChange={(e) => setFormData({...formData, fundingGoal: e.target.value})}
-                    placeholder="50000"
-                    className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
+                    value={formData.authorName}
+                    onChange={(e) => setFormData({...formData, authorName: e.target.value})}
+                    placeholder="e.g., Alex Chen"
+                    className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Campaign Duration (days) *</label>
-                  <select
-                    required
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                    className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
-                  >
-                    <option value="15">15 days</option>
-                    <option value="30">30 days</option>
-                    <option value="45">45 days</option>
-                    <option value="60">60 days</option>
-                  </select>
+                  <label className="block text-sm font-medium mb-2">Author Avatar (Emoji)</label>
+                  <input
+                    type="text"
+                    value={formData.authorAvatar}
+                    onChange={(e) => setFormData({...formData, authorAvatar: e.target.value})}
+                    placeholder="👨‍💻"
+                    className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors text-center text-2xl"
+                    maxLength={2}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Single emoji representing you</p>
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+              <div>
+                <label className="block text-sm font-medium mb-2">Project Thumbnail (Emoji) *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.thumbnail}
+                  onChange={(e) => setFormData({...formData, thumbnail: e.target.value})}
+                  placeholder="🚀"
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors text-center text-4xl"
+                  maxLength={2}
+                />
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <p className="text-xs text-gray-500 w-full mb-2">Popular choices:</p>
+                  {emojiSuggestions.map(emoji => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setFormData({...formData, thumbnail: emoji})}
+                      className="w-10 h-10 rounded-lg bg-slate-950 border border-slate-800 hover:border-primary transition-colors text-xl"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Project Links */}
+          <section className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+              <ExternalLink className="w-6 h-6 text-blue-400" />
+              Project Links
+            </h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">GitHub Repository</label>
+                <div className="relative">
+                  <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="url"
+                    value={formData.githubUrl}
+                    onChange={(e) => setFormData({...formData, githubUrl: e.target.value})}
+                    placeholder="https://github.com/username/project"
+                    className="w-full pl-11 pr-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Live Demo / Website</label>
+                <div className="relative">
+                  <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="url"
+                    value={formData.demoUrl}
+                    onChange={(e) => setFormData({...formData, demoUrl: e.target.value})}
+                    placeholder="https://demo.yourproject.com"
+                    className="w-full pl-11 pr-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Video Links */}
+          <section className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+              <Video className="w-6 h-6 text-purple-400" />
+              Video Content
+            </h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Pitch Video URL</label>
+                <input
+                  type="url"
+                  value={formData.pitchVideo}
+                  onChange={(e) => setFormData({...formData, pitchVideo: e.target.value})}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-1">YouTube, Vimeo, or Loom link for your project pitch</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Demo Video URL</label>
+                <input
+                  type="url"
+                  value={formData.demoVideo}
+                  onChange={(e) => setFormData({...formData, demoVideo: e.target.value})}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-1">Technical walkthrough or product demo</p>
+              </div>
+
+              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
                 <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-primary mt-0.5">info</span>
+                  <Video className="w-5 h-5 text-blue-400 mt-0.5" />
                   <div>
                     <p className="text-sm text-gray-300">
-                      Funds will be held in a smart contract on Arbitrum and released based on milestone completion. 
-                      A 5% platform fee applies to successfully funded projects.
+                      <strong>Pro Tip:</strong> Projects with pitch and demo videos get 3x more engagement! 
+                      Upload your videos to YouTube or Vimeo and paste the links here.
                     </p>
                   </div>
                 </div>
@@ -217,90 +365,43 @@ export default function SubmitProjectPage() {
             </div>
           </section>
 
-          {/* Project Links */}
-          <section className="p-8 rounded-2xl bg-white/5 border border-white/10">
+          {/* Pricing */}
+          <section className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-              <span className="material-symbols-outlined text-secondary">link</span>
-              Project Links
+              <span className="text-2xl">💰</span>
+              Pricing
             </h2>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2">GitHub Repository</label>
-                <input
-                  type="url"
-                  value={formData.githubUrl}
-                  onChange={(e) => setFormData({...formData, githubUrl: e.target.value})}
-                  placeholder="https://github.com/username/project"
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Live Demo / Website</label>
-                <input
-                  type="url"
-                  value={formData.demoUrl}
-                  onChange={(e) => setFormData({...formData, demoUrl: e.target.value})}
-                  placeholder="https://demo.yourproject.com"
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Contract Address (if deployed)</label>
-                <input
-                  type="text"
-                  value={formData.contractAddress}
-                  onChange={(e) => setFormData({...formData, contractAddress: e.target.value})}
-                  placeholder="0x..."
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors font-mono"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Team & Collaboration */}
-          <section className="p-8 rounded-2xl bg-white/5 border border-white/10">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-              <span className="material-symbols-outlined text-yellow-400">group</span>
-              Team & Collaboration
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Current Team Size</label>
+                <label className="block text-sm font-medium mb-2">Pricing Model *</label>
                 <select
-                  value={formData.teamSize}
-                  onChange={(e) => setFormData({...formData, teamSize: e.target.value})}
-                  className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:border-primary focus:outline-none transition-colors"
+                  required
+                  value={formData.pricingType}
+                  onChange={(e) => setFormData({...formData, pricingType: e.target.value as any})}
+                  className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
                 >
-                  <option value="1">Solo (1 person)</option>
-                  <option value="2-5">Small Team (2-5 people)</option>
-                  <option value="6-10">Medium Team (6-10 people)</option>
-                  <option value="10+">Large Team (10+ people)</option>
+                  <option value="free">Free (Open Source)</option>
+                  <option value="paid">Paid (One-time)</option>
+                  <option value="freemium">Freemium (Free + Premium)</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-3">What are you looking for?</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {collaborationTypes.map(type => (
-                    <label
-                      key={type}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-[#0d1117] border border-[#30363d] hover:border-primary/50 cursor-pointer transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.lookingFor.includes(type)}
-                        onChange={() => handleCheckboxChange(type)}
-                        className="w-4 h-4 rounded border-[#30363d] bg-[#0d1117] text-primary focus:ring-primary focus:ring-offset-0"
-                      />
-                      <span className="text-sm">{type}</span>
-                    </label>
-                  ))}
+              {(formData.pricingType === 'paid' || formData.pricingType === 'freemium') && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Price (USD) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    placeholder="99.00"
+                    className="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:border-primary focus:outline-none transition-colors"
+                  />
                 </div>
-              </div>
+              )}
             </div>
           </section>
 
@@ -309,21 +410,22 @@ export default function SubmitProjectPage() {
             <Link href="/marketplace" className="flex-1">
               <button
                 type="button"
-                className="w-full px-6 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-slate-900/50 hover:bg-slate-800 border border-slate-800 font-semibold transition-all"
               >
                 Cancel
               </button>
             </Link>
             <button
               type="submit"
-              className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-r from-primary to-secondary hover:shadow-glow-cta hover:scale-105 transition-all font-bold text-lg"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold text-lg"
             >
-              Submit Project
+              {isSubmitting ? 'Submitting...' : 'Submit Project'}
             </button>
           </div>
 
           <p className="text-center text-sm text-gray-500">
-            By submitting, you agree to our terms of service and community guidelines.
+            Your project will be immediately visible on the marketplace. Make sure all information is accurate.
           </p>
         </form>
       </main>
