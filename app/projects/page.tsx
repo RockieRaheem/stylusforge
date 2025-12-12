@@ -77,9 +77,13 @@ export default function ProjectsPage() {
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
       } else if (sortBy === 'oldest') {
-        return a.createdAt?.toMillis() - b.createdAt?.toMillis();
+        const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+        const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+        return aTime - bTime;
       } else {
-        return b.updatedAt?.toMillis() - a.updatedAt?.toMillis();
+        const aTime = a.updatedAt instanceof Date ? a.updatedAt.getTime() : 0;
+        const bTime = b.updatedAt instanceof Date ? b.updatedAt.getTime() : 0;
+        return bTime - aTime;
       }
     });
 
