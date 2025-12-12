@@ -7,7 +7,7 @@ import { useDeployment } from '@/lib/hooks/useDeployment';
 import { projectService } from '@/lib/services/project.service';
 import { deploymentHistoryService } from '@/lib/services/deployment-history.service';
 import { CheckCircle, XCircle, Loader2, ExternalLink, Copy, AlertTriangle, Sparkles } from 'lucide-react';
-import { notifyDeploymentSuccess } from '@/lib/events/dashboard-events';
+import { notifyDeploymentSuccess, notifyProjectCreated } from '@/lib/events/dashboard-events';
 
 type DeploymentStep = 'idle' | 'connecting' | 'compiling' | 'deploying' | 'confirming' | 'success' | 'error';
 
@@ -122,16 +122,34 @@ function DeployPageContent() {
         try {
           const { auth } = await import('@/lib/firebase/config');
           if (auth.currentUser) {
-            const projectId = localStorage.getItem('currentProjectId');
+            let projectId = localStorage.getItem('currentProjectId');
+            
+            // Create project if it doesn't exist
+            if (!projectId) {
+              projectId = await projectService.createProject(
+                auth.currentUser.uid,
+                contractName.replace('.rs', ''),
+                contractCode,
+                'rust',
+                'Deployed contract'
+              );
+              localStorage.setItem('currentProjectId', projectId);
+              
+              // Emit project created event
+              notifyProjectCreated({ 
+                projectId, 
+                projectName: contractName.replace('.rs', '') 
+              });
+              
+              console.log('✅ Created new project:', projectId);
+            }
             
             // Mark project as deployed
-            if (projectId) {
-              await projectService.markAsDeployed(
-                projectId,
-                result.contractAddress!,
-                network
-              );
-            }
+            await projectService.markAsDeployed(
+              projectId,
+              result.contractAddress!,
+              network
+            );
 
             // Record deployment in history
             const deploymentData: any = {
@@ -142,12 +160,8 @@ function DeployPageContent() {
               gasUsed: result.gasUsed || '0',
               blockNumber: result.blockNumber,
               status: 'success',
+              projectId: projectId, // Always include projectId now
             };
-            
-            // Only include projectId if it exists (Firebase doesn't accept undefined)
-            if (projectId) {
-              deploymentData.projectId = projectId;
-            }
             
             await deploymentHistoryService.recordDeployment(
               auth.currentUser.uid,
