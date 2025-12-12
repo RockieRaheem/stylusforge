@@ -1,12 +1,25 @@
 {
   "name": "stylus-studio",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "A Professional Web-Based IDE for Building, Compiling, and Deploying Arbitrum Stylus Smart Contracts",
+  "author": {
+    "name": "Raheem Kamwanga",
+    "email": "kamwangaraheem2050@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RockieRaheem/stylusforge"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "vercel-build": "next build",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
