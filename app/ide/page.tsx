@@ -343,7 +343,7 @@ export default function IDEPage() {
           try {
             // Convert hex bytecode to Uint8Array
             const hexString = result.bytecode.replace(/^0x/, '');
-            const wasmBytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
+            const wasmBytes = new Uint8Array(hexString.match(/.{1,2}/g)?.map((byte: string) => parseInt(byte, 16)) || []);
             const profile = analyzeContract(wasmBytes);
             setGasProfile(profile);
             
