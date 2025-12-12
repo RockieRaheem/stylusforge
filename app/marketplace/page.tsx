@@ -77,20 +77,26 @@ export default function ProjectsGallery() {
     .sort((a, b) => sortBy === 'latest' ? new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime() : b.stats.stars - a.stats.stars);
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="h-16 border-b border-gray-200 bg-white px-6 sm:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      <header className="relative h-16 border-b border-slate-800/50 backdrop-blur-xl bg-slate-900/30 px-6 sm:px-8">
         <div className="relative flex h-full w-full items-center justify-between max-sm:justify-center">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 text-primary">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 text-cyan-400 group-hover:text-cyan-300 transition-colors">
               <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor"/>
               </svg>
             </div>
-            <span className="text-xl font-bold text-gray-900">StylusForge</span>
+            <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">StylusForge</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/marketplace/submit">
-              <button className="px-4 py-2 rounded-lg bg-yellow-400 text-gray-900 font-bold hover:bg-yellow-500 transition-colors">
+              <button className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold hover:scale-105 transition-all shadow-lg shadow-cyan-500/25">
                 Submit Project
               </button>
             </Link>
@@ -98,33 +104,35 @@ export default function ProjectsGallery() {
         </div>
       </header>
 
-      <main className="w-full px-6 pt-8 pb-20 sm:container sm:mx-auto">
+      <main className="relative w-full px-6 pt-8 pb-20 sm:container sm:mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-black text-gray-900 mb-2">Projects Gallery</h1>
-          <p className="text-lg text-gray-600">Explore innovative Stylus projects built by the community</p>
+          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 mb-3">Projects Gallery</h1>
+          <p className="text-lg text-slate-400">Explore innovative Stylus projects built by the community</p>
         </div>
 
-        <div className="mb-6 flex items-center justify-between overflow-auto border-b border-gray-200 pb-6">
+        <div className="mb-8 flex items-center justify-between overflow-auto border-b border-slate-800/50 pb-6">
           <div className="flex gap-2">
             {['all', 'defi', 'nft', 'gaming', 'dao', 'infrastructure'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`inline-flex h-9 items-center justify-between gap-2 rounded-lg px-3 py-2 transition-colors ${
-                  selectedCategory === cat ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                className={`inline-flex h-10 items-center justify-between gap-2 rounded-xl px-4 py-2 transition-all font-bold text-sm capitalize ${
+                  selectedCategory === cat 
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25' 
+                    : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white backdrop-blur-sm'
                 }`}
               >
-                <span className="whitespace-nowrap font-bold text-sm capitalize">{cat}</span>
+                <span className="whitespace-nowrap">{cat}</span>
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setSelectedCategory('all')} className="text-gray-900 font-bold hover:text-gray-600">Clear all</button>
+          <div className="flex gap-3">
+            <button onClick={() => setSelectedCategory('all')} className="text-slate-400 font-bold hover:text-cyan-400 transition-colors">Clear all</button>
             <button
               onClick={() => setSortBy(sortBy === 'latest' ? 'popular' : 'latest')}
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-gray-100 px-3 py-2"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-800/50 backdrop-blur-sm px-4 py-2 hover:bg-slate-800 transition-colors border border-slate-700/50"
             >
-              <span className="font-bold text-sm">{sortBy === 'latest' ? 'Latest to oldest' : 'Most popular'}</span>
+              <span className="font-bold text-sm text-white">{sortBy === 'latest' ? 'Latest to oldest' : 'Most popular'}</span>
             </button>
           </div>
         </div>
@@ -134,41 +142,44 @@ export default function ProjectsGallery() {
             <div key={project.id} className="w-full sm:w-[calc((100%-3rem)/3)]">
               <div
                 onClick={() => setSelectedProject(project)}
-                className="cursor-pointer rounded-2xl border border-gray-200 bg-white transition-colors duration-300 hover:bg-gray-50 relative h-full p-6"
+                className="group cursor-pointer rounded-2xl border border-slate-800/50 bg-gradient-to-br from-slate-900/90 to-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-cyan-500/50 hover:shadow-2xl hover:shadow-cyan-500/10 relative h-full p-6 hover:scale-[1.02]"
               >
-                  <div className="flex justify-between">
-                    <span className="relative flex shrink-0 overflow-hidden size-20 rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 items-center justify-center text-4xl">
+                  {/* Glow Effect */}
+                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative z-10 flex justify-between">
+                    <span className="relative flex shrink-0 overflow-hidden size-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 items-center justify-center text-4xl backdrop-blur-sm">
                       {project.thumbnail}
                     </span>
                     <button
                       type="button"
-                      onClick={(e) => { e.preventDefault(); toggleLike(project.id); }}
-                      className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-gray-300 hover:border-red-400 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); toggleLike(project.id); }}
+                      className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-slate-700/50 hover:border-red-400/50 transition-all bg-slate-800/50 backdrop-blur-sm hover:bg-slate-800"
                     >
                       <Heart
-                        className={`w-6 h-6 ${likedProjects.has(project.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
+                        className={`w-6 h-6 transition-all ${likedProjects.has(project.id) ? 'fill-red-500 text-red-500' : 'text-slate-400 group-hover:text-slate-300'}`}
                       />
-                      <span className="text-sm font-bold text-gray-900">{project.stats.stars}</span>
+                      <span className="text-sm font-bold text-white">{project.stats.stars}</span>
                     </button>
                   </div>
-                  <h1 className="mt-3 line-clamp-2 h-16 text-2xl font-bold text-gray-900">{project.title}</h1>
-                  <p className="mt-3 line-clamp-2 h-11 text-sm text-gray-600">{project.description}</p>
-                  <div className="mt-6 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Gas Optimization</span>
-                      <span className="text-sm font-bold text-gray-900">{project.gasOptimization}%</span>
+                  <h1 className="relative mt-3 line-clamp-2 h-16 text-2xl font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-blue-400 transition-all">{project.title}</h1>
+                  <p className="relative mt-3 line-clamp-2 h-11 text-sm text-slate-400 leading-relaxed">{project.description}</p>
+                  <div className="relative mt-6 space-y-2">
+                    <div className="flex items-center justify-between px-3 py-2 bg-slate-800/50 rounded-lg backdrop-blur-sm">
+                      <span className="text-sm text-slate-500">Gas Optimization</span>
+                      <span className="text-sm font-bold text-cyan-400">{project.gasOptimization}%</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Builder</span>
+                    <div className="flex items-center justify-between px-3 py-2 bg-slate-800/50 rounded-lg backdrop-blur-sm">
+                      <span className="text-sm text-slate-500">Builder</span>
                       <div className="inline-flex items-center gap-1.5">
                         <span className="text-2xl">{project.author.avatar}</span>
-                        <span className="text-sm font-bold text-gray-900">{project.author.name}</span>
+                        <span className="text-sm font-bold text-white">{project.author.name}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <div className="relative mt-4 flex flex-wrap items-center gap-2">
                     {project.tags.map(tag => (
-                      <div key={tag} className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-gray-900">
+                      <div key={tag} className="inline-flex items-center rounded-full bg-cyan-500/10 border border-cyan-500/30 px-3 py-1 text-xs font-medium text-cyan-400">
                         {tag}
                       </div>
                     ))}
@@ -181,21 +192,21 @@ export default function ProjectsGallery() {
 
         {/* Project Details Modal */}
         {selectedProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSelectedProject(null)}>
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setSelectedProject(null)}>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between">
+              <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 p-6 flex items-center justify-between z-10">
                 <div className="flex items-center gap-4">
-                  <span className="text-5xl">{selectedProject.thumbnail}</span>
+                  <span className="text-5xl p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-2xl">{selectedProject.thumbnail}</span>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedProject.title}</h2>
-                    <div className="flex items-center gap-2 mt-1">
+                    <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{selectedProject.title}</h2>
+                    <div className="flex items-center gap-2 mt-2">
                       <span className="text-2xl">{selectedProject.author.avatar}</span>
-                      <span className="text-sm text-gray-600">by {selectedProject.author.name}</span>
+                      <span className="text-sm text-slate-400">by <span className="text-white font-semibold">{selectedProject.author.name}</span></span>
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setSelectedProject(null)} className="text-gray-400 hover:text-gray-900">
+                <button onClick={() => setSelectedProject(null)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -206,36 +217,36 @@ export default function ProjectsGallery() {
               <div className="p-6 space-y-6">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <div className="text-sm text-gray-500 mb-1">Gas Optimization</div>
-                    <div className="text-2xl font-bold text-gray-900">{selectedProject.gasOptimization}%</div>
+                  <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm hover:border-cyan-500/50 transition-colors">
+                    <div className="text-sm text-slate-500 mb-1">Gas Optimization</div>
+                    <div className="text-2xl font-black text-cyan-400">{selectedProject.gasOptimization}%</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <div className="text-sm text-gray-500 mb-1">Stars</div>
-                    <div className="text-2xl font-bold text-gray-900">{selectedProject.stats.stars}</div>
+                  <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm hover:border-purple-500/50 transition-colors">
+                    <div className="text-sm text-slate-500 mb-1">Stars</div>
+                    <div className="text-2xl font-black text-purple-400">{selectedProject.stats.stars}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <div className="text-sm text-gray-500 mb-1">Forks</div>
-                    <div className="text-2xl font-bold text-gray-900">{selectedProject.stats.forks}</div>
+                  <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm hover:border-blue-500/50 transition-colors">
+                    <div className="text-sm text-slate-500 mb-1">Forks</div>
+                    <div className="text-2xl font-black text-blue-400">{selectedProject.stats.forks}</div>
                   </div>
-                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <div className="text-sm text-gray-500 mb-1">Deployments</div>
-                    <div className="text-2xl font-bold text-gray-900">{selectedProject.deployments}</div>
+                  <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm hover:border-green-500/50 transition-colors">
+                    <div className="text-sm text-slate-500 mb-1">Deployments</div>
+                    <div className="text-2xl font-black text-green-400">{selectedProject.deployments}</div>
                   </div>
                 </div>
 
                 {/* Description */}
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">About This Project</h3>
-                  <p className="text-gray-600 leading-relaxed">{selectedProject.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-3">About This Project</h3>
+                  <p className="text-slate-400 leading-relaxed">{selectedProject.description}</p>
                 </div>
 
                 {/* Tags */}
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">Technologies</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">Technologies</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedProject.tags.map(tag => (
-                      <span key={tag} className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-900 border border-gray-200">
+                      <span key={tag} className="px-4 py-2 rounded-xl text-sm bg-slate-800/50 text-cyan-400 border border-cyan-500/30 font-medium backdrop-blur-sm">
                         {tag}
                       </span>
                     ))}
@@ -246,14 +257,14 @@ export default function ProjectsGallery() {
                 <div className="flex gap-3 pt-4">
                   {selectedProject.githubUrl && (
                     <a href={selectedProject.githubUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                      <button className="w-full px-6 py-3 rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition-colors font-bold">
+                      <button className="w-full px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-white transition-all font-bold shadow-lg">
                         View on GitHub
                       </button>
                     </a>
                   )}
                   {selectedProject.liveUrl && (
                     <a href={selectedProject.liveUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                      <button className="w-full px-6 py-3 rounded-lg bg-yellow-400 text-gray-900 hover:bg-yellow-500 transition-colors font-bold">
+                      <button className="w-full px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white transition-all font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40">
                         Live Demo
                       </button>
                     </a>
@@ -265,17 +276,17 @@ export default function ProjectsGallery() {
                   <div className="space-y-4">
                     {selectedProject.pitchVideo && (
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">Pitch Video</h3>
-                        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                          <p className="text-gray-500">Video: {selectedProject.pitchVideo}</p>
+                        <h3 className="text-xl font-bold text-white mb-3">Pitch Video</h3>
+                        <div className="aspect-video bg-slate-800/50 border border-slate-700/50 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                          <p className="text-slate-500">Video: {selectedProject.pitchVideo}</p>
                         </div>
                       </div>
                     )}
                     {selectedProject.demoVideo && (
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">Demo Video</h3>
-                        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                          <p className="text-gray-500">Video: {selectedProject.demoVideo}</p>
+                        <h3 className="text-xl font-bold text-white mb-3">Demo Video</h3>
+                        <div className="aspect-video bg-slate-800/50 border border-slate-700/50 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                          <p className="text-slate-500">Video: {selectedProject.demoVideo}</p>
                         </div>
                       </div>
                     )}
