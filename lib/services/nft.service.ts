@@ -43,7 +43,7 @@ export interface BadgeNFT {
   blockExplorer?: string;
 }
 
-export interface NFTMetadata {
+interface NFTMetadata {
   name: string;
   description: string;
   image: string;
@@ -254,13 +254,18 @@ class NFTService {
       const tokenURI = await this.contract.tokenURI(tokenId);
       
       // Parse the data URI to get metadata
-      let metadata: NFTMetadata | null = null;
       let imageUrl = '';
 
       if (tokenURI.startsWith('data:application/json;base64,')) {
         const base64Data = tokenURI.replace('data:application/json;base64,', '');
-        const jsonString = Buffer.from(base64Data, 'base64').toString('utf-8');
-        metadata = JSON.parse(jsonString);
+        // Decode base64 in browser-safe way
+        const jsonString = decodeURIComponent(
+          atob(base64Data)
+            .split('')
+            .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+        const metadata = JSON.parse(jsonString) as NFTMetadata;
         imageUrl = metadata.image;
       }
 
@@ -339,6 +344,3 @@ class NFTService {
 
 // Export singleton instance
 export const nftService = new NFTService();
-
-// Export types
-export type { NFTMetadata };
