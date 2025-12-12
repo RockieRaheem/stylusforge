@@ -292,7 +292,7 @@ export default function DashboardPage() {
                     <div className="h-9 w-12 bg-[#21262d] animate-pulse rounded"></div>
                   ) : (
                     <>
-                      <span className="text-white text-3xl font-bold">{stats.totalBadgesEarned || tutorialProgress.completed}</span>
+                      <span className="text-white text-3xl font-bold">{tutorialProgress.completed}</span>
                       <span className="text-[#8b949e] text-sm font-medium">/10</span>
                     </>
                   )}
