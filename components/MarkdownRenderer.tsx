@@ -37,7 +37,9 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
 
           // Pre blocks (code blocks are wrapped in pre tags by markdown)
           pre: ({ node, children, ...props }) => {
-            return <div className="my-4" {...props}>{children}</div>;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { ref, ...restProps } = props as any;
+            return <div className="my-4" {...restProps}>{children}</div>;
           },
 
           // Strong/Bold
