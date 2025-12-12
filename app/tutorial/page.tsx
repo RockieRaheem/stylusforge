@@ -1749,74 +1749,16 @@ fn require(condition: bool, message: &str) {
         </main>
       </div>
 
-      {/* Badge Modal - OUTSIDE ALL CONTAINERS */}
-      {earnedBadge ? (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.95)',
-          zIndex: 999999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'auto'
-        }}>
-          <div style={{
-            backgroundColor: '#161b22',
-            padding: '2rem',
-            borderRadius: '1rem',
-            border: '2px solid #3fb950',
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: '0 0 50px rgba(63, 185, 80, 0.5)'
-          }}>
-            <h2 style={{ color: 'white', fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
-              🎉 Achievement Unlocked!
-            </h2>
-            <div style={{ color: '#c9d1d9', marginBottom: '1.5rem', textAlign: 'center' }}>
-              <h3 style={{ color: earnedBadge.color, fontSize: '1.25rem', marginBottom: '0.5rem' }}>{earnedBadge.name}</h3>
-              <p style={{ fontSize: '0.9rem' }}>{earnedBadge.description}</p>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={() => setEarnedBadge(null)}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  backgroundColor: '#3fb950',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                Close
-              </button>
-              <button
-                onClick={() => { setEarnedBadge(null); window.location.href = '/badges'; }}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  backgroundColor: '#58a6ff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                View All Badges
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {/* Badge Modal - Using BadgeEarnedModal Component */}
+      {earnedBadge && (
+        <BadgeEarnedModal
+          badge={earnedBadge}
+          onClose={() => setEarnedBadge(null)}
+          points={100}
+          userAddress={user?.uid}
+          enableNFTMinting={true}
+        />
+      )}
     </div>
   );
 }

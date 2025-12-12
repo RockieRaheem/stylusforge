@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { X, Sparkles, Award, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Award, ArrowRight, ExternalLink } from 'lucide-react';
 import BadgeDisplay from './BadgeDisplay';
 import Confetti from 'react-confetti';
+import { nftService } from '@/lib/services/nft.service';
 
 interface BadgeEarnedModalProps {
   badge: {
@@ -17,13 +18,26 @@ interface BadgeEarnedModalProps {
   };
   onClose: () => void;
   points?: number;
+  userAddress?: string;
+  enableNFTMinting?: boolean;
 }
 
-export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarnedModalProps) {
+export default function BadgeEarnedModal({ 
+  badge, 
+  onClose, 
+  points, 
+  userAddress,
+  enableNFTMinting = true 
+}: BadgeEarnedModalProps) {
   const router = useRouter();
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [mounted, setMounted] = useState(false);
+  const [isMintingNFT, setIsMintingNFT] = useState(false);
+  const [nftMinted, setNftMinted] = useState(false);
+  const [nftError, setNftError] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [showNFTOption, setShowNFTOption] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -34,8 +48,18 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
     });
     
     const timer = setTimeout(() => setShowConfetti(false), 5000);
+    
+    // Check if NFT minting is available
+    const checkNFTAvailability = async () => {
+      if (enableNFTMinting && userAddress) {
+        const isDeployed = await nftService.isContractDeployed();
+        setShowNFTOption(isDeployed);
+      }
+    };
+    checkNFTAvailability();
+    
     return () => clearTimeout(timer);
-  }, []);
+  }, [enableNFTMinting, userAddress]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -62,6 +86,28 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
   const handleGoToBadges = () => {
     onClose();
     router.push('/badges');
+  };
+
+  const handleMintNFT = async () => {
+    if (!userAddress) {
+      setNftError('Please connect your wallet first');
+      return;
+    }
+
+    setIsMintingNFT(true);
+    setNftError(null);
+
+    try {
+      const result = await nftService.mintBadge(userAddress, badge.id);
+      setNftMinted(true);
+      setTxHash(result.transactionHash || null);
+      console.log('NFT minted successfully:', result);
+    } catch (error: any) {
+      console.error('Error minting NFT:', error);
+      setNftError(error.message || 'Failed to mint NFT');
+    } finally {
+      setIsMintingNFT(false);
+    }
   };
 
   if (!mounted) return null;
@@ -141,6 +187,75 @@ export default function BadgeEarnedModal({ badge, onClose, points }: BadgeEarned
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#238636]/20 border border-[#238636] rounded-full mb-6">
                   <Sparkles className="h-4 w-4 text-[#3fb950]" />
                   <span className="text-[#3fb950] font-semibold">+{points} Points</span>
+                </div>
+              )}
+
+              {/* NFT Minting Section */}
+              {showNFTOption && !nftMinted && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg">
+                  <div className="flex items-start gap-3 mb-3">
+                    <Sparkles className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                    <div className="text-left">
+                      <h4 className="text-white font-semibold text-sm mb-1">
+                        Claim as NFT Badge
+                      </h4>
+                      <p className="text-[#8b949e] text-xs">
+                        Mint this achievement as an on-chain NFT on Arbitrum Sepolia
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {nftError && (
+                    <div className="mb-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-xs">
+                      {nftError}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleMintNFT}
+                    disabled={isMintingNFT}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isMintingNFT ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Minting NFT...
+                      </>
+                    ) : (
+                      <>
+                        <Award className="w-4 h-4" />
+                        Mint NFT Badge
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* NFT Minted Success */}
+              {nftMinted && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
+                  <div className="flex items-start gap-3 mb-3">
+                    <Award className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    <div className="text-left flex-1">
+                      <h4 className="text-white font-semibold text-sm mb-1">
+                        🎉 NFT Badge Minted!
+                      </h4>
+                      <p className="text-[#8b949e] text-xs mb-2">
+                        Your achievement is now permanently on the Arbitrum blockchain
+                      </p>
+                      {txHash && (
+                        <a
+                          href={`https://sepolia.arbiscan.io/tx/${txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          View on Arbiscan
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 

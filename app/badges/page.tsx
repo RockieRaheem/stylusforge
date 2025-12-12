@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/context/AuthContext';
 import { tutorialProgressService } from '@/lib/services/tutorial-progress.service';
+import { nftService, BadgeNFT } from '@/lib/services/nft.service';
 import BadgeDisplay from '@/components/BadgeDisplay';
-import { Award, ArrowLeft, Trophy, Star, Lock } from 'lucide-react';
+import { Award, ArrowLeft, Trophy, Star, Lock, ExternalLink, Sparkles } from 'lucide-react';
 
 interface Badge {
   id: string;
@@ -109,14 +110,49 @@ export default function BadgesPage() {
     recentBadges: []
   });
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set());
+  const [nftBadges, setNftBadges] = useState<BadgeNFT[]>([]);
+  const [loadingNFTs, setLoadingNFTs] = useState(false);
+  const [showNFTSection, setShowNFTSection] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadBadges();
+      loadNFTBadges();
     } else {
       setLoading(false);
     }
   }, [user]);
+
+  const loadNFTBadges = async () => {
+    if (!user) return;
+
+    try {
+      setLoadingNFTs(true);
+      
+      // Check if NFT contract is deployed
+      const isDeployed = await nftService.isContractDeployed();
+      if (!isDeployed) {
+        setShowNFTSection(false);
+        return;
+      }
+
+      setShowNFTSection(true);
+
+      // For Firebase auth, we need wallet address
+      // In a real app, you'd have the user connect their wallet
+      // For now, we'll just check if contract is available
+      const contractAddress = nftService.getContractAddress();
+      if (contractAddress) {
+        // This would need actual wallet connection
+        // For demo, we show the section but note wallet connection needed
+        console.log('NFT contract available at:', contractAddress);
+      }
+    } catch (error) {
+      console.error('Error loading NFT badges:', error);
+    } finally {
+      setLoadingNFTs(false);
+    }
+  };
 
   const loadBadges = async () => {
     if (!user) return;
@@ -255,6 +291,93 @@ export default function BadgesPage() {
 
         {/* Badge Grid */}
         <div className="space-y-6">
+          {/* NFT Badges Section */}
+          {showNFTSection && (
+            <div className="border-2 border-purple-500/30 rounded-lg p-6 bg-gradient-to-br from-purple-900/10 to-pink-900/10 mb-8">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-6 w-6 text-purple-400" />
+                  <div>
+                    <h2 className="text-xl font-bold text-white">NFT Achievement Badges</h2>
+                    <p className="text-sm text-[#8b949e]">Mint your badges as NFTs on Arbitrum</p>
+                  </div>
+                </div>
+                <a
+                  href={`https://sepolia.arbiscan.io/address/${nftService.getContractAddress()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  View Contract
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div className="bg-[#161b22] rounded-lg p-4 border border-[#30363d]">
+                <div className="flex items-start gap-3">
+                  <Award className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-white font-semibold text-sm mb-2">
+                      Claim Your Achievement NFTs
+                    </h3>
+                    <p className="text-[#8b949e] text-xs mb-3">
+                      When you earn a badge in tutorials, you can mint it as an on-chain NFT. 
+                      Each NFT is soul-bound (non-transferable) and proves your Stylus mastery.
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded">
+                        Soul-Bound NFTs
+                      </span>
+                      <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded">
+                        Arbitrum Sepolia
+                      </span>
+                      <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded">
+                        On-Chain Metadata
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {nftBadges.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-semibold text-white mb-3">Your NFT Badges</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {nftBadges.map((nft) => (
+                      <div
+                        key={nft.tokenId}
+                        className="border border-purple-500/30 rounded-lg p-3 bg-[#161b22] hover:border-purple-500/60 transition-all group"
+                      >
+                        <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+                          {nft.imageUrl && (
+                            <img
+                              src={nft.imageUrl}
+                              alt={nft.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <h4 className="text-white text-xs font-semibold mb-1">{nft.name}</h4>
+                        <p className="text-[#8b949e] text-xs mb-2">#{nft.tokenId}</p>
+                        {nft.blockExplorer && (
+                          <a
+                            href={nft.blockExplorer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                          >
+                            View NFT
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {stats.totalEarned > 0 && (
             <div>
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
