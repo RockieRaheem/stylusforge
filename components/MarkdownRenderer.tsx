@@ -35,13 +35,6 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
             return <p className="text-[#c9d1d9] leading-relaxed mb-4" {...props}>{children}</p>;
           },
 
-          // Pre blocks (code blocks are wrapped in pre tags by markdown)
-          pre: ({ node, children, ...props }) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { ref, ...restProps } = props as any;
-            return <div className="my-4" {...restProps}>{children}</div>;
-          },
-
           // Strong/Bold
           strong: ({ node, ...props }) => (
             <strong className="font-bold text-white" {...props} />
